@@ -25,12 +25,10 @@ jobs:
           nvm use 20
           node --version
 
-      - name: Descarregar credencials i cookies des del Drive
+      - name: Descarregar credencials des del Drive
         run: |
           python3 << 'EOF'
           import requests
-
-          # Descarregar credentials.json via ID públic
           file_id = "${{ secrets.GDRIVE_FILE_ID }}"
           url = f"https://drive.google.com/uc?export=download&id={file_id}"
           r = requests.get(url)
@@ -62,10 +60,10 @@ jobs:
               done = False
               while not done:
                   _, done = downloader.next_chunk()
-          print("✅ Cookies descarregades")
+          print(f"✅ Cookies descarregades")
           EOF
 
-     - name: Descarregar vídeo i comentaris
+      - name: Descarregar vídeo i comentaris
         run: |
           export NVM_DIR="$HOME/.nvm"
           [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
@@ -96,7 +94,6 @@ jobs:
 
           nom = "${{ github.event.inputs.nom }}"
 
-          # Buscar carpeta onedayonevibe
           results = service.files().list(
               q="name='onedayonevibe' and mimeType='application/vnd.google-apps.folder'",
               fields="files(id, name)"
@@ -106,7 +103,6 @@ jobs:
               raise Exception("No s'ha trobat la carpeta onedayonevibe al Drive")
           parent_id = files[0]['id']
 
-          # Crear carpeta del set
           folder_metadata = {
               'name': nom,
               'mimeType': 'application/vnd.google-apps.folder',
@@ -115,7 +111,6 @@ jobs:
           folder = service.files().create(body=folder_metadata, fields='id').execute()
           folder_id = folder['id']
 
-          # Pujar fitxers
           fitxers = [f"{nom}.mp4"] + glob.glob(f"comments_{nom}*.json")
           for fitxer in fitxers:
               if os.path.exists(fitxer):
