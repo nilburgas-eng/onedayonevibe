@@ -18,8 +18,100 @@ jobs:
     steps:
       - name: Instal·lar dependències
         run: |
-          pip install yt-dlp google-auth google-auth-oauthlib google-api-python-client
-          sudo apt-get install -y ffmpeg
-          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
-          export NVM_DIR="$HOME/.nvm"
-          [ -s "
+          pip install yt-dlp google-auth google-auth-oauthlib google-api-python-client requests
+          sudo apt-get install -y ffmpeg nodejs npm
+
+      - name: Descarregar credencials des del Drive
+        run: |
+          python3 << 'PYEOF'
+          import requests
+          file_id = "${{ secrets.GDRIVE_FILE_ID }}"
+          url = f"https://drive.google.com/uc?export=download&id={file_id}"
+          r = requests.get(url)
+          with open('credentials.json', 'wb') as f:
+              f.write(r.content)
+          print(f"Credencials: {len(r.content)} bytes")
+          PYEOF
+
+      - name: Descarregar cookies des del Drive
+        run: |
+          python3 << 'PYEOF'
+          from google.oauth2.service_account import Credentials
+          from googleapiclient.discovery import build
+          from googleapiclient.http import MediaIoBaseDownload
+          import io
+          creds = Credentials.from_service_account_file('credentials.json', scopes=['https://www.googleapis.com/auth/drive'])
+          service = build('drive', 'v3', credentials=creds)
+          results = service.files().list(q="name='cookies.txt'", fields="files(id, name)").execute()
+          files = results.get('files', [])
+          if not files:
+              raise Exception("No s'ha trobat cookies.txt")
+          file_id = files[0]['id']
+          request = service.files().get_media(fileId=file_id)
+          with open('cookies.txt', 'wb') as f:
+              downloader = MediaIoBaseDownload(f, request)
+              done = False
+              while not done:
+                  _, done = downloader.next_chunk()
+          print("Cookies OK")
+          PYEOF
+
+      - name: Descarregar vídeo i comentaris
+        run: |
+          yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" \
+            --merge-output-format mp4 \
+            --cookies cookies.txt \
+            --js-runtime node \
+            --remote-components ejs:github \
+            -o "${{ github.event.inputs.nom }}.mp4" \
+            "${{ github.event.inputs.url }}"
+          yt-dlp --write-comments --skip-download \
+            --cookies cookies.txt \
+            --js-runtime node \
+            --remote-components ejs:github \
+            --output "comments_${{ github.event.inputs.nom }}" \
+            "${{ github.event.inputs.url }}"
+
+      - name: Pujar a GitHub Releases
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 << 'PYEOF'
+          import os
+          import glob
+          import requests
+
+          nom = "${{ github.event.inputs.nom }}"
+          repo = "${{ github.repository }}"
+          token = os.environ['GITHUB_TOKEN']
+          headers = {"Authorization": f"token {token}"}
+
+          r = requests.post(
+              f"https://api.github.com/repos/{repo}/releases",
+              headers=headers,
+              json={"tag_name": nom, "name": nom, "draft": False}
+          )
+          print(f"Release: {r.status_code}")
+          upload_url = r.json()['upload_url'].split('{')[0]
+
+          fitxer_video = f"{nom}.mp4"
+          if os.path.exists(fitxer_video):
+              with open(fitxer_video, 'rb') as f:
+                  r2 = requests.post(
+                      f"{upload_url}?name={fitxer_video}",
+                      headers={**headers, "Content-Type": "video/mp4"},
+                      data=f
+                  )
+              print(f"Video: {r2.status_code}")
+
+          for fitxer in glob.glob(f"comments_{nom}*.json"):
+              with open(fitxer, 'rb') as f:
+                  r3 = requests.post(
+                      f"{upload_url}?name={os.path.basename(fitxer)}",
+                      headers={**headers, "Content-Type": "application/json"},
+                      data=f
+                  )
+              print(f"Comentaris: {r3.status_code}")
+
+          print("Tot pujat!")
+          PYEOF
