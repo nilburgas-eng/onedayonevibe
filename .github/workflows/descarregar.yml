@@ -71,7 +71,7 @@ jobs:
             "${{ github.event.inputs.url }}"
           yt-dlp --write-comments --skip-download \
             --cookies cookies.txt \
-            --js-runtime nodejs \
+            --js-runtime node \
             --output "comments_${{ github.event.inputs.nom }}" \
             "${{ github.event.inputs.url }}"
 
