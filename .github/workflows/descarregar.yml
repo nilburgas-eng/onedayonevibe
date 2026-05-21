@@ -72,11 +72,13 @@ jobs:
             --merge-output-format mp4 \
             --cookies cookies.txt \
             --js-runtime node \
+            --remote-components ejs:github \
             -o "${{ github.event.inputs.nom }}.mp4" \
             "${{ github.event.inputs.url }}"
           yt-dlp --write-comments --skip-download \
             --cookies cookies.txt \
             --js-runtime node \
+            --remote-components ejs:github \
             --output "comments_${{ github.event.inputs.nom }}" \
             "${{ github.event.inputs.url }}"
 
