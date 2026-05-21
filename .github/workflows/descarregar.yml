@@ -17,9 +17,13 @@ jobs:
       - name: Instal·lar dependències
         run: |
           pip install yt-dlp google-auth google-auth-oauthlib google-api-python-client
-          sudo apt-get install -y ffmpeg nodejs npm
-          npm install -g n
-          sudo n latest
+          sudo apt-get install -y ffmpeg
+          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+          nvm install 20
+          nvm use 20
+          node --version
 
       - name: Descarregar credencials i cookies des del Drive
         run: |
@@ -61,12 +65,15 @@ jobs:
           print("✅ Cookies descarregades")
           EOF
 
-      - name: Descarregar vídeo i comentaris
+     - name: Descarregar vídeo i comentaris
         run: |
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+          nvm use 20
           yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" \
             --merge-output-format mp4 \
             --cookies cookies.txt \
-            --js-runtime nodejs \
+            --js-runtime node \
             -o "${{ github.event.inputs.nom }}.mp4" \
             "${{ github.event.inputs.url }}"
           yt-dlp --write-comments --skip-download \
