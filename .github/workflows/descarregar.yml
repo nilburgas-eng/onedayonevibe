@@ -19,11 +19,22 @@ jobs:
           pip install yt-dlp google-auth google-auth-oauthlib google-api-python-client
           sudo apt-get install -y ffmpeg
 
-      - name: Descarregar cookies i fitxers des del Drive
-        env:
-          GDRIVE_CREDENTIALS: ${{ secrets.GDRIVE_CREDENTIALS }}
+      - name: Descarregar credencials i cookies des del Drive
         run: |
-          echo '${{ secrets.GDRIVE_CREDENTIALS }}' > credentials.json
+          python3 << 'EOF'
+          import requests
+
+          # Descarregar credentials.json via ID públic
+          file_id = "${{ secrets.GDRIVE_FILE_ID }}"
+          url = f"https://drive.google.com/uc?export=download&id={file_id}"
+          r = requests.get(url)
+          with open('credentials.json', 'wb') as f:
+              f.write(r.content)
+          print(f"✅ Credencials descarregades: {len(r.content)} bytes")
+          EOF
+
+      - name: Descarregar cookies des del Drive
+        run: |
           python3 << 'EOF'
           from google.oauth2.service_account import Credentials
           from googleapiclient.discovery import build
@@ -33,7 +44,6 @@ jobs:
           creds = Credentials.from_service_account_file('credentials.json', scopes=['https://www.googleapis.com/auth/drive'])
           service = build('drive', 'v3', credentials=creds)
 
-          # Buscar cookies.txt al Drive
           results = service.files().list(q="name='cookies.txt'", fields="files(id, name)").execute()
           files = results.get('files', [])
           if not files:
@@ -62,8 +72,6 @@ jobs:
             "${{ github.event.inputs.url }}"
 
       - name: Pujar al Drive
-        env:
-          GDRIVE_CREDENTIALS: ${{ secrets.GDRIVE_CREDENTIALS }}
         run: |
           python3 << 'EOF'
           import os
@@ -77,7 +85,7 @@ jobs:
 
           nom = "${{ github.event.inputs.nom }}"
 
-          # Buscar carpeta onedayonevibe al Drive
+          # Buscar carpeta onedayonevibe
           results = service.files().list(
               q="name='onedayonevibe' and mimeType='application/vnd.google-apps.folder'",
               fields="files(id, name)"
