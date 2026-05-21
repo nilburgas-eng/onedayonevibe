@@ -1,0 +1,70 @@
+name: Descarregar Set
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: 'URL del vídeo de YouTube'
+        required: true
+      nom:
+        description: 'Nom del set (ex: david_guetta_ultra_2016)'
+        required: true
+
+jobs:
+  descarregar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Instal·lar eines
+        run: |
+          pip install yt-dlp gdown
+          sudo apt-get install -y ffmpeg
+
+      - name: Descarregar vídeo i comentaris
+        run: |
+          yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" \
+            --merge-output-format mp4 \
+            -o "${{ github.event.inputs.nom }}.mp4" \
+            "${{ github.event.inputs.url }}"
+          yt-dlp --write-comments --skip-download \
+            --output "comments_${{ github.event.inputs.nom }}" \
+            "${{ github.event.inputs.url }}"
+
+      - name: Pujar al Drive
+        env:
+          GDRIVE_CREDENTIALS: ${{ secrets.GDRIVE_CREDENTIALS }}
+        run: |
+          echo '${{ secrets.GDRIVE_CREDENTIALS }}' > credentials.json
+          python3 << 'EOF'
+          import json
+          import os
+          from google.oauth2.service_account import Credentials
+          from googleapiclient.discovery import build
+          from googleapiclient.http import MediaFileUpload
+          import glob
+
+          creds = Credentials.from_service_account_file('credentials.json', scopes=['https://www.googleapis.com/auth/drive'])
+          service = build('drive', 'v3', credentials=creds)
+
+          nom = "${{ github.event.inputs.nom }}"
+
+          # Crear carpeta al Drive
+          folder_metadata = {
+              'name': nom,
+              'mimeType': 'application/vnd.google-apps.folder',
+              'parents': ['root']
+          }
+          folder = service.files().create(body=folder_metadata, fields='id').execute()
+          folder_id = folder['id']
+
+          # Pujar fitxers
+          fitxers = [f"{nom}.mp4"] + glob.glob(f"comments_{nom}*.json")
+          for fitxer in fitxers:
+              if os.path.exists(fitxer):
+                  media = MediaFileUpload(fitxer, resumable=True)
+                  file_metadata = {'name': os.path.basename(fitxer), 'parents': [folder_id]}
+                  service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+                  print(f"✅ Pujat: {fitxer}")
+          EOF
+
+      - name: Instal·lar dependències Python
+        run: pip install google-auth google-auth-oauthlib google-api-python-client
