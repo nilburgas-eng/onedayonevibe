@@ -95,6 +95,26 @@ jobs:
           service = build('drive', 'v3', credentials=creds)
 
           nom = "${{ github.event.inputs.nom }}"
+          parent_id = "${{ secrets.GDRIVE_FOLDER_ID }}"
+
+          # Crear carpeta del set dins onedayonevibe
+          folder_metadata = {
+              'name': nom,
+              'mimeType': 'application/vnd.google-apps.folder',
+              'parents': [parent_id]
+          }
+          folder = service.files().create(body=folder_metadata, fields='id').execute()
+          folder_id = folder['id']
+
+          # Pujar fitxers
+          fitxers = [f"{nom}.mp4"] + glob.glob(f"comments_{nom}*.json")
+          for fitxer in fitxers:
+              if os.path.exists(fitxer):
+                  media = MediaFileUpload(fitxer, resumable=True)
+                  file_metadata = {'name': os.path.basename(fitxer), 'parents': [folder_id]}
+                  service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+                  print(f"✅ Pujat: {fitxer}")
+          EOF
 
           results = service.files().list(
               q="name='onedayonevibe' and mimeType='application/vnd.google-apps.folder'",
