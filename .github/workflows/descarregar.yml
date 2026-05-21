@@ -14,18 +14,50 @@ jobs:
   descarregar:
     runs-on: ubuntu-latest
     steps:
-      - name: Instal·lar eines
+      - name: Instal·lar dependències
         run: |
-          pip install yt-dlp gdown
+          pip install yt-dlp google-auth google-auth-oauthlib google-api-python-client
           sudo apt-get install -y ffmpeg
+
+      - name: Descarregar cookies i fitxers des del Drive
+        env:
+          GDRIVE_CREDENTIALS: ${{ secrets.GDRIVE_CREDENTIALS }}
+        run: |
+          echo '${{ secrets.GDRIVE_CREDENTIALS }}' > credentials.json
+          python3 << 'EOF'
+          from google.oauth2.service_account import Credentials
+          from googleapiclient.discovery import build
+          from googleapiclient.http import MediaIoBaseDownload
+          import io
+
+          creds = Credentials.from_service_account_file('credentials.json', scopes=['https://www.googleapis.com/auth/drive'])
+          service = build('drive', 'v3', credentials=creds)
+
+          # Buscar cookies.txt al Drive
+          results = service.files().list(q="name='cookies.txt'", fields="files(id, name)").execute()
+          files = results.get('files', [])
+          if not files:
+              raise Exception("No s'ha trobat cookies.txt al Drive")
+
+          file_id = files[0]['id']
+          request = service.files().get_media(fileId=file_id)
+          with open('cookies.txt', 'wb') as f:
+              downloader = MediaIoBaseDownload(f, request)
+              done = False
+              while not done:
+                  _, done = downloader.next_chunk()
+          print("✅ Cookies descarregades")
+          EOF
 
       - name: Descarregar vídeo i comentaris
         run: |
           yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" \
             --merge-output-format mp4 \
+            --cookies cookies.txt \
             -o "${{ github.event.inputs.nom }}.mp4" \
             "${{ github.event.inputs.url }}"
           yt-dlp --write-comments --skip-download \
+            --cookies cookies.txt \
             --output "comments_${{ github.event.inputs.nom }}" \
             "${{ github.event.inputs.url }}"
 
@@ -33,25 +65,33 @@ jobs:
         env:
           GDRIVE_CREDENTIALS: ${{ secrets.GDRIVE_CREDENTIALS }}
         run: |
-          echo '${{ secrets.GDRIVE_CREDENTIALS }}' > credentials.json
           python3 << 'EOF'
-          import json
           import os
+          import glob
           from google.oauth2.service_account import Credentials
           from googleapiclient.discovery import build
           from googleapiclient.http import MediaFileUpload
-          import glob
 
           creds = Credentials.from_service_account_file('credentials.json', scopes=['https://www.googleapis.com/auth/drive'])
           service = build('drive', 'v3', credentials=creds)
 
           nom = "${{ github.event.inputs.nom }}"
 
-          # Crear carpeta al Drive
+          # Buscar carpeta onedayonevibe al Drive
+          results = service.files().list(
+              q="name='onedayonevibe' and mimeType='application/vnd.google-apps.folder'",
+              fields="files(id, name)"
+          ).execute()
+          files = results.get('files', [])
+          if not files:
+              raise Exception("No s'ha trobat la carpeta onedayonevibe al Drive")
+          parent_id = files[0]['id']
+
+          # Crear carpeta del set
           folder_metadata = {
               'name': nom,
               'mimeType': 'application/vnd.google-apps.folder',
-              'parents': ['root']
+              'parents': [parent_id]
           }
           folder = service.files().create(body=folder_metadata, fields='id').execute()
           folder_id = folder['id']
@@ -65,6 +105,3 @@ jobs:
                   service.files().create(body=file_metadata, media_body=media, fields='id').execute()
                   print(f"✅ Pujat: {fitxer}")
           EOF
-
-      - name: Instal·lar dependències Python
-        run: pip install google-auth google-auth-oauthlib google-api-python-client
