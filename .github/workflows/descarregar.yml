@@ -17,7 +17,9 @@ jobs:
       - name: Instal·lar dependències
         run: |
           pip install yt-dlp google-auth google-auth-oauthlib google-api-python-client
-          sudo apt-get install -y ffmpeg
+          sudo apt-get install -y ffmpeg nodejs npm
+          npm install -g n
+          sudo n latest
 
       - name: Descarregar credencials i cookies des del Drive
         run: |
@@ -64,10 +66,12 @@ jobs:
           yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" \
             --merge-output-format mp4 \
             --cookies cookies.txt \
+            --js-runtime nodejs \
             -o "${{ github.event.inputs.nom }}.mp4" \
             "${{ github.event.inputs.url }}"
           yt-dlp --write-comments --skip-download \
             --cookies cookies.txt \
+            --js-runtime nodejs \
             --output "comments_${{ github.event.inputs.nom }}" \
             "${{ github.event.inputs.url }}"
 
