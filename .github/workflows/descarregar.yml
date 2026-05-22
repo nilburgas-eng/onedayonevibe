@@ -72,7 +72,7 @@ jobs:
             --output "comments_${{ github.event.inputs.nom }}" \
             "${{ github.event.inputs.url }}"
 
-     - name: Pujar a GitHub Releases
+      - name: Pujar a GitHub Releases
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -88,13 +88,11 @@ jobs:
           token = os.environ['GITHUB_TOKEN']
           headers = {"Authorization": f"token {token}"}
 
-          # Sessió amb reintents automàtics
           session = requests.Session()
           retry = Retry(total=5, backoff_factor=2, status_forcelist=[500, 502, 503, 504])
           adapter = HTTPAdapter(max_retries=retry)
           session.mount('https://', adapter)
 
-          # Buscar release existent o crear-ne un
           r = session.get(
               f"https://api.github.com/repos/{repo}/releases/tags/{nom}",
               headers=headers
@@ -111,7 +109,6 @@ jobs:
               print(f"Release creat: {r.status_code}")
               upload_url = r.json()['upload_url'].split('{')[0]
 
-          # Pujar vídeo
           fitxer_video = f"{nom}.mp4"
           if os.path.exists(fitxer_video):
               mida = os.path.getsize(fitxer_video)
@@ -125,7 +122,6 @@ jobs:
                   )
               print(f"Video: {r2.status_code}")
 
-          # Pujar comentaris
           for fitxer in glob.glob(f"comments_{nom}*.json"):
               with open(fitxer, 'rb') as f:
                   r3 = session.post(
