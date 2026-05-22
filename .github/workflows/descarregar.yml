@@ -71,7 +71,17 @@ jobs:
             --remote-components ejs:github \
             --output "comments_${{ github.event.inputs.nom }}" \
             "${{ github.event.inputs.url }}"
-
+- name: Comprimir vídeo
+        run: |
+          nom="${{ github.event.inputs.nom }}"
+          ffmpeg -i "${nom}.mp4" \
+            -vf "scale=1920:-2" \
+            -c:v libx264 -crf 23 -preset fast \
+            -c:a aac -b:a 128k \
+            "${nom}_compressed.mp4" -y
+          mv "${nom}_compressed.mp4" "${nom}.mp4"
+          mida=$(du -m "${nom}.mp4" | cut -f1)
+          echo "Mida comprimida: ${mida} MB"
       - name: Pujar a GitHub Releases
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
