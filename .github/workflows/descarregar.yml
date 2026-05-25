@@ -76,8 +76,8 @@ jobs:
         run: |
           nom="${{ github.event.inputs.nom }}"
           ffmpeg -i "${nom}.mp4" \
-            -vf "scale=1920:-2" \
-            -c:v libx264 -crf 23 -preset fast \
+            -vf "scale=1280:-2" \
+            -c:v libx264 -crf 28 -preset fast \
             -c:a aac -b:a 128k \
             "${nom}_compressed.mp4" -y
           mv "${nom}_compressed.mp4" "${nom}.mp4"
