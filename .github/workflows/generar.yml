@@ -49,6 +49,7 @@ jobs:
           wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-Medium.ttf" -O ~/fonts/Montserrat-Medium.ttf
           wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-Bold.ttf" -O ~/fonts/Montserrat-Bold.ttf
           echo "Fonts: $(ls ~/fonts/ | wc -l)"
+
       - name: Descarregar credencials des del Drive
         run: |
           python3 << 'PYEOF'
@@ -86,6 +87,8 @@ jobs:
           for asset in r.json()['assets']:
               nom_fitxer = asset['name']
               asset_id = asset['id']
+              if 'top5_final' in nom_fitxer:
+                  continue
               print(f"Descarregant {nom_fitxer}...")
               r2 = requests.get(
                   f"https://api.github.com/repos/{repo}/releases/assets/{asset_id}",
@@ -117,7 +120,7 @@ jobs:
           DURADES_MANUALS: ${{ github.event.inputs.durades_manuals }}
         run: python3 generar.py
 
-     - name: Pujar vídeo final a GitHub Releases
+      - name: Pujar vídeo final a GitHub Releases
         env:
           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
         run: |
@@ -136,7 +139,6 @@ jobs:
           adapter = HTTPAdapter(max_retries=retry)
           session.mount('https://', adapter)
 
-          # Buscar release existent
           r = session.get(
               f"https://api.github.com/repos/{repo}/releases/tags/{nom}",
               headers=headers
@@ -146,7 +148,6 @@ jobs:
 
           upload_url = r.json()['upload_url'].split('{')[0]
 
-          # Pujar vídeo final
           output_final = os.path.expanduser("~/output/top5_final.mp4")
           mida = os.path.getsize(output_final)
           print(f"Pujant top5_final.mp4: {mida/1024/1024:.1f} MB")
