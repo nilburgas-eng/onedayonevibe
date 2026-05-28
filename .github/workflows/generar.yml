@@ -117,44 +117,45 @@ jobs:
           DURADES_MANUALS: ${{ github.event.inputs.durades_manuals }}
         run: python3 generar.py
 
-      - name: Pujar vídeo final al Drive
+     - name: Pujar vídeo final a GitHub Releases
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
         run: |
           python3 << 'PYEOF'
-          import os, re
-          from google.oauth2.service_account import Credentials
-          from googleapiclient.discovery import build
-          from googleapiclient.http import MediaFileUpload
-          from datetime import datetime
+          import os, requests
+          from requests.adapters import HTTPAdapter
+          from urllib3.util.retry import Retry
 
-          creds = Credentials.from_service_account_file('credentials.json', scopes=['https://www.googleapis.com/auth/drive'])
-          service = build('drive', 'v3', credentials=creds)
+          nom = "${{ github.event.inputs.nom }}"
+          repo = "${{ github.repository }}"
+          token = os.environ['GITHUB_TOKEN']
+          headers = {"Authorization": f"token {token}"}
 
-          dj = "${{ github.event.inputs.dj }}"
-          fecha = datetime.today().strftime('%Y-%m-%d')
-          nom_safe = re.sub(r'[^\w\s-]', '', dj)
-          nom_safe = re.sub(r'\s+', '_', nom_safe)[:50]
-          nom_carpeta = f"{fecha}_{nom_safe}"
+          session = requests.Session()
+          retry = Retry(total=5, backoff_factor=2, status_forcelist=[500, 502, 503, 504])
+          adapter = HTTPAdapter(max_retries=retry)
+          session.mount('https://', adapter)
 
-          results = service.files().list(
-              q="name='tops' and mimeType='application/vnd.google-apps.folder'",
-              fields="files(id, name)"
-          ).execute()
-          files = results.get('files', [])
-          if not files:
-              raise Exception("No s'ha trobat la carpeta tops al Drive")
-          tops_id = files[0]['id']
+          # Buscar release existent
+          r = session.get(
+              f"https://api.github.com/repos/{repo}/releases/tags/{nom}",
+              headers=headers
+          )
+          if r.status_code != 200:
+              raise Exception(f"Release no trobat: {nom}")
 
-          folder_metadata = {
-              'name': nom_carpeta,
-              'mimeType': 'application/vnd.google-apps.folder',
-              'parents': [tops_id]
-          }
-          folder = service.files().create(body=folder_metadata, fields='id').execute()
-          folder_id = folder['id']
+          upload_url = r.json()['upload_url'].split('{')[0]
 
+          # Pujar vídeo final
           output_final = os.path.expanduser("~/output/top5_final.mp4")
-          media = MediaFileUpload(output_final, resumable=True)
-          file_metadata = {'name': 'top5_final.mp4', 'parents': [folder_id]}
-          service.files().create(body=file_metadata, media_body=media, fields='id').execute()
-          print(f"Video pujat: tops/{nom_carpeta}/top5_final.mp4")
+          mida = os.path.getsize(output_final)
+          print(f"Pujant top5_final.mp4: {mida/1024/1024:.1f} MB")
+          with open(output_final, 'rb') as f:
+              r2 = session.post(
+                  f"{upload_url}?name=top5_final.mp4",
+                  headers={**headers, "Content-Type": "video/mp4"},
+                  data=f,
+                  timeout=3600
+              )
+          print(f"Pujat: {r2.status_code}")
           PYEOF
