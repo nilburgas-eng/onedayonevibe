@@ -42,13 +42,13 @@ jobs:
 
       - name: Descarregar fonts
         run: |
-          mkdir -p $HOME/fonts
-          wget -q "https://github.com/dharmatype/Bebas-Neue/raw/master/fonts/BebasNeue(2019)byDhamraType/ttf/BebasNeue-Regular.ttf" -O $HOME/fonts/BebasNeue.ttf
-          wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-SemiBold.ttf" -O $HOME/fonts/Montserrat-SemiBold.ttf
-          wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-ExtraBold.ttf" -O $HOME/fonts/Montserrat-ExtraBold.ttf
-          wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-Medium.ttf" -O $HOME/fonts/Montserrat-Medium.ttf
-          wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-Bold.ttf" -O $HOME/fonts/Montserrat-Bold.ttf
-
+          mkdir -p ~/fonts || true
+          wget -q "https://github.com/dharmatype/Bebas-Neue/raw/master/fonts/BebasNeue(2019)byDhamraType/ttf/BebasNeue-Regular.ttf" -O ~/fonts/BebasNeue.ttf || true
+          wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-SemiBold.ttf" -O ~/fonts/Montserrat-SemiBold.ttf || true
+          wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-ExtraBold.ttf" -O ~/fonts/Montserrat-ExtraBold.ttf || true
+          wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-Medium.ttf" -O ~/fonts/Montserrat-Medium.ttf || true
+          wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-Bold.ttf" -O ~/fonts/Montserrat-Bold.ttf || true
+          ls ~/fonts/
       - name: Descarregar credencials des del Drive
         run: |
           python3 << 'PYEOF'
