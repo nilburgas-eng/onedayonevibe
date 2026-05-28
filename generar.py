@@ -4,10 +4,12 @@ from scipy.signal import find_peaks, butter, filtfilt
 from datetime import datetime
 import anthropic
 
-INPUT  = "/content/input"
-OUTPUT = "/content/output"
-FONTS  = "/content/fonts"
+INPUT  = os.path.expanduser("~/input")
+OUTPUT = os.path.expanduser("~/output")
+FONTS  = os.path.expanduser("~/fonts")
+os.makedirs(INPUT, exist_ok=True)
 os.makedirs(OUTPUT, exist_ok=True)
+os.makedirs(FONTS, exist_ok=True)
 
 FONT_BEBAS     = f"{FONTS}/BebasNeue.ttf"
 FONT_SEMIBOLD  = f"{FONTS}/Montserrat-SemiBold.ttf"
@@ -318,7 +320,7 @@ def netejar_nom_canco_ia(nom, anthropic_key):
 def trobar_inici_optim(audio, sr, timestamp_ref, durada_clip, avanc=0):
     inici_cerca = max(0, timestamp_ref)
     fi_cerca = min(len(audio)/sr, timestamp_ref + 150)
-    inici_sample = int(inici_cerca * sr)
+    inici_sample = int(inici_erca * sr)
     fi_sample = int(fi_cerca * sr)
     fragment = audio[inici_sample:fi_sample]
     if len(fragment) < sr * 2:
