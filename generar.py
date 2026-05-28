@@ -320,7 +320,7 @@ def netejar_nom_canco_ia(nom, anthropic_key):
 def trobar_inici_optim(audio, sr, timestamp_ref, durada_clip, avanc=0):
     inici_cerca = max(0, timestamp_ref)
     fi_cerca = min(len(audio)/sr, timestamp_ref + 150)
-    inici_sample = int(inici_erca * sr)
+    inici_sample = int(inici_cerca * sr)
     fi_sample = int(fi_cerca * sr)
     fragment = audio[inici_sample:fi_sample]
     if len(fragment) < sr * 2:
