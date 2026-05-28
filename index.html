@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>onedayonevibe — Top 5 Generator</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0d0d0d;
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px 0; }
+        h1 { font-size: 28px; font-weight: 800; color: #00BFFF; margin-bottom: 4px; }
+        .subtitle { font-size: 14px; color: #666; margin-bottom: 30px; }
+        .card {
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        .card h2 { font-size: 14px; font-weight: 600; color: #00BFFF; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
+        label { display: block; font-size: 13px; color: #999; margin-bottom: 6px; }
+        input, select {
+            width: 100%;
+            background: #2a2a2a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 12px;
+            color: #fff;
+            font-size: 15px;
+            margin-bottom: 14px;
+            outline: none;
+        }
+        input:focus { border-color: #00BFFF; }
+        .row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 14px; }
+        .row input { margin-bottom: 0; font-size: 13px; padding: 10px 8px; text-align: center; }
+        .row-label { font-size: 12px; color: #666; text-align: center; margin-bottom: 4px; }
+        .checkbox-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 14px; }
+        .checkbox-item { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .checkbox-item span { font-size: 12px; color: #666; }
+        input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; accent-color: #00BFFF; }
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            margin-bottom: 12px;
+            transition: opacity 0.2s;
+        }
+        .btn:active { opacity: 0.8; }
+        .btn-primary { background: #00BFFF; color: #000; }
+        .btn-danger { background: #ff4444; color: #fff; }
+        .btn-secondary { background: #2a2a2a; color: #fff; border: 1px solid #444; }
+        .status {
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            display: none;
+        }
+        .status.visible { display: block; }
+        .status-text { font-size: 14px; line-height: 1.6; }
+        .status-ok { color: #00ff88; }
+        .status-error { color: #ff4444; }
+        .status-info { color: #00BFFF; }
+        .divider { height: 1px; background: #2a2a2a; margin: 8px 0 16px; }
+        .numbers-label { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 4px; }
+        .numbers-label span { font-size: 12px; color: #555; text-align: center; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>@onedayonevibe</h1>
+    <p class="subtitle">Top 5 Moments Generator</p>
+
+    <div class="card">
+        <h2>📹 Set</h2>
+        <label>URL de YouTube</label>
+        <input type="url" id="url" placeholder="https://youtube.com/watch?v=..." />
+        <label>Nom del DJ / Festival</label>
+        <input type="text" id="dj" placeholder="Martin Garrix @ Tomorrowland 2025" />
+        <label>Nom del release (sense espais)</label>
+        <input type="text" id="nom" placeholder="martin_garrix_tomorrowland_2025" />
+    </div>
+
+    <div class="card">
+        <h2>✏️ Correccions manuals</h2>
+
+        <div class="numbers-label">
+            <span>#5</span><span>#4</span><span>#3</span><span>#2</span><span>#1</span>
+        </div>
+
+        <label>Timestamps (mm:ss)</label>
+        <div class="row">
+            <input type="text" id="ts5" placeholder="--:--" />
+            <input type="text" id="ts4" placeholder="--:--" />
+            <input type="text" id="ts3" placeholder="--:--" />
+            <input type="text" id="ts2" placeholder="--:--" />
+            <input type="text" id="ts1" placeholder="--:--" />
+        </div>
+
+        <label>Noms de cançons</label>
+        <div class="row">
+            <input type="text" id="nom5" placeholder="#5" />
+            <input type="text" id="nom4" placeholder="#4" />
+            <input type="text" id="nom3" placeholder="#3" />
+            <input type="text" id="nom2" placeholder="#2" />
+            <input type="text" id="nom1" placeholder="#1" />
+        </div>
+
+        <label>Forçar inici</label>
+        <div class="checkbox-row">
+            <div class="checkbox-item"><span>#5</span><input type="checkbox" id="fi5" /></div>
+            <div class="checkbox-item"><span>#4</span><input type="checkbox" id="fi4" /></div>
+            <div class="checkbox-item"><span>#3</span><input type="checkbox" id="fi3" /></div>
+            <div class="checkbox-item"><span>#2</span><input type="checkbox" id="fi2" /></div>
+            <div class="checkbox-item"><span>#1</span><input type="checkbox" id="fi1" /></div>
+        </div>
+
+        <label>Durada extra (segons)</label>
+        <div class="row">
+            <input type="number" id="dur5" placeholder="0" />
+            <input type="number" id="dur4" placeholder="0" />
+            <input type="number" id="dur3" placeholder="0" />
+            <input type="number" id="dur2" placeholder="0" />
+            <input type="number" id="dur1" placeholder="0" />
+        </div>
+    </div>
+
+    <div id="status" class="status">
+        <div id="status-text" class="status-text"></div>
+    </div>
+
+    <button class="btn btn-primary" onclick="generarTop()">🚀 Generar Top 5</button>
+    <button class="btn btn-secondary" onclick="regenerarTop()">🔄 Regenerar amb ajustos</button>
+    <button class="btn btn-danger" onclick="netejarnRelease()">🗑️ Esborrar Release</button>
+</div>
+
+<script>
+const GITHUB_REPO = "nilburgas-eng/onedayonevibe";
+let GITHUB_TOKEN = localStorage.getItem('github_token') || '';
+if (!GITHUB_TOKEN) {
+    GITHUB_TOKEN = prompt('Introdueix el teu GitHub Token:');
+    if (GITHUB_TOKEN) localStorage.setItem('github_token', GITHUB_TOKEN);
+}
+
+function mostrarStatus(text, tipus) {
+    const el = document.getElementById('status');
+    const textEl = document.getElementById('status-text');
+    el.classList.add('visible');
+    textEl.innerHTML = `<span class="status-${tipus}">${text}</span>`;
+}
+
+function parseTimestamp(ts) {
+    if (!ts || ts === '--:--') return null;
+    const parts = ts.split(':');
+    if (parts.length === 2) return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+    if (parts.length === 3) return parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseInt(parts[2]);
+    return null;
+}
+
+function getInputs() {
+    return {
+        url: document.getElementById('url').value.trim(),
+        dj: document.getElementById('dj').value.trim(),
+        nom: document.getElementById('nom').value.trim(),
+        timestamps: {
+            5: parseTimestamp(document.getElementById('ts5').value),
+            4: parseTimestamp(document.getElementById('ts4').value),
+            3: parseTimestamp(document.getElementById('ts3').value),
+            2: parseTimestamp(document.getElementById('ts2').value),
+            1: parseTimestamp(document.getElementById('ts1').value),
+        },
+        noms: {
+            5: document.getElementById('nom5').value.trim(),
+            4: document.getElementById('nom4').value.trim(),
+            3: document.getElementById('nom3').value.trim(),
+            2: document.getElementById('nom2').value.trim(),
+            1: document.getElementById('nom1').value.trim(),
+        },
+        forcar: {
+            5: document.getElementById('fi5').checked,
+            4: document.getElementById('fi4').checked,
+            3: document.getElementById('fi3').checked,
+            2: document.getElementById('fi2').checked,
+            1: document.getElementById('fi1').checked,
+        },
+        durades: {
+            5: parseInt(document.getElementById('dur5').value) || 0,
+            4: parseInt(document.getElementById('dur4').value) || 0,
+            3: parseInt(document.getElementById('dur3').value) || 0,
+            2: parseInt(document.getElementById('dur2').value) || 0,
+            1: parseInt(document.getElementById('dur1').value) || 0,
+        }
+    };
+}
+
+async function dispararWorkflow(workflow, inputs) {
+    const r = await fetch(
+        `https://api.github.com/repos/${GITHUB_REPO}/actions/workflows/${workflow}/dispatches`,
+        {
+            method: 'POST',
+            headers: {
+                'Authorization': `token ${GITHUB_TOKEN}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ ref: 'main', inputs })
+        }
+    );
+    return r.status;
+}
+
+async function generarTop() {
+    const d = getInputs();
+    if (!d.url || !d.dj || !d.nom) {
+        mostrarStatus('❌ Omple URL, nom del DJ i nom del release', 'error');
+        return;
+    }
+    mostrarStatus('⏳ Disparant workflow de descàrrega...', 'info');
+    const status = await dispararWorkflow('descarregar.yml', {
+        url: d.url,
+        nom: d.nom
+    });
+    if (status === 204) {
+        mostrarStatus('✅ Workflow de descàrrega iniciat!<br>⏳ Tarda 30-60 min. Quan acabi, clica "Regenerar amb ajustos" per generar el top.', 'ok');
+    } else {
+        mostrarStatus(`❌ Error ${status} — comprova el token de GitHub`, 'error');
+    }
+}
+
+async function regenerarTop() {
+    const d = getInputs();
+    if (!d.nom || !d.dj) {
+        mostrarStatus('❌ Omple el nom del DJ i el nom del release', 'error');
+        return;
+    }
+
+    const tsManuals = JSON.stringify(Object.fromEntries(
+        Object.entries(d.timestamps).filter(([k,v]) => v !== null)
+    ));
+    const nomsManuals = JSON.stringify(Object.fromEntries(
+        Object.entries(d.noms).filter(([k,v]) => v !== '')
+    ));
+    const forcarInici = JSON.stringify(Object.fromEntries(
+        Object.entries(d.forcar).filter(([k,v]) => v === true)
+    ));
+    const durades = JSON.stringify(Object.fromEntries(
+        Object.entries(d.durades).filter(([k,v]) => v > 0)
+    ));
+
+    mostrarStatus('⏳ Disparant workflow de generació...', 'info');
+    const status = await dispararWorkflow('generar.yml', {
+        nom: d.nom,
+        dj: d.dj,
+        timestamps_manuals: tsManuals,
+        noms_manuals: nomsManuals,
+        forcar_inici: forcarInici,
+        durades_manuals: durades
+    });
+    if (status === 204) {
+        mostrarStatus('✅ Workflow de generació iniciat!<br>⏳ Tarda 15-20 min. El vídeo apareixerà al Drive.', 'ok');
+    } else {
+        mostrarStatus(`❌ Error ${status} — comprova el token de GitHub`, 'error');
+    }
+}
+
+async function netejarnRelease() {
+    const d = getInputs();
+    if (!d.nom) {
+        mostrarStatus('❌ Omple el nom del release', 'error');
+        return;
+    }
+    mostrarStatus('⏳ Esborrant release...', 'info');
+    const r = await fetch(
+        `https://api.github.com/repos/${GITHUB_REPO}/releases/tags/${d.nom}`,
+        { headers: { 'Authorization': `token ${GITHUB_TOKEN}` } }
+    );
+    if (r.status !== 200) {
+        mostrarStatus('❌ Release no trobat', 'error');
+        return;
+    }
+    const release = await r.json();
+    await fetch(
+        `https://api.github.com/repos/${GITHUB_REPO}/releases/${release.id}`,
+        { method: 'DELETE', headers: { 'Authorization': `token ${GITHUB_TOKEN}` } }
+    );
+    await fetch(
+        `https://api.github.com/repos/${GITHUB_REPO}/git/refs/tags/${d.nom}`,
+        { method: 'DELETE', headers: { 'Authorization': `token ${GITHUB_TOKEN}` } }
+    );
+    mostrarStatus('✅ Release esborrat!', 'ok');
+}
+</script>
+</body>
+</html>
