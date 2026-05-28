@@ -42,12 +42,12 @@ jobs:
 
       - name: Descarregar fonts
         run: |
-          mkdir -p /content/fonts
-          wget -q "https://github.com/dharmatype/Bebas-Neue/raw/master/fonts/BebasNeue(2019)byDhamraType/ttf/BebasNeue-Regular.ttf" -O /content/fonts/BebasNeue.ttf
-          wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-SemiBold.ttf" -O /content/fonts/Montserrat-SemiBold.ttf
-          wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-ExtraBold.ttf" -O /content/fonts/Montserrat-ExtraBold.ttf
-          wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-Medium.ttf" -O /content/fonts/Montserrat-Medium.ttf
-          wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-Bold.ttf" -O /content/fonts/Montserrat-Bold.ttf
+          mkdir -p $HOME/fonts
+          wget -q "https://github.com/dharmatype/Bebas-Neue/raw/master/fonts/BebasNeue(2019)byDhamraType/ttf/BebasNeue-Regular.ttf" -O $HOME/fonts/BebasNeue.ttf
+          wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-SemiBold.ttf" -O $HOME/fonts/Montserrat-SemiBold.ttf
+          wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-ExtraBold.ttf" -O $HOME/fonts/Montserrat-ExtraBold.ttf
+          wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-Medium.ttf" -O $HOME/fonts/Montserrat-Medium.ttf
+          wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-Bold.ttf" -O $HOME/fonts/Montserrat-Bold.ttf
 
       - name: Descarregar credencials des del Drive
         run: |
@@ -73,7 +73,8 @@ jobs:
           token = os.environ['GITHUB_TOKEN']
           headers = {"Authorization": f"token {token}"}
 
-          os.makedirs('/content/input', exist_ok=True)
+          input_dir = os.path.expanduser("~/input")
+          os.makedirs(input_dir, exist_ok=True)
 
           r = requests.get(
               f"https://api.github.com/repos/{repo}/releases/tags/{nom}",
@@ -91,17 +92,17 @@ jobs:
                   headers={**headers, "Accept": "application/octet-stream"},
                   stream=True, allow_redirects=True
               )
-              with open(f"/content/input/{nom_fitxer}", 'wb') as f:
+              with open(f"{input_dir}/{nom_fitxer}", 'wb') as f:
                   for chunk in r2.iter_content(chunk_size=8192):
                       if chunk:
                           f.write(chunk)
-              mida = os.path.getsize(f"/content/input/{nom_fitxer}")
+              mida = os.path.getsize(f"{input_dir}/{nom_fitxer}")
               print(f"OK: {nom_fitxer} — {mida/1024/1024:.1f} MB")
 
-          fitxers_mp4 = [(f, os.path.getsize(f)) for f in glob.glob('/content/input/*.mp4')]
+          fitxers_mp4 = [(f, os.path.getsize(f)) for f in glob.glob(f"{input_dir}/*.mp4")]
           fitxers_mp4.sort(key=lambda x: x[1], reverse=True)
           if fitxers_mp4:
-              shutil.move(fitxers_mp4[0][0], '/content/input/set.mp4')
+              shutil.move(fitxers_mp4[0][0], f"{input_dir}/set.mp4")
               print(f"Video llest: {fitxers_mp4[0][1]/1024/1024:.1f} MB")
           PYEOF
 
@@ -151,7 +152,8 @@ jobs:
           folder = service.files().create(body=folder_metadata, fields='id').execute()
           folder_id = folder['id']
 
-          media = MediaFileUpload('/content/output/top5_final.mp4', resumable=True)
+          output_final = os.path.expanduser("~/output/top5_final.mp4")
+          media = MediaFileUpload(output_final, resumable=True)
           file_metadata = {'name': 'top5_final.mp4', 'parents': [folder_id]}
           service.files().create(body=file_metadata, media_body=media, fields='id').execute()
           print(f"Video pujat: tops/{nom_carpeta}/top5_final.mp4")
