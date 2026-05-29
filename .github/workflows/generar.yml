@@ -128,14 +128,36 @@ jobs:
         run: |
           nom="${{ github.event.inputs.nom }}"
           repo="${{ github.repository }}"
-          upload_url=$(curl -s \
+          
+          # Obtenir info del release
+          release=$(curl -s \
             -H "Authorization: token $GITHUB_TOKEN" \
-            "https://api.github.com/repos/${repo}/releases/tags/${nom}" \
-            | python3 -c "import sys,json; print(json.load(sys.stdin)['upload_url'].split('{')[0])")
-          echo "Upload URL: $upload_url"
+            "https://api.github.com/repos/${repo}/releases/tags/${nom}")
+          
+          upload_url=$(echo $release | python3 -c "import sys,json; print(json.load(sys.stdin)['upload_url'].split('{')[0])")
+          
+          # Esborrar top5_final.mp4 si ja existeix
+          asset_id=$(echo $release | python3 -c "
+          import sys,json
+          assets = json.load(sys.stdin).get('assets', [])
+          for a in assets:
+              if a['name'] == 'top5_final.mp4':
+                  print(a['id'])
+                  break
+          ")
+          
+          if [ ! -z "$asset_id" ]; then
+            echo "Esborrant asset existent: $asset_id"
+            curl -s -X DELETE \
+              -H "Authorization: token $GITHUB_TOKEN" \
+              "https://api.github.com/repos/${repo}/releases/assets/${asset_id}"
+          fi
+          
+          # Pujar nou video
           curl -s -X POST \
             -H "Authorization: token $GITHUB_TOKEN" \
             -H "Content-Type: video/mp4" \
             --data-binary @"$HOME/output/top5_final.mp4" \
             "${upload_url}?name=top5_final.mp4"
+          
           echo "Pujat!"
