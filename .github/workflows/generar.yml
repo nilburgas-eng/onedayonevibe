@@ -39,7 +39,10 @@ jobs:
         run: |
           pip install librosa numpy scipy anthropic requests google-auth google-auth-oauthlib google-api-python-client
           sudo apt-get update
-          sudo apt-get install -y --fix-missing wget curl
+          sudo apt-get install -y --fix-missing ffmpeg curl
+          which ffmpeg || echo "ffmpeg no trobat"
+          which ffprobe || echo "ffprobe no trobat"
+          ffprobe -version || echo "ffprobe no funciona"
 
       - name: Descarregar fonts
         run: |
