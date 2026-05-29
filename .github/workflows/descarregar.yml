@@ -19,7 +19,8 @@ jobs:
       - name: Instal·lar dependències
         run: |
           pip install yt-dlp google-auth google-auth-oauthlib google-api-python-client requests
-          sudo apt-get install -y ffmpeg nodejs npm
+          sudo apt-get update --fix-missing
+          sudo apt-get install -y --fix-missing ffmpeg nodejs npm
 
       - name: Descarregar credencials des del Drive
         run: |
