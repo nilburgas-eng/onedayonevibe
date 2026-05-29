@@ -21,7 +21,7 @@ on:
         description: 'Forcar inici JSON'
         required: false
         default: '{}'
-      durades_manuals:
+     durades_manuals:
         description: 'Durades extra JSON'
         required: false
         default: '{}'
