@@ -120,43 +120,26 @@ jobs:
           DURADES_MANUALS: ${{ github.event.inputs.durades_manuals }}
         run: python3 generar.py
 
-      - name: Pujar vídeo final a GitHub Releases
+   - name: Pujar vídeo final a GitHub Releases
         env:
           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
         run: |
-          python3 << 'PYEOF'
-          import os, requests
-          from requests.adapters import HTTPAdapter
-          from urllib3.util.retry import Retry
-
-          nom = "${{ github.event.inputs.nom }}"
-          repo = "${{ github.repository }}"
-          token = os.environ['GITHUB_TOKEN']
-          headers = {"Authorization": f"token {token}"}
-
-          session = requests.Session()
-          retry = Retry(total=5, backoff_factor=2, status_forcelist=[500, 502, 503, 504])
-          adapter = HTTPAdapter(max_retries=retry)
-          session.mount('https://', adapter)
-
-          r = session.get(
-              f"https://api.github.com/repos/{repo}/releases/tags/{nom}",
-              headers=headers
-          )
-          if r.status_code != 200:
-              raise Exception(f"Release no trobat: {nom}")
-
-          upload_url = r.json()['upload_url'].split('{')[0]
-
-          output_final = os.path.expanduser("~/output/top5_final.mp4")
-          mida = os.path.getsize(output_final)
-          print(f"Pujant top5_final.mp4: {mida/1024/1024:.1f} MB")
-          with open(output_final, 'rb') as f:
-              r2 = session.post(
-                  f"{upload_url}?name=top5_final.mp4",
-                  headers={**headers, "Content-Type": "video/mp4"},
-                  data=f,
-                  timeout=3600
-              )
-          print(f"Pujat: {r2.status_code}")
-          PYEOF
+          nom="${{ github.event.inputs.nom }}"
+          repo="${{ github.repository }}"
+          
+          # Obtenir upload URL
+          upload_url=$(curl -s \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${repo}/releases/tags/${nom}" \
+            | python3 -c "import sys,json; print(json.load(sys.stdin)['upload_url'].split('{')[0])")
+          
+          echo "Upload URL: $upload_url"
+          
+          # Pujar vídeo
+          curl -s -X POST \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Content-Type: video/mp4" \
+            --data-binary @"$HOME/output/top5_final.mp4" \
+            "${upload_url}?name=top5_final.mp4"
+          
+          echo "✅ Pujat!"
