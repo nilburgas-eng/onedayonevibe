@@ -21,7 +21,7 @@ on:
         description: 'Forcar inici JSON'
         required: false
         default: '{}'
-     durades_manuals:
+      durades_manuals:
         description: 'Durades extra JSON'
         required: false
         default: '{}'
@@ -62,28 +62,24 @@ jobs:
           print(f"Credencials: {len(r.content)} bytes")
           PYEOF
 
-      - name: Descarregar vídeo i comentaris des del Release
+      - name: Descarregar video i comentaris des del Release
         env:
           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
         run: |
           python3 << 'PYEOF'
           import os, glob, shutil, requests
-
           nom = "${{ github.event.inputs.nom }}"
           repo = "${{ github.repository }}"
           token = os.environ['GITHUB_TOKEN']
           headers = {"Authorization": f"token {token}"}
-
           input_dir = os.path.expanduser("~/input")
           os.makedirs(input_dir, exist_ok=True)
-
           r = requests.get(
               f"https://api.github.com/repos/{repo}/releases/tags/{nom}",
               headers=headers
           )
           if r.status_code != 200:
               raise Exception(f"Release no trobat: {nom}")
-
           for asset in r.json()['assets']:
               nom_fitxer = asset['name']
               asset_id = asset['id']
@@ -101,7 +97,6 @@ jobs:
                           f.write(chunk)
               mida = os.path.getsize(f"{input_dir}/{nom_fitxer}")
               print(f"OK: {nom_fitxer} — {mida/1024/1024:.1f} MB")
-
           fitxers_mp4 = [(f, os.path.getsize(f)) for f in glob.glob(f"{input_dir}/*.mp4")]
           fitxers_mp4.sort(key=lambda x: x[1], reverse=True)
           if fitxers_mp4:
@@ -120,26 +115,20 @@ jobs:
           DURADES_MANUALS: ${{ github.event.inputs.durades_manuals }}
         run: python3 generar.py
 
-   - name: Pujar vídeo final a GitHub Releases
+      - name: Pujar video final a GitHub Releases
         env:
           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
         run: |
           nom="${{ github.event.inputs.nom }}"
           repo="${{ github.repository }}"
-          
-          # Obtenir upload URL
           upload_url=$(curl -s \
             -H "Authorization: token $GITHUB_TOKEN" \
             "https://api.github.com/repos/${repo}/releases/tags/${nom}" \
             | python3 -c "import sys,json; print(json.load(sys.stdin)['upload_url'].split('{')[0])")
-          
           echo "Upload URL: $upload_url"
-          
-          # Pujar vídeo
           curl -s -X POST \
             -H "Authorization: token $GITHUB_TOKEN" \
             -H "Content-Type: video/mp4" \
             --data-binary @"$HOME/output/top5_final.mp4" \
             "${upload_url}?name=top5_final.mp4"
-          
-          echo "✅ Pujat!"
+          echo "Pujat!"
