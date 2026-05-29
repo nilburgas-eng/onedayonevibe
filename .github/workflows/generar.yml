@@ -118,7 +118,10 @@ jobs:
           FORCAR_INICI: ${{ github.event.inputs.forcar_inici }}
           DURADES_MANUALS: ${{ github.event.inputs.durades_manuals }}
         run: python3 generar.py
-
+      - name: Verificar video final
+        run: |
+          ls -la ~/output/ || echo "Carpeta output buida"
+          du -m ~/output/top5_final.mp4 || echo "Video no trobat"
       - name: Pujar video final a GitHub Releases
         env:
           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
