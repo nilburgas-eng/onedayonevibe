@@ -38,7 +38,7 @@ jobs:
       - name: Instal·lar dependències
         run: |
           pip install librosa numpy scipy anthropic requests google-auth google-auth-oauthlib google-api-python-client
-          sudo apt-get install -y ffmpeg wget curl
+          sudo apt-get install -y --fix-missing ffmpeg wget curl
 
       - name: Descarregar fonts
         run: |
