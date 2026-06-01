@@ -38,7 +38,6 @@
         input:focus { border-color: #00BFFF; }
         .row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 14px; }
         .row input { margin-bottom: 0; font-size: 13px; padding: 10px 8px; text-align: center; }
-        .row-label { font-size: 12px; color: #666; text-align: center; margin-bottom: 4px; }
         .checkbox-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 14px; }
         .checkbox-item { display: flex; flex-direction: column; align-items: center; gap: 6px; }
         .checkbox-item span { font-size: 12px; color: #666; }
@@ -58,6 +57,7 @@
         .btn-primary { background: #00BFFF; color: #000; }
         .btn-danger { background: #ff4444; color: #fff; }
         .btn-secondary { background: #2a2a2a; color: #fff; border: 1px solid #444; }
+        .btn-success { background: #00aa55; color: #fff; }
         .status {
             background: #1a1a1a;
             border-radius: 12px;
@@ -70,7 +70,6 @@
         .status-ok { color: #00ff88; }
         .status-error { color: #ff4444; }
         .status-info { color: #00BFFF; }
-        .divider { height: 1px; background: #2a2a2a; margin: 8px 0 16px; }
         .numbers-label { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 4px; }
         .numbers-label span { font-size: 12px; color: #555; text-align: center; }
     </style>
@@ -79,6 +78,13 @@
 <div class="container">
     <h1>@onedayonevibe</h1>
     <p class="subtitle">Top 5 Moments Generator</p>
+
+    <div id="token-card" class="card" style="display:none; border: 1px solid #00BFFF;">
+        <h2>🔑 Configuració</h2>
+        <label>GitHub Token (només cal posar-lo una vegada)</label>
+        <input type="password" id="token-input" placeholder="ghp_..." />
+        <button class="btn btn-primary" onclick="configurarToken()">Guardar Token</button>
+    </div>
 
     <div class="card">
         <h2>📹 Set</h2>
@@ -139,16 +145,30 @@
     </div>
 
     <button class="btn btn-primary" onclick="generarTop()">🚀 Generar Top 5</button>
+    <button class="btn btn-secondary" onclick="veureEstat()">📊 Veure estat</button>
     <button class="btn btn-secondary" onclick="regenerarTop()">🔄 Regenerar amb ajustos</button>
+    <button class="btn btn-success" onclick="veureFinal()">⬇️ Descarregar vídeo final</button>
     <button class="btn btn-danger" onclick="netejarnRelease()">🗑️ Esborrar Release</button>
 </div>
 
 <script>
 const GITHUB_REPO = "nilburgas-eng/onedayonevibe";
 let GITHUB_TOKEN = localStorage.getItem('github_token') || '';
-if (!GITHUB_TOKEN) {
-    GITHUB_TOKEN = prompt('Introdueix el teu GitHub Token:');
-    if (GITHUB_TOKEN) localStorage.setItem('github_token', GITHUB_TOKEN);
+
+function configurarToken() {
+    const token = document.getElementById('token-input').value.trim();
+    if (token) {
+        localStorage.setItem('github_token', token);
+        GITHUB_TOKEN = token;
+        document.getElementById('token-card').style.display = 'none';
+        mostrarStatus('✅ Token guardat correctament!', 'ok');
+    }
+}
+
+window.onload = function() {
+    if (!GITHUB_TOKEN) {
+        document.getElementById('token-card').style.display = 'block';
+    }
 }
 
 function mostrarStatus(text, tipus) {
@@ -229,10 +249,34 @@ async function generarTop() {
         nom: d.nom
     });
     if (status === 204) {
-        mostrarStatus('✅ Workflow de descàrrega iniciat!<br>⏳ Tarda 30-60 min. Quan acabi, clica "Regenerar amb ajustos" per generar el top.', 'ok');
+        mostrarStatus('✅ Workflow de descàrrega iniciat!<br>⏳ Tarda 30-60 min. Quan acabi, clica "Regenerar amb ajustos".', 'ok');
     } else {
         mostrarStatus(`❌ Error ${status} — comprova el token de GitHub`, 'error');
     }
+}
+
+async function veureEstat() {
+    mostrarStatus('⏳ Consultant estat...', 'info');
+    const r = await fetch(
+        `https://api.github.com/repos/${GITHUB_REPO}/actions/runs?per_page=5`,
+        { headers: { 'Authorization': `token ${GITHUB_TOKEN}` } }
+    );
+    const data = await r.json();
+    const runs = data.workflow_runs;
+    if (!runs || runs.length === 0) {
+        mostrarStatus('❌ No hi ha workflows recents', 'error');
+        return;
+    }
+    let html = '<b>Últims workflows:</b><br><br>';
+    for (const run of runs) {
+        const icon = run.status === 'completed'
+            ? (run.conclusion === 'success' ? '✅' : '❌')
+            : '⏳';
+        const temps = new Date(run.created_at).toLocaleString();
+        html += `${icon} <b>${run.name}</b> — ${run.conclusion || run.status}<br>`;
+        html += `&nbsp;&nbsp;&nbsp;${temps}<br><br>`;
+    }
+    mostrarStatus(html, 'info');
 }
 
 async function regenerarTop() {
@@ -265,9 +309,32 @@ async function regenerarTop() {
         durades_manuals: durades
     });
     if (status === 204) {
-        mostrarStatus('✅ Workflow de generació iniciat!<br>⏳ Tarda 15-20 min. El vídeo apareixerà al Drive.', 'ok');
+        mostrarStatus('✅ Workflow de generació iniciat!<br>⏳ Tarda 15-20 min. El vídeo apareixerà al Release.', 'ok');
     } else {
         mostrarStatus(`❌ Error ${status} — comprova el token de GitHub`, 'error');
+    }
+}
+
+async function veureFinal() {
+    const d = getInputs();
+    if (!d.nom) {
+        mostrarStatus('❌ Omple el nom del release', 'error');
+        return;
+    }
+    const r = await fetch(
+        `https://api.github.com/repos/${GITHUB_REPO}/releases/tags/${d.nom}`,
+        { headers: { 'Authorization': `token ${GITHUB_TOKEN}` } }
+    );
+    if (r.status !== 200) {
+        mostrarStatus('❌ Release no trobat', 'error');
+        return;
+    }
+    const release = await r.json();
+    const asset = release.assets.find(a => a.name === 'top5_final.mp4');
+    if (asset) {
+        window.open(asset.browser_download_url, '_blank');
+    } else {
+        mostrarStatus('❌ Vídeo final no trobat encara', 'error');
     }
 }
 
