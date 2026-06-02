@@ -143,7 +143,7 @@ for track in tracks:
         filtres.append("drawtext=fontfile='" + FONT_MEDIUM + "':text='Electronic Vibes Daily':fontsize=30:fontcolor=0x00BFFF@0.75:shadowcolor=black@0.20:shadowx=0:shadowy=1:x=(w-text_w)/2:y=(h/2)+248:enable='gte(t," + str(t_aparicio) + ")'")
 
     vf = ",".join(filtres)
-    cmd = f'ffmpeg -ss {inici} -i "{video_path}" -t {durada} -vf "crop=ih*9/16:ih:(iw-ih*9/16)/2:0,scale=1080:1920,setsar=1,colorchannelmixer=ra=0.85:ga=0.85:ba=0.85,{vf}" -c:v libx264 -c:a aac -b:a 192k "{output_path}" -y -loglevel error'
+    cmd = f'ffmpeg -ss {inici} -i "{video_path}" -t {durada} -vf "crop=ih*9/16:ih:(iw-ih*9/16)/2:0,scale=1080:1920,setsar=1,fps=30,colorchannelmixer=ra=0.85:ga=0.85:ba=0.85,{vf}" -c:v libx264 -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
     os.system(cmd)
     clips_paths.append((pos, output_path))
     print(f"   ✅ Clip generat")
