@@ -34,7 +34,6 @@ Y_BASE        = 420
 Y_SEP         = 78
 
 tracks = json.loads(TRACKS_RAW)
-# Format: [{"pos": 10, "nom": "Bad", "streams": "726M", "daily": "185K"}, ...]
 
 def formatar_streams(n):
     if n >= 1_000_000_000:
@@ -45,17 +44,23 @@ def formatar_streams(n):
         return f"{n/1_000:.0f}K"
     return str(n)
 
-def trobar_moment_impactant(audio_path):
+def trobar_moment_impactant(audio_path, duracio_total):
     try:
         audio, sr = librosa.load(audio_path, sr=22050, mono=True)
         hop_length = 512
-        rms = librosa.feature.rms(y=audio, frame_length=2048, hop_length=hop_length)[0]
+
+        # Saltem els primers 30 segons per evitar intros i logos
+        inici_cerca = min(30, duracio_total * 0.2)
+        inici_sample = int(inici_cerca * sr)
+        audio_tall = audio[inici_sample:]
+
+        rms = librosa.feature.rms(y=audio_tall, frame_length=2048, hop_length=hop_length)[0]
         times = librosa.frames_to_time(np.arange(len(rms)), sr=sr, hop_length=hop_length)
         rms_smooth = np.convolve(rms, np.ones(50)/50, mode='same')
 
         nyq = sr / 2
         b_low, a_low = butter(4, 100/nyq, btype='low')
-        audio_sub = filtfilt(b_low, a_low, audio)
+        audio_sub = filtfilt(b_low, a_low, audio_tall)
         rms_sub = librosa.feature.rms(y=audio_sub, frame_length=2048, hop_length=hop_length)[0]
         rms_sub_smooth = np.convolve(rms_sub, np.ones(50)/50, mode='same')
 
@@ -65,12 +70,12 @@ def trobar_moment_impactant(audio_path):
             candidats = [np.argmax(rms_smooth)]
 
         millor = max(candidats, key=lambda i: rms_sub_smooth[i])
-        moment = max(0, times[millor] - 2)
+        moment = max(inici_cerca, inici_cerca + times[millor] - 2)
         print(f"   Moment impactant: {int(moment//60):02d}:{int(moment%60):02d}")
         return moment
     except Exception as e:
         print(f"   Error detecció: {e}")
-        return 10.0
+        return 30.0
 
 clips_paths = []
 
@@ -87,53 +92,56 @@ for track in tracks:
     audio_path = os.path.expanduser(f"~/videos/{pos:02d}.wav")
     os.makedirs(os.path.expanduser("~/videos"), exist_ok=True)
 
-    # Descarregar videoclip
+    # Descarregar videoclip oficial
     query = f"{ARTISTA} {nom} official video"
     print(f"   Buscant: {query}")
     ret = os.system(f'yt-dlp -f "best[ext=mp4]/best" --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "ytsearch1:{query}" --no-playlist -q')
 
-    if ret != 0 or not os.path.exists(video_path):
+    if ret != 0 or not os.path.exists(video_path) or os.path.getsize(video_path) < 10000:
         print(f"   ⚠️ No s'ha trobat videoclip — usant portada")
-        # Crear clip amb imatge de portada + Ken Burns
         thumb_path = os.path.expanduser(f"~/videos/{pos:02d}_thumb.jpg")
         os.system(f'yt-dlp --write-thumbnail --skip-download --cookies cookies.txt -o "{os.path.expanduser(f"~/videos/{pos:02d}_thumb")}" "ytsearch1:{query}" -q')
+        output_path = f"{OUTPUT}/clip_{pos:02d}.mp4"
         if os.path.exists(thumb_path):
-            output_path = f"{OUTPUT}/clip_{pos:02d}.mp4"
-            os.system(f'ffmpeg -loop 1 -i "{thumb_path}" -t {durada} -vf "scale=1920:1080,zoompan=z=\'min(zoom+0.001,1.3)\':x=\'iw/2-(iw/zoom/2)\':y=\'ih/2-(ih/zoom/2)\':d={durada*25}:s=1080x1920" -c:v libx264 -c:a aac -ar 44100 "{output_path}" -y -loglevel error')
+            os.system(f'ffmpeg -loop 1 -i "{thumb_path}" -t {durada} -vf "scale=1920:1080,zoompan=z=\'min(zoom+0.001,1.3)\':x=\'iw/2-(iw/zoom/2)\':y=\'ih/2-(ih/zoom/2)\':d={durada*25}:s=1080x1920,fps=30" -c:v libx264 -r 30 -c:a aac -ar 44100 "{output_path}" -y -loglevel error')
         else:
-            # Clip negre com a fallback
-            output_path = f"{OUTPUT}/clip_{pos:02d}.mp4"
-            os.system(f'ffmpeg -f lavfi -i color=c=black:s=1080x1920:d={durada} -c:v libx264 "{output_path}" -y -loglevel error')
+            os.system(f'ffmpeg -f lavfi -i color=c=black:s=1080x1920:d={durada} -r 30 -c:v libx264 -c:a aac -ar 44100 "{output_path}" -y -loglevel error')
         clips_paths.append((pos, output_path))
         continue
 
+    # Obtenir duració del vídeo
+    r = subprocess.run(["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", video_path], capture_output=True, text=True)
+    duracio_total = float(json.loads(r.stdout)['format']['duration'])
+
     # Extreure audio per detectar moment
     os.system(f'ffmpeg -i "{video_path}" -vn -acodec pcm_s16le -ar 22050 -ac 1 "{audio_path}" -y -loglevel error')
-    inici = trobar_moment_impactant(audio_path) if os.path.exists(audio_path) else 10.0
+    inici = trobar_moment_impactant(audio_path, duracio_total) if os.path.exists(audio_path) else 30.0
 
     # Generar clip
     output_path = f"{OUTPUT}/clip_{pos:02d}.mp4"
     titol1 = f"TOP 10 {ARTISTA.upper()} SONGS"
-    titol2 = f"BY STREAMS"
+    titol2 = "SPOTIFY STREAMS"
     nom_net = nom.replace("'", "").replace('"', '').replace(':', '-')[:28]
     streams_net = str(streams).replace("'", "")
     daily_net = str(daily).replace("'", "")
 
     filtres = []
+
+    # Títol
     filtres.append("drawtext=fontfile='" + FONT_BEBAS + "':text='" + titol1 + "':fontsize=72:fontcolor=white:borderw=1:bordercolor=black@0.8:shadowcolor=black@0.35:shadowx=0:shadowy=2:x=(w-text_w)/2:y=" + str(Y_TITOL1))
     filtres.append("drawtext=fontfile='" + FONT_SEMIBOLD + "':text='" + titol2 + "':fontsize=38:fontcolor=0x00BFFF:borderw=1:bordercolor=black@0.8:x=(w-text_w)/2:y=" + str(Y_TITOL2))
 
-    # Número gran al centre esquerra
-    filtres.append("drawtext=fontfile='" + FONT_EXTRABOLD + "':text='#" + str(pos) + "':fontsize=120:fontcolor=white:borderw=2:bordercolor=black@0.8:shadowcolor=black@0.35:shadowx=0:shadowy=3:x=" + str(PADDING_X) + ":y=" + str(Y_BASE))
+    # Número gran
+    filtres.append("drawtext=fontfile='" + FONT_EXTRABOLD + "':text='#" + str(pos) + "':fontsize=120:fontcolor=white:borderw=2:bordercolor=black@0.9:shadowcolor=black@0.5:shadowx=0:shadowy=3:x=" + str(PADDING_X) + ":y=" + str(Y_BASE))
 
     # Nom cançó
-    filtres.append("drawtext=fontfile='" + FONT_SEMIBOLD + "':text='" + nom_net + "':fontsize=48:fontcolor=white:borderw=1:bordercolor=black@0.8:shadowcolor=black@0.30:shadowx=0:shadowy=2:x=" + str(PADDING_X) + ":y=" + str(Y_BASE + 130))
+    filtres.append("drawtext=fontfile='" + FONT_SEMIBOLD + "':text='" + nom_net + "':fontsize=48:fontcolor=white:borderw=2:bordercolor=black@0.9:shadowcolor=black@0.4:shadowx=0:shadowy=2:x=" + str(PADDING_X) + ":y=" + str(Y_BASE + 130))
 
-    # Streams totals
-    filtres.append("drawtext=fontfile='" + FONT_MEDIUM + "':text='" + streams_net + " streams':fontsize=34:fontcolor=0x00BFFF:borderw=1:bordercolor=black@0.6:x=" + str(PADDING_X) + ":y=" + str(Y_BASE + 190))
+    # Streams totals — més visibles
+    filtres.append("drawtext=fontfile='" + FONT_EXTRABOLD + "':text='" + streams_net + " Spotify streams':fontsize=36:fontcolor=0x1DB954:borderw=2:bordercolor=black@0.9:shadowcolor=black@0.4:shadowx=0:shadowy=2:x=" + str(PADDING_X) + ":y=" + str(Y_BASE + 190))
 
-    # Streams diaris
-    filtres.append("drawtext=fontfile='" + FONT_MEDIUM + "':text='" + daily_net + " daily':fontsize=28:fontcolor=white@0.75:borderw=1:bordercolor=black@0.5:x=" + str(PADDING_X) + ":y=" + str(Y_BASE + 235))
+    # Streams diaris — més visibles
+    filtres.append("drawtext=fontfile='" + FONT_SEMIBOLD + "':text='" + daily_net + " daily streams':fontsize=30:fontcolor=white:borderw=2:bordercolor=black@0.9:shadowcolor=black@0.3:shadowx=0:shadowy=1:x=" + str(PADDING_X) + ":y=" + str(Y_BASE + 238))
 
     # Outro al clip #1
     if pos == 1:
