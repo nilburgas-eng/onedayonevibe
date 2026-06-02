@@ -1,0 +1,102 @@
+name: Generar Top 10
+
+on:
+  workflow_dispatch:
+    inputs:
+      artista:
+        description: 'Nom de l artista (ex: Showtek)'
+        required: true
+      tracks:
+        description: 'Top 10 en format JSON'
+        required: true
+
+jobs:
+  generar:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout codi
+        uses: actions/checkout@v4
+
+      - name: Instal·lar dependències
+        run: |
+          pip install yt-dlp requests google-auth google-auth-oauthlib google-api-python-client numpy scipy librosa anthropic
+          sudo apt-get update
+          sudo apt-get install -y --fix-missing ffmpeg curl wget
+
+      - name: Descarregar fonts
+        run: |
+          mkdir -p ~/fonts
+          wget -q "https://github.com/google/fonts/raw/main/ofl/bebasneue/BebasNeue-Regular.ttf" -O ~/fonts/BebasNeue.ttf
+          wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-SemiBold.ttf" -O ~/fonts/Montserrat-SemiBold.ttf
+          wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-ExtraBold.ttf" -O ~/fonts/Montserrat-ExtraBold.ttf
+          wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-Medium.ttf" -O ~/fonts/Montserrat-Medium.ttf
+          wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-Bold.ttf" -O ~/fonts/Montserrat-Bold.ttf
+
+      - name: Descarregar credencials des del Drive
+        run: |
+          python3 << 'PYEOF'
+          import requests
+          file_id = "${{ secrets.GDRIVE_FILE_ID }}"
+          url = f"https://drive.google.com/uc?export=download&id={file_id}"
+          r = requests.get(url)
+          with open('credentials.json', 'wb') as f:
+              f.write(r.content)
+          print(f"Credencials: {len(r.content)} bytes")
+          PYEOF
+
+      - name: Descarregar cookies des del Drive
+        run: |
+          python3 << 'PYEOF'
+          from google.oauth2.service_account import Credentials
+          from googleapiclient.discovery import build
+          from googleapiclient.http import MediaIoBaseDownload
+          import io
+          creds = Credentials.from_service_account_file('credentials.json', scopes=['https://www.googleapis.com/auth/drive'])
+          service = build('drive', 'v3', credentials=creds)
+          results = service.files().list(q="name='cookies.txt'", fields="files(id, name)").execute()
+          files = results.get('files', [])
+          if not files:
+              raise Exception("No s'ha trobat cookies.txt")
+          file_id = files[0]['id']
+          request = service.files().get_media(fileId=file_id)
+          with open('cookies.txt', 'wb') as f:
+              downloader = MediaIoBaseDownload(f, request)
+              done = False
+              while not done:
+                  _, done = downloader.next_chunk()
+          print("Cookies OK")
+          PYEOF
+
+      - name: Descarregar videoclips i generar Top 10
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+          ARTISTA: ${{ github.event.inputs.artista }}
+          TRACKS: ${{ github.event.inputs.tracks }}
+        run: python3 top10.py
+
+      - name: Pujar vídeo final a GitHub Releases
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+        run: |
+          artista="${{ github.event.inputs.artista }}"
+          nom=$(echo "$artista" | tr '[:upper:]' '[:lower:]' | tr ' ' '_')
+          repo="${{ github.repository }}"
+
+          # Crear release
+          release=$(curl -s -X POST \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Content-Type: application/json" \
+            https://api.github.com/repos/${repo}/releases \
+            -d "{\"tag_name\":\"top10_${nom}\",\"name\":\"top10_${nom}\",\"draft\":false}")
+
+          upload_url=$(echo $release | python3 -c "import sys,json; print(json.load(sys.stdin)['upload_url'].split('{')[0])")
+
+          curl -s -X POST \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Content-Type: video/mp4" \
+            --data-binary @"$HOME/output/top10_final.mp4" \
+            "${upload_url}?name=top10_final.mp4"
+
+          echo "✅ Pujat!"
