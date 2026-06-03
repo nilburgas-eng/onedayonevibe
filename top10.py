@@ -30,14 +30,24 @@ DURADA_CLIP       = 5
 DURADA_TOP1       = 10
 DURADA_OUTRO      = 2.0
 FADE_DURADA       = 0.3
-PADDING_X         = 80
-Y_TITOL1          = 180
-Y_TITOL2          = 260
-Y_BASE            = 380
 
-tracks = json.loads(TRACKS_RAW)
+# Layout — coordenades en pixels per a 1080x1920
+Y_TITOL1     = 160   # TOP 10 ARTISTA SONGS
+Y_TITOL2     = 210   # SPOTIFY STREAMS
+Y_DIVIDER    = 230
+Y_COVER      = 255   # Portada (esquerra)
+COVER_SIZE   = 220   # Mida portada px
+X_INFO       = 310   # X on comença el text info (a la dreta de la portada)
+Y_NUM        = 370   # Número #X
+Y_NOM        = 430   # Nom cançó
+Y_STREAMS    = 490   # Streams
+Y_DAILY      = 545   # Daily
+Y_BAR        = 575   # Barra ranking
+Y_OUTRO      = 1580  # Outro (@compte) — centre-baix zona segura
+Y_OUTRO2     = 1650  # Subtítol outro
 
-# ── SPOTIFY TOKEN ──
+tracks = json.loads(os.environ['TRACKS'])
+
 def get_spotify_token():
     try:
         creds = base64.b64encode(f"{SPOTIFY_CLIENT_ID}:{SPOTIFY_SECRET}".encode()).decode()
@@ -61,25 +71,17 @@ def get_spotify_cover(nom_canco, artista, token):
         items = r.json().get('tracks', {}).get('items', [])
         if items:
             img_url = items[0]['album']['images'][0]['url']
-            img_data = requests.get(img_url).content
-            return img_data
+            return requests.get(img_url).content
     except:
         pass
     return None
 
-print("Obtenint token de Spotify...")
-spotify_token = get_spotify_token()
-if spotify_token:
-    print("Token OK")
-else:
-    print("Token Spotify no disponible — sense portades")
-
-def adaptar_font(text, mida_base=48, max_chars_base=22):
+def adaptar_font(text, mida_base=160, max_chars_base=16):
     chars = len(text)
     if chars <= max_chars_base: return mida_base
-    elif chars <= 30: return int(mida_base * 0.85)
-    elif chars <= 38: return int(mida_base * 0.70)
-    else: return int(mida_base * 0.58)
+    elif chars <= 24: return int(mida_base * 0.80)
+    elif chars <= 32: return int(mida_base * 0.65)
+    else: return int(mida_base * 0.52)
 
 def trobar_moment_impactant(audio_path, duracio_total, estil='energetic'):
     try:
@@ -111,6 +113,10 @@ def trobar_moment_impactant(audio_path, duracio_total, estil='energetic'):
         print(f"   Error deteccio: {e}")
         return 30.0
 
+print("Obtenint token de Spotify...")
+spotify_token = get_spotify_token()
+print("Token OK" if spotify_token else "Sense token Spotify")
+
 clips_paths = []
 
 for track in tracks:
@@ -125,9 +131,10 @@ for track in tracks:
     video_path = os.path.expanduser(f"~/videos/{pos:02d}.mp4")
     audio_path = os.path.expanduser(f"~/videos/{pos:02d}.wav")
     thumb_path = os.path.expanduser(f"~/videos/{pos:02d}_thumb.jpg")
+    thumb_base = os.path.expanduser(f"~/videos/{pos:02d}_thumb")
     os.makedirs(os.path.expanduser("~/videos"), exist_ok=True)
 
-    # Portada oficial de Spotify
+    # Portada Spotify oficial
     if spotify_token:
         cover_data = get_spotify_cover(nom, ARTISTA, spotify_token)
         if cover_data:
@@ -135,9 +142,8 @@ for track in tracks:
                 f.write(cover_data)
             print(f"   Portada Spotify OK")
 
-    # Si no hi ha portada Spotify, agafem la de YouTube
+    # Fallback YouTube thumbnail
     if not os.path.exists(thumb_path) or os.path.getsize(thumb_path) < 1000:
-        thumb_base = os.path.expanduser(f"~/videos/{pos:02d}_thumb")
         query = f"{ARTISTA} {nom} official video"
         os.system(f'yt-dlp --write-thumbnail --skip-download --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{thumb_base}" "ytsearch1:{query}" -q 2>/dev/null')
         thumb_webp = thumb_base + ".webp"
@@ -172,49 +178,58 @@ for track in tracks:
     nom_net = nom.replace("'", "").replace('"', '').replace(':', '-')
     if len(nom_net) > 45:
         nom_net = nom_net[:42].rsplit(' ', 1)[0] + '...'
-
     streams_net = str(streams).replace("'", "")
     daily_net = str(daily).replace("'", "")
 
-    txt = []
-    txt.append("drawtext=fontfile='" + FONT_BEBAS + "':text='" + titol1 + "':fontsize=72:fontcolor=white:borderw=1:bordercolor=black@0.8:shadowcolor=black@0.35:shadowx=0:shadowy=2:x=(w-text_w)/2:y=" + str(Y_TITOL1))
-    txt.append("drawtext=fontfile='" + FONT_SEMIBOLD + "':text='" + titol2 + "':fontsize=38:fontcolor=0x00BFFF:borderw=1:bordercolor=black@0.8:x=(w-text_w)/2:y=" + str(Y_TITOL2))
-    txt.append("drawtext=fontfile='" + FONT_EXTRABOLD + "':text='#" + str(pos) + "':fontsize=100:fontcolor=white:borderw=2:bordercolor=black@0.9:shadowcolor=black@0.5:shadowx=0:shadowy=3:x=" + str(PADDING_X) + ":y=" + str(Y_BASE))
-    txt.append("drawtext=fontfile='" + FONT_SEMIBOLD + "':text='" + nom_net + "':fontsize=" + str(mida_nom) + ":fontcolor=white:borderw=2:bordercolor=black@0.9:shadowcolor=black@0.4:shadowx=0:shadowy=2:x=" + str(PADDING_X) + ":y=" + str(Y_BASE + 620))
-    txt.append("drawtext=fontfile='" + FONT_EXTRABOLD + "':text='" + streams_net + " Spotify streams':fontsize=36:fontcolor=0x1DB954:borderw=2:bordercolor=black@0.9:shadowcolor=black@0.4:shadowx=0:shadowy=2:x=" + str(PADDING_X) + ":y=" + str(Y_BASE + 680))
-    txt.append("drawtext=fontfile='" + FONT_SEMIBOLD + "':text='" + daily_net + " daily streams':fontsize=30:fontcolor=white:borderw=2:bordercolor=black@0.9:shadowcolor=black@0.3:shadowx=0:shadowy=1:x=" + str(PADDING_X) + ":y=" + str(Y_BASE + 728))
+    # Barra ranking
+    n_total = len(tracks)
+    bar_width = 600
+    bar_progress = int(bar_width * (n_total - pos + 1) / n_total)
 
+    txt = []
+    # Títol
+    txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol1}':fontsize=72:fontcolor=white:borderw=1:bordercolor=black@0.8:shadowcolor=black@0.3:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
+    txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{titol2}':fontsize=44:fontcolor=0x00BFFF:borderw=1:bordercolor=black@0.7:x=(w-text_w)/2:y={Y_TITOL2}")
+    # Número
+    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='#{pos}':fontsize=130:fontcolor=white:borderw=2:bordercolor=black@0.9:shadowcolor=black@0.5:shadowx=0:shadowy=3:x={X_INFO}:y={Y_NUM}")
+    # Nom
+    txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_net}':fontsize={mida_nom}:fontcolor=white:borderw=2:bordercolor=black@0.9:shadowcolor=black@0.4:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM}")
+    # Streams verd Spotify
+    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{streams_net} Spotify streams':fontsize=44:fontcolor=0x1DB954:borderw=2:bordercolor=black@0.9:shadowcolor=black@0.3:shadowx=0:shadowy=2:x={X_INFO}:y={Y_STREAMS}")
+    # Daily
+    txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='{daily_net} daily streams':fontsize=36:fontcolor=white@0.70:borderw=1:bordercolor=black@0.8:x={X_INFO}:y={Y_DAILY}")
+    # Barra fons
+    txt.append(f"drawbox=x=55:y={Y_BAR}:w={bar_width}:h=6:color=white@0.12:t=fill")
+    # Barra progrés
+    txt.append(f"drawbox=x=55:y={Y_BAR}:w={bar_progress}:h=6:color=0x1DB954@0.9:t=fill")
+
+    # Outro (només al clip #1)
     if pos == 1:
         compte_text = COMPTE.replace("'", "")
         t_aparicio = durada - DURADA_OUTRO + 0.3
-        txt.append("drawtext=fontfile='" + FONT_SEMIBOLD + "':text='" + compte_text + "':fontsize=54:fontcolor=white@0.85:shadowcolor=black@0.25:shadowx=0:shadowy=2:x=(w-text_w)/2:y=(h/2)+180:enable='gte(t," + str(t_aparicio) + ")'")
-        txt.append("drawtext=fontfile='" + FONT_MEDIUM + "':text='Electronic Vibes Daily':fontsize=30:fontcolor=0x00BFFF@0.75:shadowcolor=black@0.20:shadowx=0:shadowy=1:x=(w-text_w)/2:y=(h/2)+248:enable='gte(t," + str(t_aparicio) + ")'")
+        txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{compte_text}':fontsize=54:fontcolor=white@0.82:borderw=1:bordercolor=black@0.6:shadowcolor=black@0.2:x=(w-text_w)/2:y={Y_OUTRO}:enable='gte(t,{t_aparicio})'")
+        txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='Electronic Vibes Daily':fontsize=32:fontcolor=0x00BFFF@0.72:borderw=1:bordercolor=black@0.5:x=(w-text_w)/2:y={Y_OUTRO2}:enable='gte(t,{t_aparicio})'")
 
     txt_str = ",".join(txt)
     has_thumb = os.path.exists(thumb_path) and os.path.getsize(thumb_path) > 1000
 
     if has_thumb:
-        # Vídeo de fons difuminat + portada centrada gran + text a sota
         fc = (
-            "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
-            "crop=1080:1920,boxblur=30:5[bg];"
-            "[1:v]scale=700:700:force_original_aspect_ratio=decrease,"
-            "pad=700:700:(ow-iw)/2:(oh-ih)/2:color=black@0,setsar=1[cover];"
-            "[bg][cover]overlay=(W-w)/2:" + str(Y_BASE) + "[withcover];"
-            "[withcover]fps=30,colorchannelmixer=ra=0.85:ga=0.85:ba=0.85[colored];"
-            "[colored]" + txt_str + "[out]"
-        )
+            "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920[bgfull];"
+            "[bgfull]boxblur=20:3[bg];"
+            "[1:v]scale={cs}:{cs}:force_original_aspect_ratio=decrease,pad={cs}:{cs}:(ow-iw)/2:(oh-ih)/2:color=black@0,setsar=1[cover];"
+            "[bg][cover]overlay=55:{yc}[withcover];"
+            "[withcover]fps=30,colorchannelmixer=ra=0.82:ga=0.82:ba=0.82[colored];"
+            "[colored]{txt}[out]"
+        ).format(cs=COVER_SIZE, yc=Y_COVER, txt=txt_str)
         cmd = f'ffmpeg -ss {inici} -i "{video_path}" -i "{thumb_path}" -t {durada} -filter_complex "{fc}" -map "[out]" -map 0:a -c:v libx264 -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
     else:
         fc = (
-            "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
-            "crop=1080:1920,boxblur=25:5[bg];"
-            "[0:v]scale=1080:1920:force_original_aspect_ratio=decrease,"
-            "setsar=1,fps=30[fg];"
-            "[bg][fg]overlay=(W-w)/2:(H-h)/2[base];"
-            "[base]colorchannelmixer=ra=0.85:ga=0.85:ba=0.85[colored];"
-            "[colored]" + txt_str + "[out]"
-        )
+            "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920[bgfull];"
+            "[bgfull]boxblur=20:3[bg];"
+            "[bg]fps=30,colorchannelmixer=ra=0.82:ga=0.82:ba=0.82[colored];"
+            "[colored]{txt}[out]"
+        ).format(txt=txt_str)
         cmd = f'ffmpeg -ss {inici} -i "{video_path}" -t {durada} -filter_complex "{fc}" -map "[out]" -map 0:a -c:v libx264 -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
 
     os.system(cmd)
