@@ -32,22 +32,22 @@ DURADA_OUTRO      = 2.0
 FADE_DURADA       = 0.3
 
 # ── LAYOUT 1080x1920 ──
-Y_HEADER     = 0     # Franja header (top)
-HEADER_H     = 280   # Alçada franja header
-Y_TITOL1     = 155   # TOP 10 ARTISTA SONGS
-Y_TITOL2     = 225   # SPOTIFY STREAMS
-Y_COVER      = 310   # Portada (top)
-COVER_SIZE   = 220   # Mida portada px
-X_COVER      = 55    # X portada
-X_INFO       = 320   # X info (dreta portada)
-Y_NUM        = 310   # Número #X — alineat amb top portada
-Y_NOM1       = 455   # Nom línia 1
-Y_NOM2       = 575   # Nom línia 2 (si cal)
-Y_STREAMS    = 600   # Streams Spotify
-Y_DAILY      = 660   # Daily streams
-Y_BAR        = 700   # Barra ranking
-Y_OUTRO      = 1580  # @compte
-Y_OUTRO2     = 1650  # Electronic Vibes Daily
+Y_HEADER     = 0
+HEADER_H     = 280
+Y_TITOL1     = 155
+Y_TITOL2     = 225
+Y_COVER      = 310
+COVER_SIZE   = 220
+X_COVER      = 55
+X_INFO       = 320
+Y_NUM        = 310
+Y_NOM1       = 455
+Y_NOM2       = 575
+Y_STREAMS    = 600
+Y_DAILY      = 660
+Y_BAR        = 700
+Y_OUTRO      = 1580
+Y_OUTRO2     = 1650
 
 tracks = json.loads(TRACKS_RAW)
 
@@ -82,7 +82,6 @@ def get_spotify_cover(nom_canco, artista, token):
 def partir_nom(nom, max_chars=20):
     if len(nom) <= max_chars:
         return nom, ""
-    # Tallar per espai més proper al límit
     idx = nom.rfind(' ', 0, max_chars)
     if idx == -1:
         idx = max_chars
@@ -182,7 +181,6 @@ for track in tracks:
     titol1 = f"TOP {len(tracks)} {ARTISTA.upper()} SONGS"
     titol2 = "SPOTIFY STREAMS"
 
-    # Partir nom en dues línies si cal
     nom_net = nom.replace("'", "").replace('"', '').replace(':', '-')
     nom_linia1, nom_linia2 = partir_nom(nom_net, max_chars=20)
     mida_nom = adaptar_font(nom_linia1)
@@ -190,7 +188,6 @@ for track in tracks:
     streams_net = str(streams).replace("'", "")
     daily_net = str(daily).replace("'", "")
 
-    # Ajustar Y_STREAMS si hi ha segona línia
     y_streams_real = Y_STREAMS + (110 if nom_linia2 else 0)
     y_daily_real   = Y_DAILY   + (110 if nom_linia2 else 0)
     y_bar_real     = Y_BAR     + (110 if nom_linia2 else 0)
@@ -200,33 +197,18 @@ for track in tracks:
     bar_progress = int(bar_width * (n_total - pos + 1) / n_total)
 
     txt = []
-
-    # Franja semi-transparent darrere el títol
     txt.append(f"drawbox=x=0:y={Y_HEADER}:w=1080:h={HEADER_H}:color=black@0.45:t=fill")
-
-    # Títol
     txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol1}':fontsize=68:fontcolor=white:borderw=1:bordercolor=black@0.6:shadowcolor=black@0.3:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
     txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{titol2}':fontsize=40:fontcolor=0x00BFFF:borderw=1:bordercolor=black@0.5:x=(w-text_w)/2:y={Y_TITOL2}")
-
-    # Número
     txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='#{pos}':fontsize=120:fontcolor=white:borderw=2:bordercolor=black@0.9:shadowcolor=black@0.5:shadowx=0:shadowy=3:x={X_INFO}:y={Y_NUM}")
-
-    # Nom línia 1
     txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia1}':fontsize={mida_nom}:fontcolor=white:borderw=2:bordercolor=black@0.9:shadowcolor=black@0.4:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM1}")
-
-    # Nom línia 2 (si cal)
     if nom_linia2:
         txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia2}':fontsize={mida_nom}:fontcolor=white:borderw=2:bordercolor=black@0.9:shadowcolor=black@0.4:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM2}")
-
-    # Streams
     txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{streams_net} Spotify streams':fontsize=40:fontcolor=0x1DB954:borderw=2:bordercolor=black@0.9:shadowcolor=black@0.3:shadowx=0:shadowy=2:x={X_INFO}:y={y_streams_real}")
     txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='{daily_net} daily streams':fontsize=34:fontcolor=white@0.70:borderw=1:bordercolor=black@0.8:x={X_INFO}:y={y_daily_real}")
-
-    # Barra ranking
     txt.append(f"drawbox=x={X_COVER}:y={y_bar_real}:w={bar_width}:h=6:color=white@0.12:t=fill")
     txt.append(f"drawbox=x={X_COVER}:y={y_bar_real}:w={bar_progress}:h=6:color=0x1DB954@0.9:t=fill")
 
-    # Outro
     if pos == 1:
         compte_text = COMPTE.replace("'", "")
         t_aparicio = durada - DURADA_OUTRO + 0.3
