@@ -9,6 +9,10 @@ on:
       tracks:
         description: 'Top 10 en format JSON'
         required: true
+      estil:
+        description: 'Estil de deteccio: energetic o melodic'
+        required: false
+        default: 'energetic'
 
 jobs:
   generar:
@@ -21,7 +25,7 @@ jobs:
 
       - name: Instal·lar dependències
         run: |
-          pip install yt-dlp requests google-auth google-auth-oauthlib google-api-python-client numpy scipy librosa anthropic
+          pip install yt-dlp requests google-auth google-auth-oauthlib google-api-python-client numpy scipy librosa
           sudo apt-get update
           sudo apt-get install -y --fix-missing ffmpeg curl wget
 
@@ -33,6 +37,7 @@ jobs:
           wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-ExtraBold.ttf" -O ~/fonts/Montserrat-ExtraBold.ttf
           wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-Medium.ttf" -O ~/fonts/Montserrat-Medium.ttf
           wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-Bold.ttf" -O ~/fonts/Montserrat-Bold.ttf
+          echo "Fonts: $(ls ~/fonts/ | wc -l)"
 
       - name: Descarregar credencials des del Drive
         run: |
@@ -69,14 +74,15 @@ jobs:
           print("Cookies OK")
           PYEOF
 
-      - name: Descarregar videoclips i generar Top 10
+      - name: Descarregar videoclips i generar Top
         env:
           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
           ARTISTA: ${{ github.event.inputs.artista }}
           TRACKS: ${{ github.event.inputs.tracks }}
+          ESTIL: ${{ github.event.inputs.estil }}
         run: python3 top10.py
 
-      - name: Pujar vídeo final a GitHub Releases
+      - name: Pujar video final a GitHub Releases
         env:
           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
         run: |
@@ -84,14 +90,41 @@ jobs:
           nom=$(echo "$artista" | tr '[:upper:]' '[:lower:]' | tr ' ' '_')
           repo="${{ github.repository }}"
 
-          # Crear release
-          release=$(curl -s -X POST \
+          release=$(curl -s \
             -H "Authorization: token $GITHUB_TOKEN" \
-            -H "Content-Type: application/json" \
-            https://api.github.com/repos/${repo}/releases \
-            -d "{\"tag_name\":\"top10_${nom}\",\"name\":\"top10_${nom}\",\"draft\":false}")
+            "https://api.github.com/repos/${repo}/releases/tags/top10_${nom}")
 
-          upload_url=$(echo $release | python3 -c "import sys,json; print(json.load(sys.stdin)['upload_url'].split('{')[0])")
+          if echo "$release" | python3 -c "import sys,json; json.load(sys.stdin)['id']" 2>/dev/null; then
+            upload_url=$(echo $release | python3 -c "import sys,json; print(json.load(sys.stdin)['upload_url'].split('{')[0])")
+            echo "Release existent trobat"
+          else
+            new_release=$(curl -s -X POST \
+              -H "Authorization: token $GITHUB_TOKEN" \
+              -H "Content-Type: application/json" \
+              https://api.github.com/repos/${repo}/releases \
+              -d "{\"tag_name\":\"top10_${nom}\",\"name\":\"top10_${nom}\",\"draft\":false}")
+            upload_url=$(echo $new_release | python3 -c "import sys,json; print(json.load(sys.stdin)['upload_url'].split('{')[0])")
+            echo "Release nou creat"
+          fi
+
+          asset_id=$(curl -s \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${repo}/releases/tags/top10_${nom}" \
+            | python3 -c "
+          import sys,json
+          assets = json.load(sys.stdin).get('assets', [])
+          for a in assets:
+              if a['name'] == 'top10_final.mp4':
+                  print(a['id'])
+                  break
+          ")
+
+          if [ ! -z "$asset_id" ]; then
+            curl -s -X DELETE \
+              -H "Authorization: token $GITHUB_TOKEN" \
+              "https://api.github.com/repos/${repo}/releases/assets/${asset_id}"
+            echo "Asset anterior esborrat"
+          fi
 
           curl -s -X POST \
             -H "Authorization: token $GITHUB_TOKEN" \
