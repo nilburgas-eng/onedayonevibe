@@ -190,43 +190,40 @@ for track in tracks:
 
     txt = []
 
-    # Gradient top
-    txt.append(f"drawbox=x=0:y=0:w=1080:h=360:color=black@0.45:t=fill")
+    # Gradient top molt subtil
+    txt.append(f"drawbox=x=0:y=0:w=1080:h=360:color=black@0.20:t=fill")
 
-    # Gradient bottom
-    txt.append(f"drawbox=x=0:y=1580:w=1080:h=340:color=black@0.40:t=fill")
+    # Gradient bottom molt subtil
+    txt.append(f"drawbox=x=0:y=1580:w=1080:h=340:color=black@0.18:t=fill")
 
     # Títol
-    txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol1}':fontsize=75:fontcolor=white:borderw=1:bordercolor=black@0.5:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
-    txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{titol2}':fontsize=38:fontcolor=0x00BFFF:borderw=1:bordercolor=black@0.4:x=(w-text_w)/2:y={Y_TITOL2}")
-
-    # Gradient zona info
-    txt.append(f"drawbox=x=0:y=380:w=1080:h=500:color=black@0.38:t=fill")
+    txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol1}':fontsize=75:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowcolor=black@0.5:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
+    txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{titol2}':fontsize=38:fontcolor=0x00BFFF:borderw=2:bordercolor=black@0.6:shadowcolor=black@0.4:x=(w-text_w)/2:y={Y_TITOL2}")
 
     # Número
-    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='#{pos}':fontsize=130:fontcolor=white:borderw=2:bordercolor=black@0.9:shadowx=0:shadowy=3:x={X_INFO}:y={Y_NUM}")
+    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='#{pos}':fontsize=130:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowcolor=black@0.6:shadowx=0:shadowy=3:x={X_INFO}:y={Y_NUM}")
 
     # Nom cançó
-    txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia1}':fontsize=58:fontcolor=white:borderw=2:bordercolor=black@0.85:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM1}")
+    txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia1}':fontsize=58:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowcolor=black@0.5:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM1}")
     if nom_linia2:
-        txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia2}':fontsize=58:fontcolor=white:borderw=2:bordercolor=black@0.85:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM2}")
+        txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia2}':fontsize=58:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowcolor=black@0.5:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM2}")
 
     # Streams
-    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{streams_net} Spotify streams':fontsize=40:fontcolor=0x1DB954:borderw=2:bordercolor=black@0.8:shadowx=0:shadowy=2:x={BAR_X}:y={Y_STREAMS}")
-    txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='{daily_net} daily streams':fontsize=34:fontcolor=white@0.72:borderw=1:bordercolor=black@0.6:x={BAR_X}:y={Y_DAILY}")
+    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{streams_net} Spotify streams':fontsize=40:fontcolor=0x1DB954:borderw=2:bordercolor=black@0.8:shadowcolor=black@0.5:shadowx=0:shadowy=2:x={BAR_X}:y={Y_STREAMS}")
+    txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='{daily_net} daily streams':fontsize=34:fontcolor=white@0.85:borderw=2:bordercolor=black@0.7:shadowcolor=black@0.4:x={BAR_X}:y={Y_DAILY}")
 
-    # Barra ranking amb etiquetes #N i #1
+    # Barra ranking
     txt.append(f"drawbox=x={BAR_X}:y={Y_BAR}:w={BAR_W}:h=5:color=white@0.15:t=fill")
     txt.append(f"drawbox=x={BAR_X}:y={Y_BAR}:w={bar_progress}:h=5:color=0x1DB954@0.9:t=fill")
-    txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='#{n_total}':fontsize=28:fontcolor=white@0.45:x={BAR_X}:y={Y_BAR+12}")
-    txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='#1':fontsize=28:fontcolor=0x1DB954@0.80:x={BAR_X+BAR_W-60}:y={Y_BAR+12}")
+    txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='#{n_total}':fontsize=28:fontcolor=white@0.45:borderw=1:bordercolor=black@0.6:x={BAR_X}:y={Y_BAR+12}")
+    txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='#1':fontsize=28:fontcolor=0x1DB954@0.80:borderw=1:bordercolor=black@0.6:x={BAR_X+BAR_W-60}:y={Y_BAR+12}")
 
     # Outro
     if pos == 1:
         compte_text = COMPTE.replace("'", "")
         t_aparicio = durada - DURADA_OUTRO + 0.3
-        txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{compte_text}':fontsize=50:fontcolor=white@0.82:borderw=1:bordercolor=black@0.5:x=(w-text_w)/2:y={Y_OUTRO}:enable='gte(t,{t_aparicio})'")
-        txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='Electronic Vibes Daily':fontsize=30:fontcolor=0x00BFFF@0.70:borderw=1:bordercolor=black@0.4:x=(w-text_w)/2:y={Y_OUTRO2}:enable='gte(t,{t_aparicio})'")
+        txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{compte_text}':fontsize=50:fontcolor=white@0.82:borderw=2:bordercolor=black@0.6:shadowcolor=black@0.4:x=(w-text_w)/2:y={Y_OUTRO}:enable='gte(t,{t_aparicio})'")
+        txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='Electronic Vibes Daily':fontsize=30:fontcolor=0x00BFFF@0.70:borderw=1:bordercolor=black@0.5:x=(w-text_w)/2:y={Y_OUTRO2}:enable='gte(t,{t_aparicio})'")
 
     txt_str = ",".join(txt)
     has_thumb = os.path.exists(thumb_path) and os.path.getsize(thumb_path) > 1000
