@@ -26,36 +26,31 @@ ESTIL             = os.environ.get('ESTIL', 'energetic')
 SPOTIFY_CLIENT_ID = os.environ.get('SPOTIFY_CLIENT_ID', '')
 SPOTIFY_SECRET    = os.environ.get('SPOTIFY_CLIENT_SECRET', '')
 COMPTE            = "@onedayonevibe"
-DURADA_CLIP       = 5
-DURADA_TOP1       = 10
+DURADA_CLIP       = 8
+DURADA_TOP1       = 12
 DURADA_OUTRO      = 2.0
 FADE_DURADA       = 0.3
 
 # ── LAYOUT 1080x1920 ──
-# Portada petita esquerra
 COVER_W      = 280
 COVER_H      = 280
 COVER_X      = 50
-COVER_Y      = 820   # centrada verticalment
+COVER_Y      = 420
 
-# Header
-Y_TITOL1     = 210
-Y_TITOL2     = 272
-
-# Info dreta de la portada
 X_INFO       = 370
-Y_NUM        = 820
-Y_NOM1       = 960
-Y_NOM2       = 1030
+Y_NUM        = 420
+Y_NOM1       = 560
+Y_NOM2       = 630
 
-# Sota portada
-Y_STREAMS    = 1140
-Y_DAILY      = 1192
-Y_BAR        = 1230
+Y_TITOL1     = 210
+Y_TITOL2     = 285
+
+Y_STREAMS    = 740
+Y_DAILY      = 792
+Y_BAR        = 830
 BAR_X        = 50
 BAR_W        = 980
 
-# Outro
 Y_OUTRO      = 1560
 Y_OUTRO2     = 1618
 
@@ -169,7 +164,7 @@ for track in tracks:
         print(f"   No s'ha trobat videoclip — usant portada")
         output_path = f"{OUTPUT}/clip_{pos:02d}.mp4"
         if os.path.exists(thumb_path):
-            os.system(f'ffmpeg -loop 1 -i "{thumb_path}" -t {durada} -vf "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920:(iw-1080)/2:(ih-1920)/2,fps=30" -c:v libx264 -r 30 -c:a aac -ar 44100 "{output_path}" -y -loglevel error')
+            os.system(f'ffmpeg -loop 1 -i "{thumb_path}" -t {durada} -vf "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,fps=30" -c:v libx264 -r 30 -c:a aac -ar 44100 "{output_path}" -y -loglevel error')
         else:
             os.system(f'ffmpeg -f lavfi -i color=c=black:s=1080x1920:d={durada} -r 30 -c:v libx264 -c:a aac -ar 44100 "{output_path}" -y -loglevel error')
         clips_paths.append((pos, output_path))
@@ -183,7 +178,7 @@ for track in tracks:
 
     output_path = f"{OUTPUT}/clip_{pos:02d}.mp4"
     titol1 = f"TOP {len(tracks)} {ARTISTA.upper()} SONGS"
-    titol2 = "SPOTIFY STREAMS"
+    titol2 = "BASED ON STREAMS"
 
     nom_net = nom.replace("'", "").replace('"', '').replace(':', '-')
     nom_linia1, nom_linia2 = partir_nom(nom_net, max_chars=22)
@@ -195,23 +190,23 @@ for track in tracks:
 
     txt = []
 
-    # Gradient top subtil
-    txt.append(f"drawbox=x=0:y=0:w=1080:h=340:color=black@0.45:t=fill")
+    # Gradient top
+    txt.append(f"drawbox=x=0:y=0:w=1080:h=360:color=black@0.45:t=fill")
 
-    # Gradient bottom subtil
+    # Gradient bottom
     txt.append(f"drawbox=x=0:y=1580:w=1080:h=340:color=black@0.40:t=fill")
 
     # Títol
-    txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol1}':fontsize=65:fontcolor=white:borderw=1:bordercolor=black@0.5:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
+    txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol1}':fontsize=75:fontcolor=white:borderw=1:bordercolor=black@0.5:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
     txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{titol2}':fontsize=38:fontcolor=0x00BFFF:borderw=1:bordercolor=black@0.4:x=(w-text_w)/2:y={Y_TITOL2}")
 
-    # Gradient zona info (portada + text)
-    txt.append(f"drawbox=x=0:y=780:w=1080:h=500:color=black@0.38:t=fill")
+    # Gradient zona info
+    txt.append(f"drawbox=x=0:y=380:w=1080:h=500:color=black@0.38:t=fill")
 
-    # Número gran a la dreta de la portada
+    # Número
     txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='#{pos}':fontsize=130:fontcolor=white:borderw=2:bordercolor=black@0.9:shadowx=0:shadowy=3:x={X_INFO}:y={Y_NUM}")
 
-    # Nom cançó — sempre font consistent 58px
+    # Nom cançó
     txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia1}':fontsize=58:fontcolor=white:borderw=2:bordercolor=black@0.85:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM1}")
     if nom_linia2:
         txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia2}':fontsize=58:fontcolor=white:borderw=2:bordercolor=black@0.85:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM2}")
@@ -220,9 +215,11 @@ for track in tracks:
     txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{streams_net} Spotify streams':fontsize=40:fontcolor=0x1DB954:borderw=2:bordercolor=black@0.8:shadowx=0:shadowy=2:x={BAR_X}:y={Y_STREAMS}")
     txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='{daily_net} daily streams':fontsize=34:fontcolor=white@0.72:borderw=1:bordercolor=black@0.6:x={BAR_X}:y={Y_DAILY}")
 
-    # Barra ranking fina
+    # Barra ranking amb etiquetes #N i #1
     txt.append(f"drawbox=x={BAR_X}:y={Y_BAR}:w={BAR_W}:h=5:color=white@0.15:t=fill")
     txt.append(f"drawbox=x={BAR_X}:y={Y_BAR}:w={bar_progress}:h=5:color=0x1DB954@0.9:t=fill")
+    txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='#{n_total}':fontsize=28:fontcolor=white@0.45:x={BAR_X}:y={Y_BAR+12}")
+    txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='#1':fontsize=28:fontcolor=0x1DB954@0.80:x={BAR_X+BAR_W-60}:y={Y_BAR+12}")
 
     # Outro
     if pos == 1:
