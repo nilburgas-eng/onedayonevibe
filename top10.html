@@ -24,7 +24,7 @@
         }
         .card h2 { font-size: 14px; font-weight: 600; color: #00BFFF; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
         label { display: block; font-size: 13px; color: #999; margin-bottom: 6px; }
-        input, textarea {
+        input, textarea, select {
             width: 100%;
             background: #2a2a2a;
             border: 1px solid #333;
@@ -36,7 +36,7 @@
             outline: none;
         }
         textarea { height: 200px; font-family: monospace; font-size: 13px; resize: vertical; }
-        input:focus, textarea:focus { border-color: #00BFFF; }
+        input:focus, textarea:focus, select:focus { border-color: #00BFFF; }
         .track-item {
             background: #2a2a2a;
             border-radius: 8px;
@@ -87,23 +87,35 @@
 <div class="container">
     <a href="index.html" class="back-link">← Tornar al Top 5</a>
     <h1>@onedayonevibe</h1>
-    <p class="subtitle">Top 10 Songs Generator</p>
+    <p class="subtitle">Top Songs Generator</p>
 
     <div class="card">
         <h2>🎤 Artista</h2>
         <label>Nom de l'artista</label>
         <input type="text" id="artista" placeholder="Showtek" />
+
+        <label>Nombre de cançons</label>
+        <select id="num-tracks">
+            <option value="10">Top 10</option>
+            <option value="5">Top 5</option>
+        </select>
+
+        <label>Estil de detecció</label>
+        <select id="estil">
+            <option value="energetic">⚡ Energètic (EDM, House, Techno)</option>
+            <option value="melodic">🎵 Melòdic (Hardstyle, Trance, Melodic)</option>
+        </select>
     </div>
 
     <div class="card">
-        <h2>📊 Top 10 de Kworb</h2>
+        <h2>📊 Dades de Kworb</h2>
         <label>Enganxa el text de Kworb aquí</label>
         <textarea id="kworb-raw" placeholder="Bad (feat. Vassy) - Radio Edit&#10;726,351,089	185,247&#10;Your Love&#10;162,271,922	10,486&#10;..."></textarea>
         <button class="btn btn-secondary" onclick="parsejatKworb()">🔍 Parsejar dades</button>
     </div>
 
     <div id="tracks-card" class="card" style="display:none">
-        <h2>✅ Top 10 detectat</h2>
+        <h2>✅ Cançons detectades</h2>
         <div id="tracks-list"></div>
     </div>
 
@@ -111,7 +123,7 @@
         <div id="status-text" class="status-text"></div>
     </div>
 
-    <button class="btn btn-primary" onclick="generarTop10()">🚀 Generar Top 10</button>
+    <button class="btn btn-primary" onclick="generarTop()">🚀 Generar Top</button>
     <button class="btn btn-secondary" onclick="veureEstat()">📊 Veure estat</button>
     <button class="btn btn-success" onclick="veureFinal()">⬇️ Descarregar vídeo final</button>
     <button class="btn btn-danger" onclick="esborrarRelease()">🗑️ Esborrar Release</button>
@@ -122,9 +134,11 @@ const GITHUB_REPO = "nilburgas-eng/onedayonevibe";
 let GITHUB_TOKEN = localStorage.getItem('github_token') || '';
 let tracksData = [];
 
-if (!GITHUB_TOKEN) {
-    GITHUB_TOKEN = prompt('Introdueix el teu GitHub Token:');
-    if (GITHUB_TOKEN) localStorage.setItem('github_token', GITHUB_TOKEN);
+window.onload = function() {
+    if (!GITHUB_TOKEN) {
+        GITHUB_TOKEN = prompt('Introdueix el teu GitHub Token:');
+        if (GITHUB_TOKEN) localStorage.setItem('github_token', GITHUB_TOKEN);
+    }
 }
 
 function mostrarStatus(text, tipus) {
@@ -132,6 +146,21 @@ function mostrarStatus(text, tipus) {
     const textEl = document.getElementById('status-text');
     el.classList.add('visible');
     textEl.innerHTML = `<span class="status-${tipus}">${text}</span>`;
+}
+
+function parseTimestamp(ts) {
+    if (!ts || ts === '--:--') return null;
+    const parts = ts.split(':');
+    if (parts.length === 2) return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+    if (parts.length === 3) return parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseInt(parts[2]);
+    return null;
+}
+
+function formatNum(n) {
+    if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(1) + 'B';
+    if (n >= 1_000_000) return Math.round(n / 1_000_000) + 'M';
+    if (n >= 1_000) return Math.round(n / 1_000) + 'K';
+    return n.toString();
 }
 
 function parsejatKworb() {
@@ -150,20 +179,17 @@ function parsejatKworb() {
         const nomLine = lines[i];
         const statsLine = lines[i + 1] || '';
 
-        // Saltem línies que semblen stats (números)
         if (/^\d/.test(nomLine)) {
             i++;
             continue;
         }
 
-        // Netejar nom
         let nom = nomLine
             .replace(/^\*\s*/, '')
             .replace(/\s*-\s*Radio Edit$/i, '')
             .replace(/\s*-\s*Original Mix$/i, '')
             .trim();
 
-        // Parsejar stats
         const statsMatch = statsLine.match(/^([\d,]+)\s+([\d,]+)/);
         let streams = '0';
         let daily = '0';
@@ -189,13 +215,6 @@ function parsejatKworb() {
 
     renderTracks();
     mostrarStatus(`✅ ${tracksData.length} cançons detectades!`, 'ok');
-}
-
-function formatNum(n) {
-    if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(1) + 'B';
-    if (n >= 1_000_000) return Math.round(n / 1_000_000) + 'M';
-    if (n >= 1_000) return Math.round(n / 1_000) + 'K';
-    return n.toString();
 }
 
 function renderTracks() {
@@ -224,8 +243,11 @@ function eliminarTrack(idx) {
     renderTracks();
 }
 
-async function generarTop10() {
+async function generarTop() {
     const artista = document.getElementById('artista').value.trim();
+    const estil = document.getElementById('estil').value;
+    const numTracks = parseInt(document.getElementById('num-tracks').value);
+
     if (!artista) {
         mostrarStatus('❌ Omple el nom de l\'artista', 'error');
         return;
@@ -234,6 +256,8 @@ async function generarTop10() {
         mostrarStatus('❌ Parsejar les dades de Kworb primer', 'error');
         return;
     }
+
+    const tracksFinals = tracksData.slice(0, numTracks).map((t, i) => ({...t, pos: i + 1}));
 
     mostrarStatus('⏳ Disparant workflow...', 'info');
 
@@ -249,14 +273,15 @@ async function generarTop10() {
                 ref: 'main',
                 inputs: {
                     artista: artista,
-                    tracks: JSON.stringify(tracksData)
+                    tracks: JSON.stringify(tracksFinals),
+                    estil: estil
                 }
             })
         }
     );
 
     if (r.status === 204) {
-        mostrarStatus('✅ Workflow iniciat!<br>⏳ Tarda 15-20 min. Clica "Veure estat" per seguir el progrés.', 'ok');
+        mostrarStatus(`✅ Workflow iniciat! (${numTracks} cançons, estil: ${estil})<br>⏳ Tarda 15-20 min.`, 'ok');
     } else {
         mostrarStatus(`❌ Error ${r.status}`, 'error');
     }
