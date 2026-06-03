@@ -31,22 +31,23 @@ DURADA_TOP1       = 10
 DURADA_OUTRO      = 2.0
 FADE_DURADA       = 0.3
 
-# Layout — coordenades en pixels per a 1080x1920
+# ── LAYOUT 1080x1920 ──
+SAFE_TOP     = 160   # Zona segura TikTok
 Y_TITOL1     = 160   # TOP 10 ARTISTA SONGS
-Y_TITOL2     = 210   # SPOTIFY STREAMS
-Y_DIVIDER    = 230
-Y_COVER      = 255   # Portada (esquerra)
+Y_TITOL2     = 220   # SPOTIFY STREAMS
+Y_COVER      = 270   # Portada (top)
 COVER_SIZE   = 220   # Mida portada px
-X_INFO       = 310   # X on comença el text info (a la dreta de la portada)
-Y_NUM        = 370   # Número #X
-Y_NOM        = 430   # Nom cançó
-Y_STREAMS    = 490   # Streams
-Y_DAILY      = 545   # Daily
-Y_BAR        = 575   # Barra ranking
-Y_OUTRO      = 1580  # Outro (@compte) — centre-baix zona segura
-Y_OUTRO2     = 1650  # Subtítol outro
+X_COVER      = 55    # X portada
+X_INFO       = 320   # X info (dreta portada)
+Y_NUM        = 340   # Número #X
+Y_NOM        = 470   # Nom cançó
+Y_STREAMS    = 550   # Streams Spotify
+Y_DAILY      = 610   # Daily streams
+Y_BAR        = 650   # Barra ranking
+Y_OUTRO      = 1580  # @compte
+Y_OUTRO2     = 1650  # Electronic Vibes Daily
 
-tracks = json.loads(os.environ['TRACKS'])
+tracks = json.loads(TRACKS_RAW)
 
 def get_spotify_token():
     try:
@@ -76,9 +77,9 @@ def get_spotify_cover(nom_canco, artista, token):
         pass
     return None
 
-def adaptar_font(text, mida_base=160, max_chars_base=16):
+def adaptar_font(text, mida_base=120):
     chars = len(text)
-    if chars <= max_chars_base: return mida_base
+    if chars <= 16: return mida_base
     elif chars <= 24: return int(mida_base * 0.80)
     elif chars <= 32: return int(mida_base * 0.65)
     else: return int(mida_base * 0.52)
@@ -142,10 +143,10 @@ for track in tracks:
                 f.write(cover_data)
             print(f"   Portada Spotify OK")
 
-    # Fallback YouTube thumbnail
+    # Fallback YouTube
     if not os.path.exists(thumb_path) or os.path.getsize(thumb_path) < 1000:
-        query = f"{ARTISTA} {nom} official video"
-        os.system(f'yt-dlp --write-thumbnail --skip-download --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{thumb_base}" "ytsearch1:{query}" -q 2>/dev/null')
+        query_thumb = f"{ARTISTA} {nom} official video"
+        os.system(f'yt-dlp --write-thumbnail --skip-download --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{thumb_base}" "ytsearch1:{query_thumb}" -q 2>/dev/null')
         thumb_webp = thumb_base + ".webp"
         if not os.path.exists(thumb_path) and os.path.exists(thumb_webp):
             os.system(f'ffmpeg -i "{thumb_webp}" "{thumb_path}" -y -loglevel error')
@@ -176,38 +177,30 @@ for track in tracks:
 
     mida_nom = adaptar_font(nom)
     nom_net = nom.replace("'", "").replace('"', '').replace(':', '-')
-    if len(nom_net) > 45:
-        nom_net = nom_net[:42].rsplit(' ', 1)[0] + '...'
+    if len(nom_net) > 40:
+        nom_net = nom_net[:37].rsplit(' ', 1)[0] + '...'
     streams_net = str(streams).replace("'", "")
     daily_net = str(daily).replace("'", "")
 
     # Barra ranking
     n_total = len(tracks)
-    bar_width = 600
+    bar_width = 700
     bar_progress = int(bar_width * (n_total - pos + 1) / n_total)
 
     txt = []
-    # Títol
-    txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol1}':fontsize=72:fontcolor=white:borderw=1:bordercolor=black@0.8:shadowcolor=black@0.3:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
-    txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{titol2}':fontsize=44:fontcolor=0x00BFFF:borderw=1:bordercolor=black@0.7:x=(w-text_w)/2:y={Y_TITOL2}")
-    # Número
-    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='#{pos}':fontsize=130:fontcolor=white:borderw=2:bordercolor=black@0.9:shadowcolor=black@0.5:shadowx=0:shadowy=3:x={X_INFO}:y={Y_NUM}")
-    # Nom
+    txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol1}':fontsize=68:fontcolor=white:borderw=1:bordercolor=black@0.8:shadowcolor=black@0.3:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
+    txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{titol2}':fontsize=40:fontcolor=0x00BFFF:borderw=1:bordercolor=black@0.7:x=(w-text_w)/2:y={Y_TITOL2}")
+    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='#{pos}':fontsize=120:fontcolor=white:borderw=2:bordercolor=black@0.9:shadowcolor=black@0.5:shadowx=0:shadowy=3:x={X_INFO}:y={Y_NUM}")
     txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_net}':fontsize={mida_nom}:fontcolor=white:borderw=2:bordercolor=black@0.9:shadowcolor=black@0.4:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM}")
-    # Streams verd Spotify
-    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{streams_net} Spotify streams':fontsize=44:fontcolor=0x1DB954:borderw=2:bordercolor=black@0.9:shadowcolor=black@0.3:shadowx=0:shadowy=2:x={X_INFO}:y={Y_STREAMS}")
-    # Daily
-    txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='{daily_net} daily streams':fontsize=36:fontcolor=white@0.70:borderw=1:bordercolor=black@0.8:x={X_INFO}:y={Y_DAILY}")
-    # Barra fons
-    txt.append(f"drawbox=x=55:y={Y_BAR}:w={bar_width}:h=6:color=white@0.12:t=fill")
-    # Barra progrés
-    txt.append(f"drawbox=x=55:y={Y_BAR}:w={bar_progress}:h=6:color=0x1DB954@0.9:t=fill")
+    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{streams_net} Spotify streams':fontsize=40:fontcolor=0x1DB954:borderw=2:bordercolor=black@0.9:shadowcolor=black@0.3:shadowx=0:shadowy=2:x={X_INFO}:y={Y_STREAMS}")
+    txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='{daily_net} daily streams':fontsize=34:fontcolor=white@0.70:borderw=1:bordercolor=black@0.8:x={X_INFO}:y={Y_DAILY}")
+    txt.append(f"drawbox=x={X_COVER}:y={Y_BAR}:w={bar_width}:h=6:color=white@0.12:t=fill")
+    txt.append(f"drawbox=x={X_COVER}:y={Y_BAR}:w={bar_progress}:h=6:color=0x1DB954@0.9:t=fill")
 
-    # Outro (només al clip #1)
     if pos == 1:
         compte_text = COMPTE.replace("'", "")
         t_aparicio = durada - DURADA_OUTRO + 0.3
-        txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{compte_text}':fontsize=54:fontcolor=white@0.82:borderw=1:bordercolor=black@0.6:shadowcolor=black@0.2:x=(w-text_w)/2:y={Y_OUTRO}:enable='gte(t,{t_aparicio})'")
+        txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{compte_text}':fontsize=52:fontcolor=white@0.82:borderw=1:bordercolor=black@0.6:shadowcolor=black@0.2:x=(w-text_w)/2:y={Y_OUTRO}:enable='gte(t,{t_aparicio})'")
         txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='Electronic Vibes Daily':fontsize=32:fontcolor=0x00BFFF@0.72:borderw=1:bordercolor=black@0.5:x=(w-text_w)/2:y={Y_OUTRO2}:enable='gte(t,{t_aparicio})'")
 
     txt_str = ",".join(txt)
@@ -216,18 +209,19 @@ for track in tracks:
     if has_thumb:
         fc = (
             "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920[bgfull];"
-            "[bgfull]boxblur=20:3[bg];"
-            "[1:v]scale={cs}:{cs}:force_original_aspect_ratio=decrease,pad={cs}:{cs}:(ow-iw)/2:(oh-ih)/2:color=black@0,setsar=1[cover];"
-            "[bg][cover]overlay=55:{yc}[withcover];"
-            "[withcover]fps=30,colorchannelmixer=ra=0.82:ga=0.82:ba=0.82[colored];"
+            "[bgfull]boxblur=8:2[bg];"
+            "[1:v]scale={cs}:{cs}:force_original_aspect_ratio=decrease,"
+            "pad={cs}:{cs}:(ow-iw)/2:(oh-ih)/2:color=black@0,setsar=1[cover];"
+            "[bg][cover]overlay={xc}:{yc}[withcover];"
+            "[withcover]fps=30,colorchannelmixer=ra=0.85:ga=0.85:ba=0.85[colored];"
             "[colored]{txt}[out]"
-        ).format(cs=COVER_SIZE, yc=Y_COVER, txt=txt_str)
+        ).format(cs=COVER_SIZE, xc=X_COVER, yc=Y_COVER, txt=txt_str)
         cmd = f'ffmpeg -ss {inici} -i "{video_path}" -i "{thumb_path}" -t {durada} -filter_complex "{fc}" -map "[out]" -map 0:a -c:v libx264 -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
     else:
         fc = (
             "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920[bgfull];"
-            "[bgfull]boxblur=20:3[bg];"
-            "[bg]fps=30,colorchannelmixer=ra=0.82:ga=0.82:ba=0.82[colored];"
+            "[bgfull]boxblur=8:2[bg];"
+            "[bg]fps=30,colorchannelmixer=ra=0.85:ga=0.85:ba=0.85[colored];"
             "[colored]{txt}[out]"
         ).format(txt=txt_str)
         cmd = f'ffmpeg -ss {inici} -i "{video_path}" -t {durada} -filter_complex "{fc}" -map "[out]" -map 0:a -c:v libx264 -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
@@ -236,7 +230,7 @@ for track in tracks:
     clips_paths.append((pos, output_path))
     print(f"   OK clip generat")
 
-# Verificar clips
+# Verificar i muntar
 clips_paths.sort(key=lambda x: x[0], reverse=True)
 clips_valids = []
 for pos, path in clips_paths:
