@@ -32,22 +32,40 @@ DURADA_OUTRO      = 2.0
 FADE_DURADA       = 0.3
 
 # ── LAYOUT 1080x1920 ──
-Y_HEADER     = 0
-HEADER_H     = 280
-Y_TITOL1     = 155
-Y_TITOL2     = 225
-Y_COVER      = 310
-COVER_SIZE   = 220
-X_COVER      = 55
-X_INFO       = 320
-Y_NUM        = 310
-Y_NOM1       = 455
-Y_NOM2       = 575
-Y_STREAMS    = 600
-Y_DAILY      = 660
-Y_BAR        = 700
-Y_OUTRO      = 1580
-Y_OUTRO2     = 1650
+# Vídeo fons: 1080x1920 crop complet
+# Portada: 800x800 centrada horitzontalment, a 460px del top
+COVER_W      = 800
+COVER_H      = 800
+COVER_X      = 140   # (1080-800)/2
+COVER_Y      = 460
+
+# Header
+Y_TITOL1     = 140
+Y_TITOL2     = 215
+
+# Text sobre portada (gradient + text)
+GRAD_Y       = 960   # on comença el gradient sobre portada
+GRAD_H       = 300   # alçada gradient
+
+# Número decoratiu (semi-transparent, enorme)
+NUM_X        = 55
+NUM_Y        = 900
+
+# Nom cançó (sobre portada, alineat esquerra)
+NOM_X        = 60
+NOM_Y1       = 1080
+NOM_Y2       = 1175
+
+# Sota portada
+Y_STREAMS    = 1300
+Y_DAILY      = 1360
+Y_BAR_Y      = 1400
+BAR_X        = COVER_X
+BAR_W        = COVER_W
+
+# Outro
+Y_OUTRO      = 1560
+Y_OUTRO2     = 1630
 
 tracks = json.loads(TRACKS_RAW)
 
@@ -79,19 +97,13 @@ def get_spotify_cover(nom_canco, artista, token):
         pass
     return None
 
-def partir_nom(nom, max_chars=20):
+def partir_nom(nom, max_chars=18):
     if len(nom) <= max_chars:
         return nom, ""
     idx = nom.rfind(' ', 0, max_chars)
     if idx == -1:
         idx = max_chars
     return nom[:idx].strip(), nom[idx:].strip()
-
-def adaptar_font(text, mida_base=110):
-    chars = len(text)
-    if chars <= 20: return mida_base
-    elif chars <= 28: return int(mida_base * 0.85)
-    else: return int(mida_base * 0.72)
 
 def trobar_moment_impactant(audio_path, duracio_total, estil='energetic'):
     try:
@@ -182,33 +194,42 @@ for track in tracks:
     titol2 = "SPOTIFY STREAMS"
 
     nom_net = nom.replace("'", "").replace('"', '').replace(':', '-')
-    nom_linia1, nom_linia2 = partir_nom(nom_net, max_chars=20)
-    mida_nom = adaptar_font(nom_linia1)
-
+    nom_linia1, nom_linia2 = partir_nom(nom_net, max_chars=18)
     streams_net = str(streams).replace("'", "")
     daily_net = str(daily).replace("'", "")
 
-    y_streams_real = Y_STREAMS + (110 if nom_linia2 else 0)
-    y_daily_real   = Y_DAILY   + (110 if nom_linia2 else 0)
-    y_bar_real     = Y_BAR     + (110 if nom_linia2 else 0)
-
     n_total = len(tracks)
-    bar_width = 700
-    bar_progress = int(bar_width * (n_total - pos + 1) / n_total)
+    bar_progress = int(BAR_W * (n_total - pos + 1) / n_total)
 
     txt = []
-    txt.append(f"drawbox=x=0:y={Y_HEADER}:w=1080:h={HEADER_H}:color=black@0.45:t=fill")
-    txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol1}':fontsize=68:fontcolor=white:borderw=1:bordercolor=black@0.6:shadowcolor=black@0.3:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
-    txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{titol2}':fontsize=40:fontcolor=0x00BFFF:borderw=1:bordercolor=black@0.5:x=(w-text_w)/2:y={Y_TITOL2}")
-    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='#{pos}':fontsize=120:fontcolor=white:borderw=2:bordercolor=black@0.9:shadowcolor=black@0.5:shadowx=0:shadowy=3:x={X_INFO}:y={Y_NUM}")
-    txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia1}':fontsize={mida_nom}:fontcolor=white:borderw=2:bordercolor=black@0.9:shadowcolor=black@0.4:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM1}")
-    if nom_linia2:
-        txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia2}':fontsize={mida_nom}:fontcolor=white:borderw=2:bordercolor=black@0.9:shadowcolor=black@0.4:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM2}")
-    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{streams_net} Spotify streams':fontsize=40:fontcolor=0x1DB954:borderw=2:bordercolor=black@0.9:shadowcolor=black@0.3:shadowx=0:shadowy=2:x={X_INFO}:y={y_streams_real}")
-    txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='{daily_net} daily streams':fontsize=34:fontcolor=white@0.70:borderw=1:bordercolor=black@0.8:x={X_INFO}:y={y_daily_real}")
-    txt.append(f"drawbox=x={X_COVER}:y={y_bar_real}:w={bar_width}:h=6:color=white@0.12:t=fill")
-    txt.append(f"drawbox=x={X_COVER}:y={y_bar_real}:w={bar_progress}:h=6:color=0x1DB954@0.9:t=fill")
 
+    # Franja header semi-transparent
+    txt.append(f"drawbox=x=0:y=0:w=1080:h=300:color=black@0.50:t=fill")
+
+    # Títol header
+    txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol1}':fontsize=72:fontcolor=white:borderw=1:bordercolor=black@0.6:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
+    txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{titol2}':fontsize=42:fontcolor=0x00BFFF:borderw=1:bordercolor=black@0.5:x=(w-text_w)/2:y={Y_TITOL2}")
+
+    # Número decoratiu semi-transparent (enorme, darrere del nom)
+    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='#{pos}':fontsize=400:fontcolor=white@0.08:x={NUM_X}:y={NUM_Y}")
+
+    # Gradient sobre la part inferior de la portada
+    txt.append(f"drawbox=x={COVER_X}:y={GRAD_Y}:w={COVER_W}:h={GRAD_H}:color=black@0.55:t=fill")
+
+    # Nom cançó sobre portada, alineat esquerra
+    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{nom_linia1}':fontsize=90:fontcolor=white:borderw=2:bordercolor=black@0.8:shadowx=0:shadowy=3:x={NOM_X}:y={NOM_Y1}")
+    if nom_linia2:
+        txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{nom_linia2}':fontsize=90:fontcolor=white:borderw=2:bordercolor=black@0.8:shadowx=0:shadowy=3:x={NOM_X}:y={NOM_Y2}")
+
+    # Streams sota portada
+    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{streams_net} Spotify streams':fontsize=44:fontcolor=0x1DB954:borderw=2:bordercolor=black@0.8:shadowx=0:shadowy=2:x={COVER_X}:y={Y_STREAMS}")
+    txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='{daily_net} daily streams':fontsize=36:fontcolor=white@0.75:borderw=1:bordercolor=black@0.7:x={COVER_X}:y={Y_DAILY}")
+
+    # Barra ranking
+    txt.append(f"drawbox=x={BAR_X}:y={Y_BAR_Y}:w={BAR_W}:h=6:color=white@0.15:t=fill")
+    txt.append(f"drawbox=x={BAR_X}:y={Y_BAR_Y}:w={bar_progress}:h=6:color=0x1DB954@0.9:t=fill")
+
+    # Outro
     if pos == 1:
         compte_text = COMPTE.replace("'", "")
         t_aparicio = durada - DURADA_OUTRO + 0.3
@@ -220,19 +241,17 @@ for track in tracks:
 
     if has_thumb:
         fc = (
-            "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
-            "crop=1080:1920[bg];"
-            "[1:v]scale={cs}:{cs}:force_original_aspect_ratio=decrease,"
-            "pad={cs}:{cs}:(ow-iw)/2:(oh-ih)/2:color=black@0,setsar=1[cover];"
-            "[bg][cover]overlay={xc}:{yc}[withcover];"
+            "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920[bg];"
+            "[1:v]scale={cw}:{ch}:force_original_aspect_ratio=decrease,"
+            "pad={cw}:{ch}:(ow-iw)/2:(oh-ih)/2:color=black@0,setsar=1[cover];"
+            "[bg][cover]overlay={cx}:{cy}[withcover];"
             "[withcover]fps=30,colorchannelmixer=ra=0.88:ga=0.88:ba=0.88[colored];"
             "[colored]{txt}[out]"
-        ).format(cs=COVER_SIZE, xc=X_COVER, yc=Y_COVER, txt=txt_str)
+        ).format(cw=COVER_W, ch=COVER_H, cx=COVER_X, cy=COVER_Y, txt=txt_str)
         cmd = f'ffmpeg -ss {inici} -i "{video_path}" -i "{thumb_path}" -t {durada} -filter_complex "{fc}" -map "[out]" -map 0:a -c:v libx264 -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
     else:
         fc = (
-            "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
-            "crop=1080:1920[bg];"
+            "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920[bg];"
             "[bg]fps=30,colorchannelmixer=ra=0.88:ga=0.88:ba=0.88[colored];"
             "[colored]{txt}[out]"
         ).format(txt=txt_str)
