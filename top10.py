@@ -162,7 +162,21 @@ for track in tracks:
 clips_paths.sort(key=lambda x: x[0], reverse=True)
 clips_ordenats = [p for _, p in clips_paths]
 
-print("\n🎬 Muntant vídeo final...")
+print("\n Muntant video final...")
+
+# Verificar que tots els clips existeixen i pesen més de 0
+clips_valids = []
+for path in clips_ordenats:
+    if os.path.exists(path) and os.path.getsize(path) > 1000:
+        clips_valids.append(path)
+    else:
+        print(f"   Clip no valid: {path}")
+
+if len(clips_valids) < 2:
+    print("ERROR: No hi ha prou clips valids per muntar")
+    exit(1)
+
+clips_ordenats = clips_valids
 durades = []
 for path in clips_ordenats:
     r = subprocess.run(["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", path], capture_output=True, text=True)
