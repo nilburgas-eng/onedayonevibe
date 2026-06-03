@@ -32,32 +32,32 @@ DURADA_OUTRO      = 2.0
 FADE_DURADA       = 0.3
 
 # ── LAYOUT 1080x1920 ──
-COVER_W      = 600
-COVER_H      = 600
-COVER_X      = 240
-COVER_Y      = 500
+# Portada petita esquerra
+COVER_W      = 280
+COVER_H      = 280
+COVER_X      = 50
+COVER_Y      = 820   # centrada verticalment
 
-Y_TITOL1     = 200
-Y_TITOL2     = 275
+# Header
+Y_TITOL1     = 210
+Y_TITOL2     = 272
 
-GRAD_Y       = 830
-GRAD_H       = 270
+# Info dreta de la portada
+X_INFO       = 370
+Y_NUM        = 820
+Y_NOM1       = 960
+Y_NOM2       = 1030
 
-NUM_X        = 60
-NUM_Y        = 760
+# Sota portada
+Y_STREAMS    = 1140
+Y_DAILY      = 1192
+Y_BAR        = 1230
+BAR_X        = 50
+BAR_W        = 980
 
-NOM_X        = 60
-NOM_Y1       = 880
-NOM_Y2       = 960
-
-Y_STREAMS    = 1150
-Y_DAILY      = 1210
-Y_BAR_Y      = 1255
-BAR_X        = COVER_X
-BAR_W        = COVER_W
-
+# Outro
 Y_OUTRO      = 1560
-Y_OUTRO2     = 1630
+Y_OUTRO2     = 1618
 
 tracks = json.loads(TRACKS_RAW)
 
@@ -89,7 +89,7 @@ def get_spotify_cover(nom_canco, artista, token):
         pass
     return None
 
-def partir_nom(nom, max_chars=18):
+def partir_nom(nom, max_chars=22):
     if len(nom) <= max_chars:
         return nom, ""
     idx = nom.rfind(' ', 0, max_chars)
@@ -169,7 +169,7 @@ for track in tracks:
         print(f"   No s'ha trobat videoclip — usant portada")
         output_path = f"{OUTPUT}/clip_{pos:02d}.mp4"
         if os.path.exists(thumb_path):
-            os.system(f'ffmpeg -loop 1 -i "{thumb_path}" -t {durada} -vf "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,fps=30" -c:v libx264 -r 30 -c:a aac -ar 44100 "{output_path}" -y -loglevel error')
+            os.system(f'ffmpeg -loop 1 -i "{thumb_path}" -t {durada} -vf "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920:(iw-1080)/2:(ih-1920)/2,fps=30" -c:v libx264 -r 30 -c:a aac -ar 44100 "{output_path}" -y -loglevel error')
         else:
             os.system(f'ffmpeg -f lavfi -i color=c=black:s=1080x1920:d={durada} -r 30 -c:v libx264 -c:a aac -ar 44100 "{output_path}" -y -loglevel error')
         clips_paths.append((pos, output_path))
@@ -186,7 +186,7 @@ for track in tracks:
     titol2 = "SPOTIFY STREAMS"
 
     nom_net = nom.replace("'", "").replace('"', '').replace(':', '-')
-    nom_linia1, nom_linia2 = partir_nom(nom_net, max_chars=18)
+    nom_linia1, nom_linia2 = partir_nom(nom_net, max_chars=22)
     streams_net = str(streams).replace("'", "")
     daily_net = str(daily).replace("'", "")
 
@@ -195,59 +195,61 @@ for track in tracks:
 
     txt = []
 
-    # Franja header
-    txt.append(f"drawbox=x=0:y=0:w=1080:h=320:color=black@0.50:t=fill")
+    # Gradient top subtil
+    txt.append(f"drawbox=x=0:y=0:w=1080:h=340:color=black@0.45:t=fill")
+
+    # Gradient bottom subtil
+    txt.append(f"drawbox=x=0:y=1580:w=1080:h=340:color=black@0.40:t=fill")
 
     # Títol
-    txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol1}':fontsize=70:fontcolor=white:borderw=1:bordercolor=black@0.6:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
-    txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{titol2}':fontsize=42:fontcolor=0x00BFFF:borderw=1:bordercolor=black@0.5:x=(w-text_w)/2:y={Y_TITOL2}")
+    txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol1}':fontsize=65:fontcolor=white:borderw=1:bordercolor=black@0.5:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
+    txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{titol2}':fontsize=38:fontcolor=0x00BFFF:borderw=1:bordercolor=black@0.4:x=(w-text_w)/2:y={Y_TITOL2}")
 
-    # Número decoratiu semi-transparent
-    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='#{pos}':fontsize=350:fontcolor=white@0.07:x=50:y=600")
+    # Gradient zona info (portada + text)
+    txt.append(f"drawbox=x=0:y=780:w=1080:h=500:color=black@0.38:t=fill")
 
-    # Gradient sobre part inferior portada
-    txt.append(f"drawbox=x={COVER_X}:y={GRAD_Y}:w={COVER_W}:h={GRAD_H}:color=black@0.55:t=fill")
+    # Número gran a la dreta de la portada
+    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='#{pos}':fontsize=130:fontcolor=white:borderw=2:bordercolor=black@0.9:shadowx=0:shadowy=3:x={X_INFO}:y={Y_NUM}")
 
-    # Número llegible
-    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='#{pos}':fontsize=150:fontcolor=white:borderw=2:bordercolor=black@0.9:shadowx=0:shadowy=3:x={NUM_X}:y={NUM_Y}")
-
-    # Nom cançó
-    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{nom_linia1}':fontsize=65:fontcolor=white:borderw=2:bordercolor=black@0.8:shadowx=0:shadowy=3:x={NOM_X}:y={NOM_Y1}")
+    # Nom cançó — sempre font consistent 58px
+    txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia1}':fontsize=58:fontcolor=white:borderw=2:bordercolor=black@0.85:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM1}")
     if nom_linia2:
-        txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{nom_linia2}':fontsize=65:fontcolor=white:borderw=2:bordercolor=black@0.8:shadowx=0:shadowy=3:x={NOM_X}:y={NOM_Y2}")
+        txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia2}':fontsize=58:fontcolor=white:borderw=2:bordercolor=black@0.85:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM2}")
 
     # Streams
-    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{streams_net} Spotify streams':fontsize=44:fontcolor=0x1DB954:borderw=2:bordercolor=black@0.8:shadowx=0:shadowy=2:x={COVER_X}:y={Y_STREAMS}")
-    txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='{daily_net} daily streams':fontsize=36:fontcolor=white@0.75:borderw=1:bordercolor=black@0.7:x={COVER_X}:y={Y_DAILY}")
+    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{streams_net} Spotify streams':fontsize=40:fontcolor=0x1DB954:borderw=2:bordercolor=black@0.8:shadowx=0:shadowy=2:x={BAR_X}:y={Y_STREAMS}")
+    txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='{daily_net} daily streams':fontsize=34:fontcolor=white@0.72:borderw=1:bordercolor=black@0.6:x={BAR_X}:y={Y_DAILY}")
 
-    # Barra ranking
-    txt.append(f"drawbox=x={BAR_X}:y={Y_BAR_Y}:w={BAR_W}:h=6:color=white@0.15:t=fill")
-    txt.append(f"drawbox=x={BAR_X}:y={Y_BAR_Y}:w={bar_progress}:h=6:color=0x1DB954@0.9:t=fill")
+    # Barra ranking fina
+    txt.append(f"drawbox=x={BAR_X}:y={Y_BAR}:w={BAR_W}:h=5:color=white@0.15:t=fill")
+    txt.append(f"drawbox=x={BAR_X}:y={Y_BAR}:w={bar_progress}:h=5:color=0x1DB954@0.9:t=fill")
 
     # Outro
     if pos == 1:
         compte_text = COMPTE.replace("'", "")
         t_aparicio = durada - DURADA_OUTRO + 0.3
-        txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{compte_text}':fontsize=52:fontcolor=white@0.82:borderw=1:bordercolor=black@0.6:x=(w-text_w)/2:y={Y_OUTRO}:enable='gte(t,{t_aparicio})'")
-        txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='Electronic Vibes Daily':fontsize=32:fontcolor=0x00BFFF@0.72:borderw=1:bordercolor=black@0.5:x=(w-text_w)/2:y={Y_OUTRO2}:enable='gte(t,{t_aparicio})'")
+        txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{compte_text}':fontsize=50:fontcolor=white@0.82:borderw=1:bordercolor=black@0.5:x=(w-text_w)/2:y={Y_OUTRO}:enable='gte(t,{t_aparicio})'")
+        txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='Electronic Vibes Daily':fontsize=30:fontcolor=0x00BFFF@0.70:borderw=1:bordercolor=black@0.4:x=(w-text_w)/2:y={Y_OUTRO2}:enable='gte(t,{t_aparicio})'")
 
     txt_str = ",".join(txt)
     has_thumb = os.path.exists(thumb_path) and os.path.getsize(thumb_path) > 1000
 
     if has_thumb:
         fc = (
-            "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920[bg];"
+            "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
+            "crop=1080:1920:(iw-1080)/2:(ih-1920)/2[bg];"
             "[1:v]scale={cw}:{ch}:force_original_aspect_ratio=decrease,"
             "pad={cw}:{ch}:(ow-iw)/2:(oh-ih)/2:color=black@0,setsar=1[cover];"
             "[bg][cover]overlay={cx}:{cy}[withcover];"
-            "[withcover]fps=30,colorchannelmixer=ra=0.88:ga=0.88:ba=0.88[colored];"
+            "[withcover]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored];"
             "[colored]{txt}[out]"
         ).format(cw=COVER_W, ch=COVER_H, cx=COVER_X, cy=COVER_Y, txt=txt_str)
         cmd = f'ffmpeg -ss {inici} -i "{video_path}" -i "{thumb_path}" -t {durada} -filter_complex "{fc}" -map "[out]" -map 0:a -c:v libx264 -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
     else:
         fc = (
-            "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920[bg];"
-            "[bg]fps=30,colorchannelmixer=ra=0.88:ga=0.88:ba=0.88[colored];"
+            "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
+            "crop=1080:1920:(iw-1080)/2:(ih-1920)/2[bg];"
+            "[bg]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored];"
             "[colored]{txt}[out]"
         ).format(txt=txt_str)
         cmd = f'ffmpeg -ss {inici} -i "{video_path}" -t {durada} -filter_complex "{fc}" -map "[out]" -map 0:a -c:v libx264 -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
