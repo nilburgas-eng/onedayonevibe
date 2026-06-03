@@ -32,18 +32,20 @@ DURADA_OUTRO      = 2.0
 FADE_DURADA       = 0.3
 
 # ── LAYOUT 1080x1920 ──
-SAFE_TOP     = 160   # Zona segura TikTok
-Y_TITOL1     = 160   # TOP 10 ARTISTA SONGS
-Y_TITOL2     = 220   # SPOTIFY STREAMS
-Y_COVER      = 270   # Portada (top)
+Y_HEADER     = 0     # Franja header (top)
+HEADER_H     = 280   # Alçada franja header
+Y_TITOL1     = 155   # TOP 10 ARTISTA SONGS
+Y_TITOL2     = 225   # SPOTIFY STREAMS
+Y_COVER      = 310   # Portada (top)
 COVER_SIZE   = 220   # Mida portada px
 X_COVER      = 55    # X portada
 X_INFO       = 320   # X info (dreta portada)
-Y_NUM        = 340   # Número #X
-Y_NOM        = 470   # Nom cançó
-Y_STREAMS    = 550   # Streams Spotify
-Y_DAILY      = 610   # Daily streams
-Y_BAR        = 650   # Barra ranking
+Y_NUM        = 310   # Número #X — alineat amb top portada
+Y_NOM1       = 455   # Nom línia 1
+Y_NOM2       = 575   # Nom línia 2 (si cal)
+Y_STREAMS    = 600   # Streams Spotify
+Y_DAILY      = 660   # Daily streams
+Y_BAR        = 700   # Barra ranking
 Y_OUTRO      = 1580  # @compte
 Y_OUTRO2     = 1650  # Electronic Vibes Daily
 
@@ -77,12 +79,20 @@ def get_spotify_cover(nom_canco, artista, token):
         pass
     return None
 
-def adaptar_font(text, mida_base=120):
+def partir_nom(nom, max_chars=20):
+    if len(nom) <= max_chars:
+        return nom, ""
+    # Tallar per espai més proper al límit
+    idx = nom.rfind(' ', 0, max_chars)
+    if idx == -1:
+        idx = max_chars
+    return nom[:idx].strip(), nom[idx:].strip()
+
+def adaptar_font(text, mida_base=110):
     chars = len(text)
-    if chars <= 16: return mida_base
-    elif chars <= 24: return int(mida_base * 0.80)
-    elif chars <= 32: return int(mida_base * 0.65)
-    else: return int(mida_base * 0.52)
+    if chars <= 20: return mida_base
+    elif chars <= 28: return int(mida_base * 0.85)
+    else: return int(mida_base * 0.72)
 
 def trobar_moment_impactant(audio_path, duracio_total, estil='energetic'):
     try:
@@ -135,7 +145,6 @@ for track in tracks:
     thumb_base = os.path.expanduser(f"~/videos/{pos:02d}_thumb")
     os.makedirs(os.path.expanduser("~/videos"), exist_ok=True)
 
-    # Portada Spotify oficial
     if spotify_token:
         cover_data = get_spotify_cover(nom, ARTISTA, spotify_token)
         if cover_data:
@@ -143,7 +152,6 @@ for track in tracks:
                 f.write(cover_data)
             print(f"   Portada Spotify OK")
 
-    # Fallback YouTube
     if not os.path.exists(thumb_path) or os.path.getsize(thumb_path) < 1000:
         query_thumb = f"{ARTISTA} {nom} official video"
         os.system(f'yt-dlp --write-thumbnail --skip-download --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{thumb_base}" "ytsearch1:{query_thumb}" -q 2>/dev/null')
@@ -151,7 +159,6 @@ for track in tracks:
         if not os.path.exists(thumb_path) and os.path.exists(thumb_webp):
             os.system(f'ffmpeg -i "{thumb_webp}" "{thumb_path}" -y -loglevel error')
 
-    # Descarregar videoclip
     query = f"{ARTISTA} {nom} official video"
     ret = os.system(f'yt-dlp -f "best[ext=mp4]/best" --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "ytsearch1:{query}" --no-playlist -q')
 
@@ -175,32 +182,55 @@ for track in tracks:
     titol1 = f"TOP {len(tracks)} {ARTISTA.upper()} SONGS"
     titol2 = "SPOTIFY STREAMS"
 
-    mida_nom = adaptar_font(nom)
+    # Partir nom en dues línies si cal
     nom_net = nom.replace("'", "").replace('"', '').replace(':', '-')
-    if len(nom_net) > 40:
-        nom_net = nom_net[:37].rsplit(' ', 1)[0] + '...'
+    nom_linia1, nom_linia2 = partir_nom(nom_net, max_chars=20)
+    mida_nom = adaptar_font(nom_linia1)
+
     streams_net = str(streams).replace("'", "")
     daily_net = str(daily).replace("'", "")
 
-    # Barra ranking
+    # Ajustar Y_STREAMS si hi ha segona línia
+    y_streams_real = Y_STREAMS + (110 if nom_linia2 else 0)
+    y_daily_real   = Y_DAILY   + (110 if nom_linia2 else 0)
+    y_bar_real     = Y_BAR     + (110 if nom_linia2 else 0)
+
     n_total = len(tracks)
     bar_width = 700
     bar_progress = int(bar_width * (n_total - pos + 1) / n_total)
 
     txt = []
-    txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol1}':fontsize=68:fontcolor=white:borderw=1:bordercolor=black@0.8:shadowcolor=black@0.3:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
-    txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{titol2}':fontsize=40:fontcolor=0x00BFFF:borderw=1:bordercolor=black@0.7:x=(w-text_w)/2:y={Y_TITOL2}")
-    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='#{pos}':fontsize=120:fontcolor=white:borderw=2:bordercolor=black@0.9:shadowcolor=black@0.5:shadowx=0:shadowy=3:x={X_INFO}:y={Y_NUM}")
-    txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_net}':fontsize={mida_nom}:fontcolor=white:borderw=2:bordercolor=black@0.9:shadowcolor=black@0.4:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM}")
-    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{streams_net} Spotify streams':fontsize=40:fontcolor=0x1DB954:borderw=2:bordercolor=black@0.9:shadowcolor=black@0.3:shadowx=0:shadowy=2:x={X_INFO}:y={Y_STREAMS}")
-    txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='{daily_net} daily streams':fontsize=34:fontcolor=white@0.70:borderw=1:bordercolor=black@0.8:x={X_INFO}:y={Y_DAILY}")
-    txt.append(f"drawbox=x={X_COVER}:y={Y_BAR}:w={bar_width}:h=6:color=white@0.12:t=fill")
-    txt.append(f"drawbox=x={X_COVER}:y={Y_BAR}:w={bar_progress}:h=6:color=0x1DB954@0.9:t=fill")
 
+    # Franja semi-transparent darrere el títol
+    txt.append(f"drawbox=x=0:y={Y_HEADER}:w=1080:h={HEADER_H}:color=black@0.45:t=fill")
+
+    # Títol
+    txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol1}':fontsize=68:fontcolor=white:borderw=1:bordercolor=black@0.6:shadowcolor=black@0.3:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
+    txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{titol2}':fontsize=40:fontcolor=0x00BFFF:borderw=1:bordercolor=black@0.5:x=(w-text_w)/2:y={Y_TITOL2}")
+
+    # Número
+    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='#{pos}':fontsize=120:fontcolor=white:borderw=2:bordercolor=black@0.9:shadowcolor=black@0.5:shadowx=0:shadowy=3:x={X_INFO}:y={Y_NUM}")
+
+    # Nom línia 1
+    txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia1}':fontsize={mida_nom}:fontcolor=white:borderw=2:bordercolor=black@0.9:shadowcolor=black@0.4:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM1}")
+
+    # Nom línia 2 (si cal)
+    if nom_linia2:
+        txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia2}':fontsize={mida_nom}:fontcolor=white:borderw=2:bordercolor=black@0.9:shadowcolor=black@0.4:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM2}")
+
+    # Streams
+    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{streams_net} Spotify streams':fontsize=40:fontcolor=0x1DB954:borderw=2:bordercolor=black@0.9:shadowcolor=black@0.3:shadowx=0:shadowy=2:x={X_INFO}:y={y_streams_real}")
+    txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='{daily_net} daily streams':fontsize=34:fontcolor=white@0.70:borderw=1:bordercolor=black@0.8:x={X_INFO}:y={y_daily_real}")
+
+    # Barra ranking
+    txt.append(f"drawbox=x={X_COVER}:y={y_bar_real}:w={bar_width}:h=6:color=white@0.12:t=fill")
+    txt.append(f"drawbox=x={X_COVER}:y={y_bar_real}:w={bar_progress}:h=6:color=0x1DB954@0.9:t=fill")
+
+    # Outro
     if pos == 1:
         compte_text = COMPTE.replace("'", "")
         t_aparicio = durada - DURADA_OUTRO + 0.3
-        txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{compte_text}':fontsize=52:fontcolor=white@0.82:borderw=1:bordercolor=black@0.6:shadowcolor=black@0.2:x=(w-text_w)/2:y={Y_OUTRO}:enable='gte(t,{t_aparicio})'")
+        txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{compte_text}':fontsize=52:fontcolor=white@0.82:borderw=1:bordercolor=black@0.6:x=(w-text_w)/2:y={Y_OUTRO}:enable='gte(t,{t_aparicio})'")
         txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='Electronic Vibes Daily':fontsize=32:fontcolor=0x00BFFF@0.72:borderw=1:bordercolor=black@0.5:x=(w-text_w)/2:y={Y_OUTRO2}:enable='gte(t,{t_aparicio})'")
 
     txt_str = ",".join(txt)
@@ -208,20 +238,20 @@ for track in tracks:
 
     if has_thumb:
         fc = (
-            "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920[bgfull];"
-            "[bgfull]boxblur=8:2[bg];"
+            "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
+            "crop=1080:1920[bg];"
             "[1:v]scale={cs}:{cs}:force_original_aspect_ratio=decrease,"
             "pad={cs}:{cs}:(ow-iw)/2:(oh-ih)/2:color=black@0,setsar=1[cover];"
             "[bg][cover]overlay={xc}:{yc}[withcover];"
-            "[withcover]fps=30,colorchannelmixer=ra=0.85:ga=0.85:ba=0.85[colored];"
+            "[withcover]fps=30,colorchannelmixer=ra=0.88:ga=0.88:ba=0.88[colored];"
             "[colored]{txt}[out]"
         ).format(cs=COVER_SIZE, xc=X_COVER, yc=Y_COVER, txt=txt_str)
         cmd = f'ffmpeg -ss {inici} -i "{video_path}" -i "{thumb_path}" -t {durada} -filter_complex "{fc}" -map "[out]" -map 0:a -c:v libx264 -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
     else:
         fc = (
-            "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920[bgfull];"
-            "[bgfull]boxblur=8:2[bg];"
-            "[bg]fps=30,colorchannelmixer=ra=0.85:ga=0.85:ba=0.85[colored];"
+            "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
+            "crop=1080:1920[bg];"
+            "[bg]fps=30,colorchannelmixer=ra=0.88:ga=0.88:ba=0.88[colored];"
             "[colored]{txt}[out]"
         ).format(txt=txt_str)
         cmd = f'ffmpeg -ss {inici} -i "{video_path}" -t {durada} -filter_complex "{fc}" -map "[out]" -map 0:a -c:v libx264 -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
@@ -230,7 +260,6 @@ for track in tracks:
     clips_paths.append((pos, output_path))
     print(f"   OK clip generat")
 
-# Verificar i muntar
 clips_paths.sort(key=lambda x: x[0], reverse=True)
 clips_valids = []
 for pos, path in clips_paths:
