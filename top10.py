@@ -26,7 +26,7 @@ COMPTE     = "@onedayonevibe"
 DURADA_CLIP   = 5
 DURADA_TOP1   = 10
 DURADA_OUTRO  = 2.0
-FADE_DURADA   = 0.3
+FADE_DURADA   = 0.4
 PADDING_X     = 80
 Y_TITOL1      = 220
 Y_TITOL2      = 300
@@ -73,22 +73,8 @@ def trobar_moment_impactant(audio_path, duracio_total, estil='energetic'):
         print(f"   Moment ({estil}): {int(moment//60):02d}:{int(moment%60):02d}")
         return moment
     except Exception as e:
-        print(f"   Error detecció: {e}")
+        print(f"   Error deteccio: {e}")
         return 30.0
-
-def generar_vf_blur(filtres_text):
-    # Fons difuminat + vídeo centrat
-    blur_filter = (
-        "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
-        "crop=1080:1920,boxblur=25:5[bg];"
-        "[0:v]scale=1080:1920:force_original_aspect_ratio=decrease,"
-        "setsar=1,fps=30[fg];"
-        "[bg][fg]overlay=(W-w)/2:(H-h)/2[base];"
-        "[base]colorchannelmixer=ra=0.85:ga=0.85:ba=0.85"
-    )
-    if filtres_text:
-        return blur_filter + "," + ",".join(filtres_text)
-    return blur_filter
 
 clips_paths = []
 
@@ -99,23 +85,31 @@ for track in tracks:
     daily    = track['daily']
     durada   = DURADA_TOP1 if pos == 1 else DURADA_CLIP
 
-    print(f"\n🎬 #{pos}: {nom}")
+    print(f"\nClip #{pos}: {nom}")
 
     video_path = os.path.expanduser(f"~/videos/{pos:02d}.mp4")
     audio_path = os.path.expanduser(f"~/videos/{pos:02d}.wav")
+    thumb_base = os.path.expanduser(f"~/videos/{pos:02d}_thumb")
+    thumb_path = thumb_base + ".jpg"
     os.makedirs(os.path.expanduser("~/videos"), exist_ok=True)
 
     query = f"{ARTISTA} {nom} official video"
     print(f"   Buscant: {query}")
+
+    # Descarregar thumbnail
+    os.system(f'yt-dlp --write-thumbnail --skip-download --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{thumb_base}" "ytsearch1:{query}" -q 2>/dev/null')
+    thumb_webp = thumb_base + ".webp"
+    if not os.path.exists(thumb_path) and os.path.exists(thumb_webp):
+        os.system(f'ffmpeg -i "{thumb_webp}" "{thumb_path}" -y -loglevel error')
+
+    # Descarregar videoclip
     ret = os.system(f'yt-dlp -f "best[ext=mp4]/best" --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "ytsearch1:{query}" --no-playlist -q')
 
     if ret != 0 or not os.path.exists(video_path) or os.path.getsize(video_path) < 10000:
-        print(f"   ⚠️ No s'ha trobat videoclip — usant portada")
-        thumb_path = os.path.expanduser(f"~/videos/{pos:02d}_thumb.jpg")
-        os.system(f'yt-dlp --write-thumbnail --skip-download --cookies cookies.txt -o "{os.path.expanduser(f"~/videos/{pos:02d}_thumb")}" "ytsearch1:{query}" -q')
+        print(f"   No s'ha trobat videoclip — usant portada")
         output_path = f"{OUTPUT}/clip_{pos:02d}.mp4"
         if os.path.exists(thumb_path):
-            os.system(f'ffmpeg -loop 1 -i "{thumb_path}" -t {durada} -vf "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,zoompan=z=\'min(zoom+0.001,1.3)\':x=\'iw/2-(iw/zoom/2)\':y=\'ih/2-(ih/zoom/2)\':d={durada*25}:s=1080x1920,fps=30" -c:v libx264 -r 30 -c:a aac -ar 44100 "{output_path}" -y -loglevel error')
+            os.system(f'ffmpeg -loop 1 -i "{thumb_path}" -t {durada} -vf "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,fps=30" -c:v libx264 -r 30 -c:a aac -ar 44100 "{output_path}" -y -loglevel error')
         else:
             os.system(f'ffmpeg -f lavfi -i color=c=black:s=1080x1920:d={durada} -r 30 -c:v libx264 -c:a aac -ar 44100 "{output_path}" -y -loglevel error')
         clips_paths.append((pos, output_path))
@@ -139,44 +133,65 @@ for track in tracks:
     streams_net = str(streams).replace("'", "")
     daily_net = str(daily).replace("'", "")
 
-    filtres = []
-    filtres.append("drawtext=fontfile='" + FONT_BEBAS + "':text='" + titol1 + "':fontsize=72:fontcolor=white:borderw=1:bordercolor=black@0.8:shadowcolor=black@0.35:shadowx=0:shadowy=2:x=(w-text_w)/2:y=" + str(Y_TITOL1))
-    filtres.append("drawtext=fontfile='" + FONT_SEMIBOLD + "':text='" + titol2 + "':fontsize=38:fontcolor=0x00BFFF:borderw=1:bordercolor=black@0.8:x=(w-text_w)/2:y=" + str(Y_TITOL2))
-    filtres.append("drawtext=fontfile='" + FONT_EXTRABOLD + "':text='#" + str(pos) + "':fontsize=120:fontcolor=white:borderw=2:bordercolor=black@0.9:shadowcolor=black@0.5:shadowx=0:shadowy=3:x=" + str(PADDING_X) + ":y=" + str(Y_BASE))
-    filtres.append("drawtext=fontfile='" + FONT_SEMIBOLD + "':text='" + nom_net + "':fontsize=" + str(mida_nom) + ":fontcolor=white:borderw=2:bordercolor=black@0.9:shadowcolor=black@0.4:shadowx=0:shadowy=2:x=" + str(PADDING_X) + ":y=" + str(Y_BASE + 130))
-    filtres.append("drawtext=fontfile='" + FONT_EXTRABOLD + "':text='" + streams_net + " Spotify streams':fontsize=36:fontcolor=0x1DB954:borderw=2:bordercolor=black@0.9:shadowcolor=black@0.4:shadowx=0:shadowy=2:x=" + str(PADDING_X) + ":y=" + str(Y_BASE + 190))
-    filtres.append("drawtext=fontfile='" + FONT_SEMIBOLD + "':text='" + daily_net + " daily streams':fontsize=30:fontcolor=white:borderw=2:bordercolor=black@0.9:shadowcolor=black@0.3:shadowx=0:shadowy=1:x=" + str(PADDING_X) + ":y=" + str(Y_BASE + 238))
+    # Text drawtext filters
+    txt = []
+    txt.append("drawtext=fontfile='" + FONT_BEBAS + "':text='" + titol1 + "':fontsize=72:fontcolor=white:borderw=1:bordercolor=black@0.8:shadowcolor=black@0.35:shadowx=0:shadowy=2:x=(w-text_w)/2:y=" + str(Y_TITOL1))
+    txt.append("drawtext=fontfile='" + FONT_SEMIBOLD + "':text='" + titol2 + "':fontsize=38:fontcolor=0x00BFFF:borderw=1:bordercolor=black@0.8:x=(w-text_w)/2:y=" + str(Y_TITOL2))
+    txt.append("drawtext=fontfile='" + FONT_EXTRABOLD + "':text='#" + str(pos) + "':fontsize=120:fontcolor=white:borderw=2:bordercolor=black@0.9:shadowcolor=black@0.5:shadowx=0:shadowy=3:x=" + str(PADDING_X) + ":y=" + str(Y_BASE))
+    txt.append("drawtext=fontfile='" + FONT_SEMIBOLD + "':text='" + nom_net + "':fontsize=" + str(mida_nom) + ":fontcolor=white:borderw=2:bordercolor=black@0.9:shadowcolor=black@0.4:shadowx=0:shadowy=2:x=" + str(PADDING_X) + ":y=" + str(Y_BASE + 130))
+    txt.append("drawtext=fontfile='" + FONT_EXTRABOLD + "':text='" + streams_net + " Spotify streams':fontsize=36:fontcolor=0x1DB954:borderw=2:bordercolor=black@0.9:shadowcolor=black@0.4:shadowx=0:shadowy=2:x=" + str(PADDING_X) + ":y=" + str(Y_BASE + 190))
+    txt.append("drawtext=fontfile='" + FONT_SEMIBOLD + "':text='" + daily_net + " daily streams':fontsize=30:fontcolor=white:borderw=2:bordercolor=black@0.9:shadowcolor=black@0.3:shadowx=0:shadowy=1:x=" + str(PADDING_X) + ":y=" + str(Y_BASE + 238))
 
     if pos == 1:
         compte_text = COMPTE.replace("'", "")
         t_aparicio = durada - DURADA_OUTRO + 0.3
-        filtres.append("drawtext=fontfile='" + FONT_SEMIBOLD + "':text='" + compte_text + "':fontsize=54:fontcolor=white@0.85:shadowcolor=black@0.25:shadowx=0:shadowy=2:x=(w-text_w)/2:y=(h/2)+180:enable='gte(t," + str(t_aparicio) + ")'")
-        filtres.append("drawtext=fontfile='" + FONT_MEDIUM + "':text='Electronic Vibes Daily':fontsize=30:fontcolor=0x00BFFF@0.75:shadowcolor=black@0.20:shadowx=0:shadowy=1:x=(w-text_w)/2:y=(h/2)+248:enable='gte(t," + str(t_aparicio) + ")'")
+        txt.append("drawtext=fontfile='" + FONT_SEMIBOLD + "':text='" + compte_text + "':fontsize=54:fontcolor=white@0.85:shadowcolor=black@0.25:shadowx=0:shadowy=2:x=(w-text_w)/2:y=(h/2)+180:enable='gte(t," + str(t_aparicio) + ")'")
+        txt.append("drawtext=fontfile='" + FONT_MEDIUM + "':text='Electronic Vibes Daily':fontsize=30:fontcolor=0x00BFFF@0.75:shadowcolor=black@0.20:shadowx=0:shadowy=1:x=(w-text_w)/2:y=(h/2)+248:enable='gte(t," + str(t_aparicio) + ")'")
 
-    vf = generar_vf_blur(filtres)
-    cmd = f'ffmpeg -ss {inici} -i "{video_path}" -t {durada} -vf "{vf}" -c:v libx264 -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
+    txt_str = ",".join(txt)
+    has_thumb = os.path.exists(thumb_path)
+
+    if has_thumb:
+        # Usar -filter_complex per múltiples inputs
+        fc = (
+            "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,boxblur=25:5[bg];"
+            "[0:v]scale=1080:1920:force_original_aspect_ratio=decrease,setsar=1,fps=30[fg];"
+            "[bg][fg]overlay=(W-w)/2:(H-h)/2[base];"
+            "[base]colorchannelmixer=ra=0.85:ga=0.85:ba=0.85[colored];"
+            "[1:v]scale=280:280:force_original_aspect_ratio=decrease,pad=280:280:(ow-iw)/2:(oh-ih)/2:color=black@0,setsar=1[thumb];"
+            "[colored][thumb]overlay=(W-w)/2:((H-h)/2)-30[withthumb];"
+            "[withthumb]" + txt_str + "[out]"
+        )
+        cmd = f'ffmpeg -ss {inici} -i "{video_path}" -i "{thumb_path}" -t {durada} -filter_complex "{fc}" -map "[out]" -map 0:a -c:v libx264 -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
+    else:
+        fc = (
+            "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,boxblur=25:5[bg];"
+            "[0:v]scale=1080:1920:force_original_aspect_ratio=decrease,setsar=1,fps=30[fg];"
+            "[bg][fg]overlay=(W-w)/2:(H-h)/2[base];"
+            "[base]colorchannelmixer=ra=0.85:ga=0.85:ba=0.85[colored];"
+            "[colored]" + txt_str + "[out]"
+        )
+        cmd = f'ffmpeg -ss {inici} -i "{video_path}" -t {durada} -filter_complex "{fc}" -map "[out]" -map 0:a -c:v libx264 -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
+
     os.system(cmd)
     clips_paths.append((pos, output_path))
-    print(f"   ✅ Clip generat")
+    print(f"   OK clip generat")
 
+# Verificar clips
 clips_paths.sort(key=lambda x: x[0], reverse=True)
-clips_ordenats = [p for _, p in clips_paths]
-
-print("\n Muntant video final...")
-
-# Verificar que tots els clips existeixen i pesen més de 0
-clips_valids = []
-for path in clips_ordenats:
+clips_ordenats_tots = [p for _, p in clips_paths]
+clips_ordenats = []
+for path in clips_ordenats_tots:
     if os.path.exists(path) and os.path.getsize(path) > 1000:
-        clips_valids.append(path)
+        clips_ordenats.append(path)
     else:
         print(f"   Clip no valid: {path}")
 
-if len(clips_valids) < 2:
-    print("ERROR: No hi ha prou clips valids per muntar")
+if len(clips_ordenats) < 2:
+    print("ERROR: No hi ha prou clips valids")
     exit(1)
 
-clips_ordenats = clips_valids
+print(f"\nMuntant video final amb {len(clips_ordenats)} clips...")
 durades = []
 for path in clips_ordenats:
     r = subprocess.run(["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", path], capture_output=True, text=True)
@@ -188,7 +203,7 @@ inputs_str = " ".join([f"-i '{p}'" for p in clips_ordenats])
 video_filters = []
 audio_filters = []
 offset = durades[0] - FADE_DURADA
-video_filters.append(f"[0:v][1:v]xfade=transition=fade:duration={FADE_DURADA}:offset={offset}[v01]")
+video_filters.append(f"[0:v][1:v]xfade=transition=slideleft:duration={FADE_DURADA}:offset={offset}[v01]")
 audio_filters.append(f"[0:a][1:a]acrossfade=d={FADE_DURADA}[a01]")
 for i in range(2, n_clips):
     prev_v = f"v0{i-1}"
@@ -196,11 +211,11 @@ for i in range(2, n_clips):
     out_v = f"v0{i}" if i < n_clips - 1 else "vfinal"
     out_a = f"a0{i}" if i < n_clips - 1 else "afinal"
     offset += durades[i-1] - FADE_DURADA
-    video_filters.append(f"[{prev_v}][{i}:v]xfade=transition=fade:duration={FADE_DURADA}:offset={offset:.3f}[{out_v}]")
+    video_filters.append(f"[{prev_v}][{i}:v]xfade=transition=slideleft:duration={FADE_DURADA}:offset={offset:.3f}[{out_v}]")
     audio_filters.append(f"[{prev_a}][{i}:a]acrossfade=d={FADE_DURADA}[{out_a}]")
 
 filter_complex = ";".join(video_filters + audio_filters)
 output_final = f"{OUTPUT}/top10_final.mp4"
 cmd = f'ffmpeg {inputs_str} -filter_complex "{filter_complex}" -map "[vfinal]" -map "[afinal]" -c:v libx264 -c:a aac -b:a 192k "{output_final}" -y -loglevel error'
 os.system(cmd)
-print("✅ Video final generat!")
+print("Video final generat!")
