@@ -80,6 +80,8 @@ jobs:
           ARTISTA: ${{ github.event.inputs.artista }}
           TRACKS: ${{ github.event.inputs.tracks }}
           ESTIL: ${{ github.event.inputs.estil }}
+          SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
+          SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
         run: python3 top10.py
 
       - name: Pujar video final a GitHub Releases
