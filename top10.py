@@ -32,38 +32,30 @@ DURADA_OUTRO      = 2.0
 FADE_DURADA       = 0.3
 
 # ── LAYOUT 1080x1920 ──
-# Vídeo fons: 1080x1920 crop complet
-# Portada: 800x800 centrada horitzontalment, a 460px del top
-COVER_W      = 800
-COVER_H      = 800
-COVER_X      = 140   # (1080-800)/2
-COVER_Y      = 460
+COVER_W      = 600
+COVER_H      = 600
+COVER_X      = 240
+COVER_Y      = 500
 
-# Header
-Y_TITOL1     = 140
-Y_TITOL2     = 215
+Y_TITOL1     = 200
+Y_TITOL2     = 275
 
-# Text sobre portada (gradient + text)
-GRAD_Y       = 960   # on comença el gradient sobre portada
-GRAD_H       = 300   # alçada gradient
+GRAD_Y       = 830
+GRAD_H       = 270
 
-# Número decoratiu (semi-transparent, enorme)
-NUM_X        = 55
-NUM_Y        = 900
+NUM_X        = 60
+NUM_Y        = 760
 
-# Nom cançó (sobre portada, alineat esquerra)
 NOM_X        = 60
-NOM_Y1       = 1080
-NOM_Y2       = 1175
+NOM_Y1       = 880
+NOM_Y2       = 960
 
-# Sota portada
-Y_STREAMS    = 1300
-Y_DAILY      = 1360
-Y_BAR_Y      = 1400
+Y_STREAMS    = 1150
+Y_DAILY      = 1210
+Y_BAR_Y      = 1255
 BAR_X        = COVER_X
 BAR_W        = COVER_W
 
-# Outro
 Y_OUTRO      = 1560
 Y_OUTRO2     = 1630
 
@@ -203,25 +195,28 @@ for track in tracks:
 
     txt = []
 
-    # Franja header semi-transparent
-    txt.append(f"drawbox=x=0:y=0:w=1080:h=300:color=black@0.50:t=fill")
+    # Franja header
+    txt.append(f"drawbox=x=0:y=0:w=1080:h=320:color=black@0.50:t=fill")
 
-    # Títol header
-    txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol1}':fontsize=72:fontcolor=white:borderw=1:bordercolor=black@0.6:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
+    # Títol
+    txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol1}':fontsize=70:fontcolor=white:borderw=1:bordercolor=black@0.6:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
     txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{titol2}':fontsize=42:fontcolor=0x00BFFF:borderw=1:bordercolor=black@0.5:x=(w-text_w)/2:y={Y_TITOL2}")
 
-    # Número decoratiu semi-transparent (enorme, darrere del nom)
-    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='#{pos}':fontsize=400:fontcolor=white@0.08:x={NUM_X}:y={NUM_Y}")
+    # Número decoratiu semi-transparent
+    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='#{pos}':fontsize=350:fontcolor=white@0.07:x=50:y=600")
 
-    # Gradient sobre la part inferior de la portada
+    # Gradient sobre part inferior portada
     txt.append(f"drawbox=x={COVER_X}:y={GRAD_Y}:w={COVER_W}:h={GRAD_H}:color=black@0.55:t=fill")
 
-    # Nom cançó sobre portada, alineat esquerra
-    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{nom_linia1}':fontsize=90:fontcolor=white:borderw=2:bordercolor=black@0.8:shadowx=0:shadowy=3:x={NOM_X}:y={NOM_Y1}")
-    if nom_linia2:
-        txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{nom_linia2}':fontsize=90:fontcolor=white:borderw=2:bordercolor=black@0.8:shadowx=0:shadowy=3:x={NOM_X}:y={NOM_Y2}")
+    # Número llegible
+    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='#{pos}':fontsize=150:fontcolor=white:borderw=2:bordercolor=black@0.9:shadowx=0:shadowy=3:x={NUM_X}:y={NUM_Y}")
 
-    # Streams sota portada
+    # Nom cançó
+    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{nom_linia1}':fontsize=65:fontcolor=white:borderw=2:bordercolor=black@0.8:shadowx=0:shadowy=3:x={NOM_X}:y={NOM_Y1}")
+    if nom_linia2:
+        txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{nom_linia2}':fontsize=65:fontcolor=white:borderw=2:bordercolor=black@0.8:shadowx=0:shadowy=3:x={NOM_X}:y={NOM_Y2}")
+
+    # Streams
     txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{streams_net} Spotify streams':fontsize=44:fontcolor=0x1DB954:borderw=2:bordercolor=black@0.8:shadowx=0:shadowy=2:x={COVER_X}:y={Y_STREAMS}")
     txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='{daily_net} daily streams':fontsize=36:fontcolor=white@0.75:borderw=1:bordercolor=black@0.7:x={COVER_X}:y={Y_DAILY}")
 
