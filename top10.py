@@ -34,10 +34,10 @@ FADE_DURADA       = 0.3
 # ── LAYOUT 1080x1920 ──
 COVER_W      = 280
 COVER_H      = 280
-COVER_X      = 50
+COVER_X      = 90
 COVER_Y      = 420
 
-X_INFO       = 370
+X_INFO       = 410
 Y_NUM        = 420
 Y_NOM1       = 560
 Y_NOM2       = 630
@@ -48,7 +48,7 @@ Y_TITOL2     = 285
 Y_STREAMS    = 740
 Y_DAILY      = 792
 Y_BAR        = 830
-BAR_X        = 50
+BAR_X        = 90
 BAR_W        = 980
 
 Y_OUTRO      = 1560
