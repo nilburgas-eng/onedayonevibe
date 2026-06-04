@@ -175,13 +175,21 @@ for track in tracks:
             print(f"   Portada Spotify OK")
 
     if not os.path.exists(thumb_path) or os.path.getsize(thumb_path) < 1000:
-        query_thumb = f"{ARTISTA} {nom} official video"
+        # Query millorada — inclou artista al final per evitar agafar originals
+    nom_query = nom.replace('-', '').strip()
+    if any(x in nom.lower() for x in ['remix', 'edit', 'mix', 'version']):
+        query_thumb = f"{ARTISTA} {nom_query} official"
+    else:
+        query_thumb = f"{ARTISTA} {nom_query} {ARTISTA} official video"
         os.system(f'yt-dlp --write-thumbnail --skip-download --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{thumb_base}" "ytsearch1:{query_thumb}" -q 2>/dev/null')
         thumb_webp = thumb_base + ".webp"
         if not os.path.exists(thumb_path) and os.path.exists(thumb_webp):
             os.system(f'ffmpeg -i "{thumb_webp}" "{thumb_path}" -y -loglevel error')
 
-    query = f"{ARTISTA} {nom} official video"
+    if any(x in nom.lower() for x in ['remix', 'edit', 'mix', 'version']):
+        query = f"{ARTISTA} {nom_query} official"
+    else:
+        query = f"{ARTISTA} {nom_query} {ARTISTA} official video"
     ret = os.system(f'yt-dlp -f "best[ext=mp4]/best" --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "ytsearch1:{query}" --no-playlist -q')
 
     if ret != 0 or not os.path.exists(video_path) or os.path.getsize(video_path) < 10000:
