@@ -103,23 +103,15 @@ def trobar_moment_impactant(audio_path, duracio_total, estil='energetic'):
         times = librosa.frames_to_time(np.arange(len(rms)), sr=sr, hop_length=hop_length)
         rms_smooth = np.convolve(rms, np.ones(50)/50, mode='same')
         nyq = sr / 2
-
         if estil == 'melodic':
             b, a = butter(4, [500/nyq, 4000/nyq], btype='band')
             audio_target = filtfilt(b, a, audio_tall)
         elif estil == 'vocal':
-            # Chorus detector: energia vocal (750Hz-2.5kHz) + energia general alta
             b_voc, a_voc = butter(4, [750/nyq, 2500/nyq], btype='band')
             audio_vocal = filtfilt(b_voc, a_voc, audio_tall)
             rms_vocal = librosa.feature.rms(y=audio_vocal, frame_length=2048, hop_length=hop_length)[0]
             rms_vocal_smooth = np.convolve(rms_vocal, np.ones(50)/50, mode='same')
-
-            # Combinar: vocal fort + energia general alta = chorus
-            rms_general = rms_smooth
-            rms_combined = rms_vocal_smooth * 0.6 + rms_general * 0.4
-            audio_target = filtfilt(b_voc, a_voc, audio_tall)
-
-            # Usar el combined per seleccionar el millor moment
+            rms_combined = rms_vocal_smooth * 0.6 + rms_smooth * 0.4
             llindar = np.max(rms_smooth) * 0.65
             candidats, _ = find_peaks(rms_smooth, height=llindar, distance=sr//hop_length*15)
             if len(candidats) == 0:
@@ -131,7 +123,6 @@ def trobar_moment_impactant(audio_path, duracio_total, estil='energetic'):
         else:
             b, a = butter(4, 100/nyq, btype='low')
             audio_target = filtfilt(b, a, audio_tall)
-
         rms_target = librosa.feature.rms(y=audio_target, frame_length=2048, hop_length=hop_length)[0]
         rms_target_smooth = np.convolve(rms_target, np.ones(50)/50, mode='same')
         llindar = np.max(rms_smooth) * 0.65
@@ -153,11 +144,13 @@ print("Token OK" if spotify_token else "Sense token Spotify")
 clips_paths = []
 
 for track in tracks:
-    pos      = track['pos']
-    nom      = track['nom']
-    streams  = track['streams']
-    daily    = track['daily']
-    durada   = DURADA_TOP1 if pos == 1 else DURADA_CLIP
+    pos             = track['pos']
+    nom             = track['nom']
+    streams         = track['streams']
+    daily           = track['daily']
+    timestamp_manual = track.get('timestamp_manual')
+    nom_manual      = track.get('nom_manual')
+    durada          = DURADA_TOP1 if pos == 1 else DURADA_CLIP
 
     print(f"\nClip #{pos}: {nom}")
 
@@ -174,7 +167,8 @@ for track in tracks:
                 f.write(cover_data)
             print(f"   Portada Spotify OK")
 
-   nom_query = nom.replace('-', '').strip()
+    # Query millorada
+    nom_query = nom.replace("'", "").replace('"', '').strip()
     if any(x in nom.lower() for x in ['remix', 'edit', 'mix', 'version']):
         query_thumb = f"{ARTISTA} {nom_query} official"
         query = f"{ARTISTA} {nom_query} official"
@@ -204,9 +198,6 @@ for track in tracks:
     duracio_total = float(json.loads(r.stdout)['format']['duration'])
 
     os.system(f'ffmpeg -i "{video_path}" -vn -acodec pcm_s16le -ar 22050 -ac 1 "{audio_path}" -y -loglevel error')
-    # Timestamp manual — té prioritat sobre la detecció automàtica
-    timestamp_manual = track.get('timestamp_manual')
-    nom_manual = track.get('nom_manual')
 
     if timestamp_manual is not None:
         inici = float(timestamp_manual)
@@ -228,36 +219,21 @@ for track in tracks:
     bar_progress = int(BAR_W * (n_total - pos + 1) / n_total)
 
     txt = []
-
-    # Gradient top molt subtil
     txt.append(f"drawbox=x=0:y=0:w=1080:h=360:color=black@0.20:t=fill")
-
-    # Gradient bottom molt subtil
     txt.append(f"drawbox=x=0:y=1580:w=1080:h=340:color=black@0.18:t=fill")
-
-    # Títol
     txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol1}':fontsize=75:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowcolor=black@0.5:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
     txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{titol2}':fontsize=38:fontcolor=0x00BFFF:borderw=2:bordercolor=black@0.6:shadowcolor=black@0.4:x=(w-text_w)/2:y={Y_TITOL2}")
-
-    # Número
     txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='#{pos}':fontsize=130:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowcolor=black@0.6:shadowx=0:shadowy=3:x={X_INFO}:y={Y_NUM}")
-
-    # Nom cançó
     txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia1}':fontsize=58:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowcolor=black@0.5:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM1}")
     if nom_linia2:
         txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia2}':fontsize=58:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowcolor=black@0.5:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM2}")
-
-    # Streams
     txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{streams_net} Spotify streams':fontsize=40:fontcolor=0x1DB954:borderw=2:bordercolor=black@0.8:shadowcolor=black@0.5:shadowx=0:shadowy=2:x={BAR_X}:y={Y_STREAMS}")
     txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='{daily_net} daily streams':fontsize=34:fontcolor=white@0.85:borderw=2:bordercolor=black@0.7:shadowcolor=black@0.4:x={BAR_X}:y={Y_DAILY}")
-
-    # Barra ranking
     txt.append(f"drawbox=x={BAR_X}:y={Y_BAR}:w={BAR_W}:h=5:color=white@0.15:t=fill")
     txt.append(f"drawbox=x={BAR_X}:y={Y_BAR}:w={bar_progress}:h=5:color=0x1DB954@0.9:t=fill")
     txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='#{n_total}':fontsize=28:fontcolor=white@0.45:borderw=1:bordercolor=black@0.6:x={BAR_X}:y={Y_BAR+12}")
     txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='#1':fontsize=28:fontcolor=0x1DB954@0.80:borderw=1:bordercolor=black@0.6:x={BAR_X+BAR_W-60}:y={Y_BAR+12}")
 
-    # Outro
     if pos == 1:
         compte_text = COMPTE.replace("'", "")
         t_aparicio = durada - DURADA_OUTRO + 0.3
