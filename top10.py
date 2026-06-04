@@ -103,11 +103,35 @@ def trobar_moment_impactant(audio_path, duracio_total, estil='energetic'):
         times = librosa.frames_to_time(np.arange(len(rms)), sr=sr, hop_length=hop_length)
         rms_smooth = np.convolve(rms, np.ones(50)/50, mode='same')
         nyq = sr / 2
+
         if estil == 'melodic':
             b, a = butter(4, [500/nyq, 4000/nyq], btype='band')
+            audio_target = filtfilt(b, a, audio_tall)
+        elif estil == 'vocal':
+            # Chorus detector: energia vocal (750Hz-2.5kHz) + energia general alta
+            b_voc, a_voc = butter(4, [750/nyq, 2500/nyq], btype='band')
+            audio_vocal = filtfilt(b_voc, a_voc, audio_tall)
+            rms_vocal = librosa.feature.rms(y=audio_vocal, frame_length=2048, hop_length=hop_length)[0]
+            rms_vocal_smooth = np.convolve(rms_vocal, np.ones(50)/50, mode='same')
+
+            # Combinar: vocal fort + energia general alta = chorus
+            rms_general = rms_smooth
+            rms_combined = rms_vocal_smooth * 0.6 + rms_general * 0.4
+            audio_target = filtfilt(b_voc, a_voc, audio_tall)
+
+            # Usar el combined per seleccionar el millor moment
+            llindar = np.max(rms_smooth) * 0.65
+            candidats, _ = find_peaks(rms_smooth, height=llindar, distance=sr//hop_length*15)
+            if len(candidats) == 0:
+                candidats = [np.argmax(rms_smooth)]
+            millor = max(candidats, key=lambda i: rms_combined[min(i, len(rms_combined)-1)])
+            moment = max(inici_cerca, inici_cerca + times[min(millor, len(times)-1)] - 2)
+            print(f"   Moment (vocal/chorus): {int(moment//60):02d}:{int(moment%60):02d}")
+            return moment
         else:
             b, a = butter(4, 100/nyq, btype='low')
-        audio_target = filtfilt(b, a, audio_tall)
+            audio_target = filtfilt(b, a, audio_tall)
+
         rms_target = librosa.feature.rms(y=audio_target, frame_length=2048, hop_length=hop_length)[0]
         rms_target_smooth = np.convolve(rms_target, np.ones(50)/50, mode='same')
         llindar = np.max(rms_smooth) * 0.65
