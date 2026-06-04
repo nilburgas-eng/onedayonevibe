@@ -198,12 +198,21 @@ for track in tracks:
     duracio_total = float(json.loads(r.stdout)['format']['duration'])
 
     os.system(f'ffmpeg -i "{video_path}" -vn -acodec pcm_s16le -ar 22050 -ac 1 "{audio_path}" -y -loglevel error')
-    inici = trobar_moment_impactant(audio_path, duracio_total, ESTIL) if os.path.exists(audio_path) else 30.0
+    # Timestamp manual — té prioritat sobre la detecció automàtica
+    timestamp_manual = track.get('timestamp_manual')
+    nom_manual = track.get('nom_manual')
+
+    if timestamp_manual is not None:
+        inici = float(timestamp_manual)
+        print(f"   Timestamp manual: {int(inici//60):02d}:{int(inici%60):02d}")
+    else:
+        inici = trobar_moment_impactant(audio_path, duracio_total, ESTIL) if os.path.exists(audio_path) else 30.0
 
     output_path = f"{OUTPUT}/clip_{pos:02d}.mp4"
     titol1 = f"TOP {len(tracks)} {ARTISTA.upper()} SONGS"
     titol2 = "BASED ON STREAMS"
 
+    nom = nom_manual if nom_manual else nom
     nom_net = nom.replace("'", "").replace('"', '').replace(':', '-')
     nom_linia1, nom_linia2 = partir_nom(nom_net, max_chars=22)
     streams_net = str(streams).replace("'", "")
