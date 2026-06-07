@@ -144,13 +144,13 @@ print("Token OK" if spotify_token else "Sense token Spotify")
 clips_paths = []
 
 for track in tracks:
-    pos             = track['pos']
-    nom             = track['nom']
-    streams         = track['streams']
-    daily           = track['daily']
+    pos              = track['pos']
+    nom              = track['nom']
+    streams          = track['streams']
+    daily            = track['daily']
     timestamp_manual = track.get('timestamp_manual')
-    nom_manual      = track.get('nom_manual')
-    durada          = DURADA_TOP1 if pos == 1 else DURADA_CLIP
+    nom_manual       = track.get('nom_manual')
+    durada           = DURADA_TOP1 if pos == 1 else DURADA_CLIP
 
     print(f"\nClip #{pos}: {nom}")
 
@@ -167,7 +167,6 @@ for track in tracks:
                 f.write(cover_data)
             print(f"   Portada Spotify OK")
 
-    # Query millorada
     nom_query = nom.replace("'", "").replace('"', '').strip()
     if any(x in nom.lower() for x in ['remix', 'edit', 'mix', 'version']):
         query_thumb = f"{ARTISTA} {nom_query} official"
@@ -188,9 +187,9 @@ for track in tracks:
         print(f"   No s'ha trobat videoclip — usant portada")
         output_path = f"{OUTPUT}/clip_{pos:02d}.mp4"
         if os.path.exists(thumb_path):
-            os.system(f'ffmpeg -loop 1 -i "{thumb_path}" -t {durada} -vf "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,fps=30" -c:v libx264 -r 30 -c:a aac -ar 44100 "{output_path}" -y -loglevel error')
+            os.system(f'ffmpeg -loop 1 -i "{thumb_path}" -f lavfi -i anullsrc=r=44100:cl=stereo -t {durada} -vf "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,fps=30" -c:v libx264 -r 30 -c:a aac -b:a 192k -ar 44100 -shortest "{output_path}" -y -loglevel error')
         else:
-            os.system(f'ffmpeg -f lavfi -i color=c=black:s=1080x1920:d={durada} -r 30 -c:v libx264 -c:a aac -ar 44100 "{output_path}" -y -loglevel error')
+            os.system(f'ffmpeg -f lavfi -i color=c=black:s=1080x1920:d={durada} -f lavfi -i anullsrc=r=44100:cl=stereo -t {durada} -r 30 -c:v libx264 -c:a aac -b:a 192k -ar 44100 -shortest "{output_path}" -y -loglevel error')
         clips_paths.append((pos, output_path))
         continue
 
@@ -261,7 +260,7 @@ for track in tracks:
             "[bg]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored];"
             "[colored]{txt}[out]"
         ).format(txt=txt_str)
-        cmd = f'ffmpeg -ss {inici} -i "{video_path}" -t {durada} -filter_complex "{fc}" -map "[out]" -map 0:a -af "loudnorm" -c:v libx264 -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
+        cmd = f'ffmpeg -ss {inici} -i "{video_path}" -t {durada} -filter_complex "{fc}" -map "[out]" -map 0:a -c:v libx264 -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
 
     os.system(cmd)
     clips_paths.append((pos, output_path))
