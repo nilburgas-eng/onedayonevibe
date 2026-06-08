@@ -6,9 +6,10 @@ on:
       artista:
         description: 'Nom de l artista (ex: Hardwell)'
         required: true
-      tracks:
-        description: 'Tracks en format JSON'
-        required: true
+      any_tall:
+        description: 'Any de tall THEN/NOW (ex: 2018)'
+        required: false
+        default: '2018'
       estil:
         description: 'Estil de deteccio: energetic, melodic o vocal'
         required: false
@@ -77,7 +78,7 @@ jobs:
       - name: Generar Then vs Now
         env:
           ARTISTA: ${{ github.event.inputs.artista }}
-          TRACKS: ${{ github.event.inputs.tracks }}
+          ANY_TALL: ${{ github.event.inputs.any_tall }}
           ESTIL: ${{ github.event.inputs.estil }}
           SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
           SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
