@@ -21,48 +21,37 @@ for font_path in [FONT_BEBAS, FONT_SEMIBOLD, FONT_EXTRABOLD, FONT_MEDIUM]:
         elif font_path == FONT_MEDIUM: FONT_MEDIUM = FONT_FALLBACK
 
 ARTISTA           = os.environ['ARTISTA']
-TRACKS_RAW        = os.environ['TRACKS']
+ANY_TALL          = int(os.environ.get('ANY_TALL', '2018'))
 ESTIL             = os.environ.get('ESTIL', 'energetic')
 SPOTIFY_CLIENT_ID = os.environ.get('SPOTIFY_CLIENT_ID', '')
 SPOTIFY_SECRET    = os.environ.get('SPOTIFY_CLIENT_SECRET', '')
 COMPTE            = "@onedayonevibe"
 DURADA_CLIP       = 8
-DURADA_TOP1       = 8
 DURADA_OUTRO      = 2.0
 FADE_DURADA       = 0.3
 
-# ── COLORS ──
-COLOR_THEN = "0x00BFFF"  # Blau
-COLOR_NOW  = "0xFF6B00"  # Taronja
+COLOR_THEN = "0x00BFFF"
+COLOR_NOW  = "0xFF6B00"
 
-# ── LAYOUT 1080x1920 ──
-COVER_W      = 280
-COVER_H      = 280
-COVER_X      = 90
-COVER_Y      = 420
+COVER_W  = 280
+COVER_H  = 280
+COVER_X  = 90
+COVER_Y  = 420
+X_INFO   = 410
+Y_NUM    = 420
+Y_NOM1   = 560
+Y_NOM2   = 630
+Y_TITOL1 = 210
+Y_TITOL2 = 285
+Y_ANY    = 740
+Y_BAR    = 790
+BAR_X    = 90
+BAR_W    = 980
+Y_OUTRO  = 1500
+Y_OUTRO2 = 1558
+Y_OUTRO3 = 1620
 
-X_INFO       = 410
-Y_NUM        = 420
-Y_NOM1       = 560
-Y_NOM2       = 630
-
-Y_TITOL1     = 210
-Y_TITOL2     = 285
-
-Y_ERA        = 320   # THEN / NOW gran
-Y_ANY        = 760   # Any de la cançó
-Y_STREAMS    = 820
-Y_DAILY      = 872
-Y_BAR        = 910
-BAR_X        = 90
-BAR_W        = 980
-
-Y_OUTRO      = 1500
-Y_OUTRO2     = 1558
-Y_OUTRO3     = 1620
-
-tracks = json.loads(TRACKS_RAW)
-
+# ── CERCA AUTOMÀTICA SPOTIFY ──
 def get_spotify_token():
     try:
         creds = base64.b64encode(f"{SPOTIFY_CLIENT_ID}:{SPOTIFY_SECRET}".encode()).decode()
@@ -74,6 +63,91 @@ def get_spotify_token():
         return r.json().get('access_token')
     except:
         return None
+
+def buscar_tracks_spotify(artista, any_tall, token):
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Buscar artista
+    r = requests.get(
+        f"https://api.spotify.com/v1/search?q={requests.utils.quote(artista)}&type=artist&limit=1",
+        headers=headers
+    )
+    items = r.json().get('artists', {}).get('items', [])
+    if not items:
+        print(f"Artista no trobat: {artista}")
+        return []
+    artist_id = items[0]['id']
+    print(f"Artista trobat: {items[0]['name']} ({artist_id})")
+
+    # Top tracks
+    r = requests.get(
+        f"https://api.spotify.com/v1/artists/{artist_id}/top-tracks?market=ES",
+        headers=headers
+    )
+    top_tracks = r.json().get('tracks', [])
+    print(f"Top tracks: {len(top_tracks)}")
+
+    # Albums per obtenir anys originals
+    r = requests.get(
+        f"https://api.spotify.com/v1/artists/{artist_id}/albums?include_groups=single,album&market=ES&limit=50",
+        headers=headers
+    )
+    albums = r.json().get('items', [])
+
+    any_per_canco = {}
+    for album in albums[:30]:
+        any_album = int(album['release_date'].split('-')[0]) if album.get('release_date') else 0
+        r = requests.get(
+            f"https://api.spotify.com/v1/albums/{album['id']}/tracks?limit=50",
+            headers=headers
+        )
+        for t in r.json().get('items', []):
+            key = t['name'].lower().strip()
+            if key not in any_per_canco or any_album < any_per_canco[key]:
+                any_per_canco[key] = any_album
+
+    # Classificar THEN / NOW
+    then_list = []
+    now_list = []
+    for t in top_tracks:
+        key = t['name'].lower().strip()
+        any_album = int(t['album']['release_date'].split('-')[0]) if t.get('album', {}).get('release_date') else 0
+        any_final = any_per_canco.get(key, any_album)
+        if any_final == 0:
+            continue
+        cover_url = t['album']['images'][0]['url'] if t['album'].get('images') else None
+        obj = {
+            'pos': 0,
+            'nom': t['name'],
+            'any': any_final,
+            'era': 'THEN' if any_final < any_tall else 'NOW',
+            'streams': '',
+            'cover_url': cover_url,
+            'timestamp_manual': None,
+            'nom_manual': None
+        }
+        if obj['era'] == 'THEN':
+            then_list.append(obj)
+        else:
+            now_list.append(obj)
+
+    print(f"THEN: {len(then_list)} · NOW: {len(now_list)}")
+
+    # Intercalar fins a 10
+    tracks = []
+    pos = 1
+    max_len = max(len(then_list), len(now_list))
+    for i in range(max_len):
+        if i < len(then_list) and len(tracks) < 10:
+            then_list[i]['pos'] = pos
+            tracks.append(then_list[i])
+            pos += 1
+        if i < len(now_list) and len(tracks) < 10:
+            now_list[i]['pos'] = pos
+            tracks.append(now_list[i])
+            pos += 1
+
+    return tracks
 
 def get_spotify_cover(nom_canco, artista, token):
     try:
@@ -125,7 +199,7 @@ def trobar_moment_impactant(audio_path, duracio_total, estil='energetic'):
                 candidats = [np.argmax(rms_smooth)]
             millor = max(candidats, key=lambda i: rms_combined[min(i, len(rms_combined)-1)])
             moment = max(inici_cerca, inici_cerca + times[min(millor, len(times)-1)] - 2)
-            print(f"   Moment (vocal/chorus): {int(moment//60):02d}:{int(moment%60):02d}")
+            print(f"   Moment (vocal): {int(moment//60):02d}:{int(moment%60):02d}")
             return moment
         else:
             b, a = butter(4, 100/nyq, btype='low')
@@ -144,24 +218,39 @@ def trobar_moment_impactant(audio_path, duracio_total, estil='energetic'):
         print(f"   Error deteccio: {e}")
         return 30.0
 
+# ── OBTENIR TRACKS ──
 print("Obtenint token de Spotify...")
 spotify_token = get_spotify_token()
-print("Token OK" if spotify_token else "Sense token Spotify")
+
+if spotify_token:
+    print("Token OK — buscant tracks automàticament...")
+    tracks = buscar_tracks_spotify(ARTISTA, ANY_TALL, spotify_token)
+else:
+    print("Sense token Spotify")
+    tracks = []
+
+if not tracks:
+    print("ERROR: No s'han trobat tracks")
+    exit(1)
+
+print(f"\nTracks seleccionats ({len(tracks)}):")
+for t in tracks:
+    print(f"  [{t['era']}] #{t['pos']}: {t['nom']} ({t['any']})")
 
 clips_paths = []
 
-for i, track in enumerate(tracks):
+for track in tracks:
     pos              = track['pos']
     nom              = track['nom']
     any_canco        = track.get('any', '')
     era              = track.get('era', 'THEN')
-    streams          = track.get('streams', '')
+    cover_url        = track.get('cover_url')
     timestamp_manual = track.get('timestamp_manual')
     nom_manual       = track.get('nom_manual')
     durada           = DURADA_CLIP
-    es_ultim         = (i == len(tracks) - 1)
+    es_ultim         = (pos == len(tracks))
+    color_era        = COLOR_THEN if era == 'THEN' else COLOR_NOW
 
-    color_era = COLOR_THEN if era == 'THEN' else COLOR_NOW
     print(f"\nClip #{pos} [{era}]: {nom} ({any_canco})")
 
     video_path = os.path.expanduser(f"~/videos/{pos:02d}.mp4")
@@ -170,12 +259,22 @@ for i, track in enumerate(tracks):
     thumb_base = os.path.expanduser(f"~/videos/{pos:02d}_thumb")
     os.makedirs(os.path.expanduser("~/videos"), exist_ok=True)
 
-    if spotify_token:
-        cover_data = get_spotify_cover(nom, ARTISTA, spotify_token)
-        if cover_data:
+    # Portada Spotify — usar cover_url directament si disponible
+    if cover_url and spotify_token:
+        try:
+            img_data = requests.get(cover_url).content
             with open(thumb_path, 'wb') as f:
-                f.write(cover_data)
+                f.write(img_data)
             print(f"   Portada Spotify OK")
+        except:
+            pass
+
+    if not os.path.exists(thumb_path) or os.path.getsize(thumb_path) < 1000:
+        if spotify_token:
+            cover_data = get_spotify_cover(nom, ARTISTA, spotify_token)
+            if cover_data:
+                with open(thumb_path, 'wb') as f:
+                    f.write(cover_data)
 
     nom_query = nom.replace("'", "").replace('"', '').strip()
     if any(x in nom.lower() for x in ['remix', 'edit', 'mix', 'version']):
@@ -218,38 +317,23 @@ for i, track in enumerate(tracks):
     nom_net = nom.replace("'", "").replace('"', '').replace(':', '-')
     nom_linia1, nom_linia2 = partir_nom(nom_net, max_chars=22)
 
+    n_total = len(tracks)
+    bar_progress = int(BAR_W * pos / n_total)
+
     txt = []
-
-    # Gradient top
     txt.append(f"drawbox=x=0:y=0:w=1080:h=360:color=black@0.20:t=fill")
-    # Gradient bottom
     txt.append(f"drawbox=x=0:y=1580:w=1080:h=340:color=black@0.18:t=fill")
-
-    # Títol
     txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol1}':fontsize=72:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
-
-    # THEN / NOW gran semi-transparent de fons
     txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{era}':fontsize=280:fontcolor={color_era}@0.12:x=(w-text_w)/2:y=600")
-
-    # THEN / NOW llegible
     txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{era}':fontsize=90:fontcolor={color_era}:borderw=2:bordercolor=black@0.8:shadowx=0:shadowy=3:x=(w-text_w)/2:y={Y_TITOL2}")
-
-    # Nom cançó
     txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia1}':fontsize=58:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM1}")
     if nom_linia2:
         txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia2}':fontsize=58:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM2}")
-
-    # Any
     if any_canco:
         txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{any_canco}':fontsize=44:fontcolor={color_era}:borderw=2:bordercolor=black@0.8:shadowx=0:shadowy=2:x={BAR_X}:y={Y_ANY}")
-
-    # Barra progrés
-    n_total = len(tracks)
-    bar_progress = int(BAR_W * pos / n_total)
     txt.append(f"drawbox=x={BAR_X}:y={Y_BAR}:w={BAR_W}:h=5:color=white@0.15:t=fill")
     txt.append(f"drawbox=x={BAR_X}:y={Y_BAR}:w={bar_progress}:h=5:color={color_era}@0.9:t=fill")
 
-    # Outro — només a l'últim clip
     if es_ultim:
         compte_text = COMPTE.replace("'", "")
         t_aparicio = durada - DURADA_OUTRO + 0.3
