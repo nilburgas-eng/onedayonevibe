@@ -46,17 +46,16 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 8px;
+            margin-bottom: 6px;
         }
         .track-corrections input {
             margin-bottom: 0;
             font-size: 13px;
             padding: 8px 10px;
         }
-        .track-corrections label {
-            font-size: 11px;
-            color: #555;
-            margin-bottom: 3px;
-        }
+        .track-corrections label { font-size: 11px; color: #555; margin-bottom: 3px; }
+        .track-url input { margin-bottom: 0; font-size: 13px; padding: 8px 10px; }
+        .track-url label { font-size: 11px; color: #555; margin-bottom: 3px; }
         .btn {
             width: 100%; padding: 16px; border-radius: 10px;
             font-size: 16px; font-weight: 700; cursor: pointer;
@@ -108,7 +107,7 @@
 
     <div id="tracks-card" class="card" style="display:none">
         <h2>✅ Cançons detectades</h2>
-        <p style="font-size:12px;color:#555;margin-bottom:12px;">Clica 🎬 per veure el videoclip a YouTube i trobar el timestamp correcte</p>
+        <p style="font-size:12px;color:#555;margin-bottom:12px;">Clica 🎬 per veure el videoclip a YouTube</p>
         <div id="tracks-list"></div>
     </div>
 
@@ -215,6 +214,10 @@ function renderTracks() {
                         <input type="text" id="nom-${idx}" placeholder="${t.nom.substring(0,20)}" />
                     </div>
                 </div>
+                <div class="track-url" style="margin-top:6px;">
+                    <label>URL YouTube (opcional)</label>
+                    <input type="text" id="yt-${idx}" placeholder="https://youtube.com/watch?v=..." />
+                </div>
             </div>`;
     });
 }
@@ -232,16 +235,13 @@ async function generarTop() {
     if (!artista) { mostrarStatus('❌ Omple el nom de l\'artista', 'error'); return; }
     if (tracksData.length === 0) { mostrarStatus('❌ Parsejar les dades de Kworb primer', 'error'); return; }
 
-    const tracksFinals = tracksData.slice(0, numTracks).map((t, i) => {
-        const ts = parseTimestamp(document.getElementById(`ts-${i}`)?.value);
-        const nomManual = document.getElementById(`nom-${i}`)?.value.trim();
-        return {
-            ...t,
-            pos: i + 1,
-            timestamp_manual: ts || null,
-            nom_manual: nomManual || null
-        };
-    });
+    const tracksFinals = tracksData.slice(0, numTracks).map((t, i) => ({
+        ...t,
+        pos: i + 1,
+        timestamp_manual: parseTimestamp(document.getElementById(`ts-${i}`)?.value),
+        nom_manual: document.getElementById(`nom-${i}`)?.value.trim() || null,
+        yt_url: document.getElementById(`yt-${i}`)?.value.trim() || null
+    }));
 
     mostrarStatus('⏳ Disparant workflow...', 'info');
     const r = await fetch(
