@@ -108,7 +108,7 @@ function mostrarStatus(text, tipus) {
     el.classList.add('visible');
     textEl.innerHTML = `<span class="status-${tipus}">${text}</span>`;
 }
-
+<button class="btn btn-secondary" onclick="localStorage.removeItem('spotify_client_id');localStorage.removeItem('spotify_client_secret');alert('Credencials esborrades!')">🔑 Esborrar credencials Spotify</button>
 async function buscarSpotify() {
     const artista = document.getElementById('artista').value.trim();
     const anyTall = parseInt(document.getElementById('any-tall').value) || 2018;
