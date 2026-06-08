@@ -109,7 +109,7 @@ async function buscarSpotify() {
             mostrarStatus(`❌ No s'han trobat cançons. Prova un any de tall diferent (actual: ${anyTall})`, 'error');
             return;
         }
-
+alert(JSON.stringify(topTracks.slice(0,2).map(t => ({nom: t.name, album: t.album?.name, release: t.album?.release_date}))));
         renderTracks();
         mostrarStatus(`✅ ${tracksData.length} cançons! (${then_list.length} THEN · ${now_list.length} NOW)`, 'ok');
 
