@@ -149,45 +149,83 @@ async function buscarSpotify() {
     mostrarStatus('⏳ Buscant a Spotify...', 'info');
 
     try {
-        // Obtenir token Spotify via Claude API proxy
-        const tokenResp = await fetch('https://api.anthropic.com/v1/messages', {
+        // Obtenir token Spotify
+        const clientId = localStorage.getItem('spotify_client_id') || prompt('Spotify Client ID:');
+        const clientSecret = localStorage.getItem('spotify_client_secret') || prompt('Spotify Client Secret:');
+        if (clientId) localStorage.setItem('spotify_client_id', clientId);
+        if (clientSecret) localStorage.setItem('spotify_client_secret', clientSecret);
+
+        const tokenResp = await fetch('https://accounts.spotify.com/api/token', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                model: 'claude-sonnet-4-20250514',
-                max_tokens: 1000,
-                messages: [{
-                    role: 'user',
-                    content: `Search Spotify for the top 10 most popular tracks by "${artista}". For each track return: name, year (from album release date), and popularity score. Return ONLY a JSON array like this: [{"nom":"Track Name","any":2015,"popularitat":85}]. No explanation, just JSON.`
-                }]
-            })
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Authorization': 'Basic ' + btoa(clientId + ':' + clientSecret)
+            },
+            body: 'grant_type=client_credentials'
         });
+        const tokenData = await tokenResp.json();
+        const token = tokenData.access_token;
 
-        const data = await tokenResp.json();
-        const text = data.content[0].text.trim();
-        const clean = text.replace(/```json|```/g, '').trim();
-        const tracks = JSON.parse(clean);
+        // Buscar artista
+        const searchResp = await fetch(
+            `https://api.spotify.com/v1/search?q=${encodeURIComponent(artista)}&type=artist&limit=1`,
+            { headers: { 'Authorization': `Bearer ${token}` } }
+        );
+        const searchData = await searchResp.json();
+        const artistId = searchData.artists.items[0]?.id;
+        if (!artistId) { mostrarStatus('❌ Artista no trobat a Spotify', 'error'); return; }
 
-        tracksData = [];
-        const then_tracks = tracks.filter(t => t.any < anyTall).sort((a,b) => b.popularitat - a.popularitat).slice(0, 5);
-        const now_tracks = tracks.filter(t => t.any >= anyTall).sort((a,b) => b.popularitat - a.popularitat).slice(0, 5);
+        // Obtenir top tracks
+        const tracksResp = await fetch(
+            `https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=ES`,
+            { headers: { 'Authorization': `Bearer ${token}` } }
+        );
+        const tracksData = await tracksResp.json();
 
-        // Intercalar THEN i NOW
-        const maxLen = Math.max(then_tracks.length, now_tracks.length);
-        let pos = 1;
-        for (let i = 0; i < maxLen; i++) {
-            if (i < then_tracks.length) {
-                tracksData.push({ pos: pos++, nom: then_tracks[i].nom, any: then_tracks[i].any, era: 'THEN', streams: '', timestamp_manual: null, nom_manual: null });
-            }
-            if (i < now_tracks.length) {
-                tracksData.push({ pos: pos++, nom: now_tracks[i].nom, any: now_tracks[i].any, era: 'NOW', streams: '', timestamp_manual: null, nom_manual: null });
+        // Obtenir àlbums per tenir l'any
+        const albumsResp = await fetch(
+            `https://api.spotify.com/v1/artists/${artistId}/albums?include_groups=single,album&market=ES&limit=50`,
+            { headers: { 'Authorization': `Bearer ${token}` } }
+        );
+        const albumsData = await albumsResp.json();
+
+        // Mapa nom cançó -> any
+        const anyPerCanco = {};
+        for (const album of albumsData.items || []) {
+            const any = parseInt(album.release_date.split('-')[0]);
+            const albumTracksResp = await fetch(
+                `https://api.spotify.com/v1/albums/${album.id}/tracks?limit=50`,
+                { headers: { 'Authorization': `Bearer ${token}` } }
+            );
+            const albumTracks = await albumTracksResp.json();
+            for (const t of albumTracks.items || []) {
+                if (!anyPerCanco[t.name]) anyPerCanco[t.name] = any;
             }
         }
 
+        tracksData = [];
+        const then_tracks = [];
+        const now_tracks = [];
+
+        for (const t of tracksData.tracks || []) {
+            const any = anyPerCanco[t.name] || parseInt(t.album?.release_date?.split('-')[0]) || 0;
+            const track = { nom: t.name, any, era: any < anyTall ? 'THEN' : 'NOW', streams: '', timestamp_manual: null, nom_manual: null };
+            if (any < anyTall) then_tracks.push(track);
+            else now_tracks.push(track);
+        }
+
+        let pos = 1;
+        const maxLen = Math.max(Math.min(then_tracks.length, 5), Math.min(now_tracks.length, 5));
+        for (let i = 0; i < maxLen; i++) {
+            if (i < then_tracks.length && tracksData.length < 10) tracksData.push({...then_tracks[i], pos: pos++});
+            if (i < now_tracks.length && tracksData.length < 10) tracksData.push({...now_tracks[i], pos: pos++});
+        }
+
         renderTracks();
-        mostrarStatus(`✅ ${tracksData.length} cançons trobades! (${then_tracks.length} THEN + ${now_tracks.length} NOW)`, 'ok');
+        mostrarStatus(`✅ ${tracksData.length} cançons trobades!`, 'ok');
     } catch(e) {
-        mostrarStatus('❌ Error buscant a Spotify. Prova manualment.', 'error');
+        console.error(e);
+        mostrarStatus('❌ Error: ' + e.message, 'error');
     }
 }
 
