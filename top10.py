@@ -150,6 +150,7 @@ for track in tracks:
     daily            = track['daily']
     timestamp_manual = track.get('timestamp_manual')
     nom_manual       = track.get('nom_manual')
+    yt_url           = track.get('yt_url')
     durada           = DURADA_TOP1 if pos == 1 else DURADA_CLIP
 
     print(f"\nClip #{pos}: {nom}")
@@ -181,13 +182,11 @@ for track in tracks:
         if not os.path.exists(thumb_path) and os.path.exists(thumb_webp):
             os.system(f'ffmpeg -i "{thumb_webp}" "{thumb_path}" -y -loglevel error')
 
-        yt_url = track.get('yt_url')
     if yt_url:
         print(f"   URL manual: {yt_url}")
         ret = os.system(f'yt-dlp -f "best[ext=mp4]/best" --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{yt_url}" -q')
     else:
         ret = os.system(f'yt-dlp -f "best[ext=mp4]/best" --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "ytsearch1:{query}" --no-playlist -q')
-
 
     if ret != 0 or not os.path.exists(video_path) or os.path.getsize(video_path) < 10000:
         print(f"   No s'ha trobat videoclip — usant portada")
