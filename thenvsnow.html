@@ -61,7 +61,8 @@ async function buscarSpotify() {
         );
         const topJson = await topResp.json();
         const topTracks = topJson.tracks || [];
-
+const topTracks = topJson.tracks || [];
+alert('Tracks: ' + topTracks.length + ' | Ex: ' + JSON.stringify(topTracks[0] ? {nom: topTracks[0].name, release: topTracks[0].album?.release_date} : 'buit'));
         for (const t of topTracks) {
             const key = t.name.toLowerCase().trim();
             const any = parseInt(t.album?.release_date?.split('-')[0]) || 0;
