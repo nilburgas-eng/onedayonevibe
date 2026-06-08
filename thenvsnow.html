@@ -202,9 +202,13 @@ async function buscarSpotify() {
         }
 
         if (tracksData.length === 0) {
-            mostrarStatus(`❌ No s'han trobat cançons. Prova un any de tall diferent (actual: ${anyTall})`, 'error');
-            return;
-        }
+    const debug = topTracks.slice(0,3).map(t => {
+        const key = t.name.toLowerCase().trim();
+        return t.name + ' → any:' + (anyPerCanco[key] || parseInt(t.album?.release_date?.split('-')[0]) || 0);
+    }).join(' | ');
+    mostrarStatus(`❌ 0 cançons (tall:${anyTall}) | THEN:${then_list.length} NOW:${now_list.length} | ${debug}`, 'error');
+    return;
+}
 
         renderTracks();
         mostrarStatus(`✅ ${tracksData.length} cançons! (${then_list.length} THEN · ${now_list.length} NOW)`, 'ok');
