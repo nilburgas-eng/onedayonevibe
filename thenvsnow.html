@@ -6,44 +6,21 @@
     <title>onedayonevibe — Then vs Now</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #0d0d0d; color: #fff; min-height: 100vh; padding: 20px;
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0d0d0d; color: #fff; min-height: 100vh; padding: 20px; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px 0; }
         h1 { font-size: 28px; font-weight: 800; color: #00BFFF; margin-bottom: 4px; }
         .subtitle { font-size: 14px; color: #666; margin-bottom: 30px; }
         .card { background: #1a1a1a; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
         .card h2 { font-size: 14px; font-weight: 600; color: #00BFFF; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
         label { display: block; font-size: 13px; color: #999; margin-bottom: 6px; }
-        input, select {
-            width: 100%; background: #2a2a2a; border: 1px solid #333;
-            border-radius: 8px; padding: 12px; color: #fff;
-            font-size: 15px; margin-bottom: 14px; outline: none;
-        }
+        input, select { width: 100%; background: #2a2a2a; border: 1px solid #333; border-radius: 8px; padding: 12px; color: #fff; font-size: 15px; margin-bottom: 14px; outline: none; }
         input:focus, select:focus { border-color: #00BFFF; }
-        .track-item { border-radius: 8px; padding: 12px; margin-bottom: 8px; }
-        .track-item.then { background: #0a1a2a; border-left: 3px solid #00BFFF; }
-        .track-item.now { background: #2a1200; border-left: 3px solid #FF6B00; }
-        .track-main { display: grid; grid-template-columns: 40px 1fr auto auto; gap: 10px; align-items: center; margin-bottom: 8px; }
-        .track-era { font-size: 11px; font-weight: 800; padding: 3px 6px; border-radius: 4px; text-align: center; }
-        .track-era.then { background: #00BFFF; color: #000; }
-        .track-era.now { background: #FF6B00; color: #fff; }
-        .track-info { font-size: 13px; }
-        .track-name { font-weight: 600; margin-bottom: 2px; }
-        .track-year { color: #666; font-size: 12px; }
-        .track-remove { background: none; border: none; color: #ff4444; font-size: 18px; cursor: pointer; padding: 4px; }
-        .track-yt { background: none; border: none; color: #ff0000; font-size: 18px; cursor: pointer; padding: 4px; }
-        .track-corrections { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .track-corrections input { margin-bottom: 0; font-size: 13px; padding: 8px 10px; }
-        .track-corrections label { font-size: 11px; color: #555; margin-bottom: 3px; }
         .btn { width: 100%; padding: 16px; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; border: none; margin-bottom: 12px; transition: opacity 0.2s; }
         .btn:active { opacity: 0.8; }
         .btn-primary { background: #00BFFF; color: #000; }
         .btn-danger { background: #ff4444; color: #fff; }
         .btn-secondary { background: #2a2a2a; color: #fff; border: 1px solid #444; }
         .btn-success { background: #00aa55; color: #fff; }
-        .btn-spotify { background: #1DB954; color: #fff; }
         .status { background: #1a1a1a; border-radius: 12px; padding: 16px; margin-bottom: 16px; display: none; }
         .status.visible { display: block; }
         .status-text { font-size: 14px; line-height: 1.6; }
@@ -60,7 +37,7 @@
     <p class="subtitle">Then vs Now Generator</p>
 
     <div class="card">
-        <h2>🎤 Artista</h2>
+        <h2>🎤 Configuració</h2>
         <label>Nom de l'artista</label>
         <input type="text" id="artista" placeholder="Hardwell" />
         <label>Any de tall (THEN = abans, NOW = igual o després)</label>
@@ -71,13 +48,6 @@
             <option value="melodic">🎵 Melòdic (Hardstyle, Trance)</option>
             <option value="vocal">🎤 Vocal (Pop, R&B, comercial)</option>
         </select>
-        <button class="btn btn-spotify" onclick="buscarSpotify()">🎵 Buscar automàticament via Spotify</button>
-    </div>
-
-    <div id="tracks-card" class="card" style="display:none">
-        <h2>✅ Cançons detectades</h2>
-        <p style="font-size:12px;color:#555;margin-bottom:12px;">Blau = THEN · Taronja = NOW · Clica 🎬 per veure el videoclip</p>
-        <div id="tracks-list"></div>
     </div>
 
     <div id="status" class="status">
@@ -93,7 +63,6 @@
 <script>
 const GITHUB_REPO = "nilburgas-eng/onedayonevibe";
 let GITHUB_TOKEN = localStorage.getItem('github_token') || '';
-let tracksData = [];
 
 window.onload = function() {
     if (!GITHUB_TOKEN) {
@@ -108,181 +77,12 @@ function mostrarStatus(text, tipus) {
     el.classList.add('visible');
     textEl.innerHTML = `<span class="status-${tipus}">${text}</span>`;
 }
-<button class="btn btn-secondary" onclick="localStorage.removeItem('spotify_client_id');localStorage.removeItem('spotify_client_secret');alert('Credencials esborrades!')">🔑 Esborrar credencials Spotify</button>
-async function buscarSpotify() {
-    const artista = document.getElementById('artista').value.trim();
-    const anyTall = parseInt(document.getElementById('any-tall').value) || 2018;
-    if (!artista) { mostrarStatus('❌ Omple el nom de l\'artista', 'error'); return; }
-
-    mostrarStatus('⏳ Buscant a Spotify...', 'info');
-
-    try {
-        let clientId = localStorage.getItem('spotify_client_id') || '';
-        let clientSecret = localStorage.getItem('spotify_client_secret') || '';
-
-        if (!clientId || !clientSecret) {
-            clientId = prompt('Spotify Client ID:');
-            clientSecret = prompt('Spotify Client Secret:');
-            if (clientId) localStorage.setItem('spotify_client_id', clientId);
-            if (clientSecret) localStorage.setItem('spotify_client_secret', clientSecret);
-            mostrarStatus('⏳ Credencials guardades, clica de nou el botó', 'info');
-            return;
-        }
-
-        const creds = btoa(clientId + ':' + clientSecret);
-        const tokenResp = await fetch('https://accounts.spotify.com/api/token', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': 'Basic ' + creds },
-            body: 'grant_type=client_credentials'
-        });
-        const tokenJson = await tokenResp.json();
-        const token = tokenJson.access_token;
-        if (!token) { mostrarStatus('❌ Error token Spotify', 'error'); return; }
-
-        mostrarStatus('⏳ Buscant artista...', 'info');
-        const srResp = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(artista)}&type=artist&limit=1`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const srJson = await srResp.json();
-        const artistItem = srJson.artists?.items[0];
-        if (!artistItem) { mostrarStatus('❌ Artista no trobat a Spotify', 'error'); return; }
-        const artistId = artistItem.id;
-
-        mostrarStatus('⏳ Carregant cançons...', 'info');
-
-        // Top tracks
-        const topResp = await fetch(`https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=ES`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const topJson = await topResp.json();
-        const topTracks = topJson.tracks || [];
-
-        // Albums per obtenir anys
-        const albumsResp = await fetch(`https://api.spotify.com/v1/artists/${artistId}/albums?include_groups=single,album&market=ES&limit=50`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const albumsJson = await albumsResp.json();
-        const albums = albumsJson.items || [];
-
-        // Mapa nom -> any des dels albums
-        const anyPerCanco = {};
-        for (const album of albums.slice(0, 30)) {
-            const any = parseInt(album.release_date?.split('-')[0]) || 0;
-            const atResp = await fetch(`https://api.spotify.com/v1/albums/${album.id}/tracks?limit=50`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const atJson = await atResp.json();
-            for (const t of atJson.items || []) {
-                const key = t.name.toLowerCase().trim();
-                if (!anyPerCanco[key] || any < anyPerCanco[key]) anyPerCanco[key] = any;
-            }
-        }
-
-        // Classificar
-        const then_list = [];
-        const now_list = [];
-
-        for (const t of topTracks) {
-            const key = t.name.toLowerCase().trim();
-            const anyAlbum = parseInt(t.album?.release_date?.split('-')[0]) || 0;
-            const any = anyPerCanco[key] || anyAlbum;
-            if (any === 0) continue;
-            const obj = { nom: t.name, any, era: any < anyTall ? 'THEN' : 'NOW', streams: '', timestamp_manual: null, nom_manual: null };
-            if (obj.era === 'THEN') then_list.push(obj);
-            else now_list.push(obj);
-        }
-
-        // Intercalar
-        tracksData = [];
-        let pos = 1;
-        const max = Math.max(then_list.length, now_list.length);
-        for (let i = 0; i < max && tracksData.length < 10; i++) {
-            if (i < then_list.length && tracksData.length < 10) tracksData.push({...then_list[i], pos: pos++});
-            if (i < now_list.length && tracksData.length < 10) tracksData.push({...now_list[i], pos: pos++});
-        }
-
-        if (tracksData.length === 0) {
-    const debug = topTracks.slice(0,3).map(t => {
-        const key = t.name.toLowerCase().trim();
-        return t.name + ' → any:' + (anyPerCanco[key] || parseInt(t.album?.release_date?.split('-')[0]) || 0);
-    }).join(' | ');
-    mostrarStatus(`❌ 0 cançons (tall:${anyTall}) | THEN:${then_list.length} NOW:${now_list.length} | ${debug}`, 'error');
-    return;
-}
-
-        renderTracks();
-        mostrarStatus(`✅ ${tracksData.length} cançons! (${then_list.length} THEN · ${now_list.length} NOW)`, 'ok');
-
-    } catch(e) {
-        console.error(e);
-        mostrarStatus('❌ Error: ' + e.message, 'error');
-    }
-}
-
-function obrirYoutube(artista, nom) {
-    const query = encodeURIComponent(`${artista} ${nom} official video`);
-    window.open(`https://www.youtube.com/results?search_query=${query}`, '_blank');
-}
-
-function renderTracks() {
-    const artista = document.getElementById('artista').value.trim();
-    const card = document.getElementById('tracks-card');
-    const list = document.getElementById('tracks-list');
-    card.style.display = 'block';
-    list.innerHTML = '';
-    tracksData.forEach((t, idx) => {
-        const eraClass = t.era.toLowerCase();
-        list.innerHTML += `
-            <div class="track-item ${eraClass}">
-                <div class="track-main">
-                    <div class="track-era ${eraClass}">${t.era}</div>
-                    <div class="track-info">
-                        <div class="track-name">${t.nom}</div>
-                        <div class="track-year">${t.any || ''}</div>
-                    </div>
-                    <button class="track-yt" onclick="obrirYoutube('${artista.replace(/'/g,"\\'")}', '${t.nom.replace(/'/g,"\\'")}')">🎬</button>
-                    <button class="track-remove" onclick="eliminarTrack(${idx})">✕</button>
-                </div>
-                <div class="track-corrections">
-                    <div>
-                        <label>Timestamp (mm:ss)</label>
-                        <input type="text" id="ts-${idx}" placeholder="--:--" />
-                    </div>
-                    <div>
-                        <label>Nom manual</label>
-                        <input type="text" id="nom-${idx}" placeholder="${t.nom.substring(0,20)}" />
-                    </div>
-                </div>
-            </div>`;
-    });
-}
-
-function eliminarTrack(idx) {
-    tracksData.splice(idx, 1);
-    tracksData.forEach((t, i) => t.pos = i + 1);
-    renderTracks();
-}
-
-function parseTimestamp(ts) {
-    if (!ts || ts.trim() === '') return null;
-    const parts = ts.split(':');
-    if (parts.length === 2) return parseInt(parts[0]) * 60 + parseInt(parts[1]);
-    if (parts.length === 3) return parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseInt(parts[2]);
-    return null;
-}
 
 async function generarVideo() {
     const artista = document.getElementById('artista').value.trim();
+    const anyTall = document.getElementById('any-tall').value.trim();
     const estil = document.getElementById('estil').value;
     if (!artista) { mostrarStatus('❌ Omple el nom de l\'artista', 'error'); return; }
-    if (tracksData.length === 0) { mostrarStatus('❌ Busca les cançons primer', 'error'); return; }
-
-    const tracksFinals = tracksData.map((t, i) => ({
-        ...t,
-        pos: i + 1,
-        timestamp_manual: parseTimestamp(document.getElementById(`ts-${i}`)?.value),
-        nom_manual: document.getElementById(`nom-${i}`)?.value.trim() || null
-    }));
 
     mostrarStatus('⏳ Disparant workflow...', 'info');
     const r = await fetch(
@@ -290,11 +90,11 @@ async function generarVideo() {
         {
             method: 'POST',
             headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ref: 'main', inputs: { artista, tracks: JSON.stringify(tracksFinals), estil } })
+            body: JSON.stringify({ ref: 'main', inputs: { artista, any_tall: anyTall, estil } })
         }
     );
     if (r.status === 204) {
-        mostrarStatus(`✅ Workflow iniciat!<br>⏳ Tarda 15-20 min.`, 'ok');
+        mostrarStatus(`✅ Workflow iniciat! El sistema buscarà automàticament les cançons a Spotify.<br>⏳ Tarda 15-20 min.`, 'ok');
     } else {
         mostrarStatus(`❌ Error ${r.status}`, 'error');
     }
