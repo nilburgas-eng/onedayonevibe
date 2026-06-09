@@ -84,8 +84,9 @@ def buscar_tracks_spotify(artista, any_tall, token):
         f"https://api.spotify.com/v1/artists/{artist_id}/top-tracks?market=US",
         headers=headers
     )
-    top_tracks = r.json().get('tracks', [])
-    print(f"Top tracks: {len(top_tracks)}")
+    top_tracks_raw = r.json()
+    print(f"Resposta top tracks: {str(top_tracks_raw)[:300]}")
+    top_tracks = top_tracks_raw.get('tracks', [])
 
     # Albums per obtenir anys originals
     r = requests.get(
