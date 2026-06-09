@@ -69,7 +69,7 @@ def buscar_tracks_spotify(artista, any_tall, token):
 
     # Buscar artista
     r = requests.get(
-        f"https://api.spotify.com/v1/artists/{artist_id}/top-tracks?market=NL",
+        f"https://api.spotify.com/v1/search?q={requests.utils.quote(artista)}&type=artist&limit=1",
         headers=headers
     )
     items = r.json().get('artists', {}).get('items', [])
@@ -81,12 +81,13 @@ def buscar_tracks_spotify(artista, any_tall, token):
 
     # Top tracks
     r = requests.get(
-        f"https://api.spotify.com/v1/artists/{artist_id}/top-tracks?market=US",
+        f"https://api.spotify.com/v1/artists/{artist_id}/top-tracks?market=ES",
         headers=headers
     )
     top_tracks_raw = r.json()
     print(f"Resposta top tracks: {str(top_tracks_raw)[:300]}")
     top_tracks = top_tracks_raw.get('tracks', [])
+    print(f"Top tracks: {len(top_tracks)}")
 
     # Albums per obtenir anys originals
     r = requests.get(
@@ -98,11 +99,11 @@ def buscar_tracks_spotify(artista, any_tall, token):
     any_per_canco = {}
     for album in albums[:30]:
         any_album = int(album['release_date'].split('-')[0]) if album.get('release_date') else 0
-        r = requests.get(
+        r2 = requests.get(
             f"https://api.spotify.com/v1/albums/{album['id']}/tracks?limit=50",
             headers=headers
         )
-        for t in r.json().get('items', []):
+        for t in r2.json().get('items', []):
             key = t['name'].lower().strip()
             if key not in any_per_canco or any_album < any_per_canco[key]:
                 any_per_canco[key] = any_album
@@ -135,7 +136,7 @@ def buscar_tracks_spotify(artista, any_tall, token):
 
     tracks = []
     pos = 1
-    max_len = max(len(then_list), len(now_list))
+    max_len = max(len(then_list), len(now_list)) if then_list or now_list else 0
     for i in range(max_len):
         if i < len(then_list) and len(tracks) < 10:
             then_list[i]['pos'] = pos
