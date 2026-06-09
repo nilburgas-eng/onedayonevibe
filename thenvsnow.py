@@ -25,6 +25,7 @@ ANY_TALL          = int(os.environ.get('ANY_TALL', '2018'))
 ESTIL             = os.environ.get('ESTIL', 'energetic')
 SPOTIFY_CLIENT_ID = os.environ.get('SPOTIFY_CLIENT_ID', '')
 SPOTIFY_SECRET    = os.environ.get('SPOTIFY_CLIENT_SECRET', '')
+LASTFM_API_KEY    = os.environ.get('LASTFM_API_KEY', '')
 COMPTE            = "@onedayonevibe"
 DURADA_CLIP       = 8
 DURADA_OUTRO      = 2.0
@@ -63,99 +64,6 @@ def get_spotify_token():
     except:
         return None
 
-def buscar_tracks_spotify(artista, any_tall, token):
-    headers = {"Authorization": f"Bearer {token}"}
-
-    # Buscar artista
-    r = requests.get(
-        f"https://api.spotify.com/v1/search?q={requests.utils.quote(artista)}&type=artist&limit=1",
-        headers=headers
-    )
-    items = r.json().get('artists', {}).get('items', [])
-    if not items:
-        print(f"Artista no trobat: {artista}")
-        return []
-    artist_id = items[0]['id']
-    print(f"Artista trobat: {items[0]['name']} ({artist_id})")
-
-    # Usar albums directament
-    r = requests.get(
-        f"https://api.spotify.com/v1/artists/{artist_id}/albums?include_groups=single,album&market=ES&limit=50",
-        headers=headers
-    )
-    albums = r.json().get('items', [])
-    print(f"Albums trobats: {len(albums)}")
-
-    any_per_canco = {}
-    top_tracks = []
-    vistes = set()
-
-    for album in albums[:30]:
-        any_album = int(album['release_date'].split('-')[0]) if album.get('release_date') else 0
-        r2 = requests.get(
-            f"https://api.spotify.com/v1/albums/{album['id']}/tracks?limit=50",
-            headers=headers
-        )
-        for t in r2.json().get('items', []):
-            key = t['name'].lower().strip()
-            if key not in vistes:
-                vistes.add(key)
-                any_per_canco[key] = any_album
-                top_tracks.append({
-                    'name': t['name'],
-                    'album': {'release_date': str(any_album), 'images': album.get('images', [])},
-                    'popularity': 50
-                })
-
-    print(f"Tracks totals: {len(top_tracks)}")
-
-    # Classificar THEN / NOW
-    then_list = []
-    now_list = []
-    for t in top_tracks:
-        key = t['name'].lower().strip()
-        any_album = int(t['album']['release_date']) if t['album']['release_date'].isdigit() else 0
-        any_final = any_per_canco.get(key, any_album)
-        if any_final == 0:
-            continue
-        cover_url = t['album']['images'][0]['url'] if t['album'].get('images') else None
-        obj = {
-            'pos': 0,
-            'nom': t['name'],
-            'any': any_final,
-            'era': 'THEN' if any_final < any_tall else 'NOW',
-            'streams': '',
-            'cover_url': cover_url,
-            'timestamp_manual': None,
-            'nom_manual': None
-        }
-        if obj['era'] == 'THEN':
-            then_list.append(obj)
-        else:
-            now_list.append(obj)
-
-    print(f"THEN: {len(then_list)} · NOW: {len(now_list)}")
-
-    # Agafar les 5 millors de cada era
-    then_list = then_list[:5]
-    now_list = now_list[:5]
-
-    # Intercalar
-    tracks = []
-    pos = 1
-    max_len = max(len(then_list), len(now_list)) if then_list or now_list else 0
-    for i in range(max_len):
-        if i < len(then_list) and len(tracks) < 10:
-            then_list[i]['pos'] = pos
-            tracks.append(then_list[i])
-            pos += 1
-        if i < len(now_list) and len(tracks) < 10:
-            now_list[i]['pos'] = pos
-            tracks.append(now_list[i])
-            pos += 1
-
-    return tracks
-
 def get_spotify_cover(nom_canco, artista, token):
     try:
         headers = {"Authorization": f"Bearer {token}"}
@@ -171,6 +79,89 @@ def get_spotify_cover(nom_canco, artista, token):
     except:
         pass
     return None
+
+def buscar_tracks_lastfm(artista, any_tall, api_key):
+    print("Buscant tracks via Last.fm...")
+    try:
+        # Top tracks de l'artista
+        r = requests.get(
+            f"https://ws.audioscrobbler.com/2.0/?method=artist.gettoptracks&artist={requests.utils.quote(artista)}&api_key={api_key}&format=json&limit=50"
+        )
+        data = r.json()
+        top_tracks = data.get('toptracks', {}).get('track', [])
+        print(f"Top tracks Last.fm: {len(top_tracks)}")
+
+        if not top_tracks:
+            return []
+
+        # Per cada track, buscar l'any via MusicBrainz
+        tracks_amb_any = []
+        for t in top_tracks[:20]:
+            nom = t['name']
+            try:
+                mb = requests.get(
+                    f"https://musicbrainz.org/ws/2/recording/?query=recording:{requests.utils.quote(nom)}+artist:{requests.utils.quote(artista)}&fmt=json&limit=1",
+                    headers={"User-Agent": "onedayonevibe/1.0 (nilburgas@gmail.com)"}
+                )
+                recordings = mb.json().get('recordings', [])
+                any_canco = 0
+                if recordings:
+                    date = recordings[0].get('first-release-date', '')
+                    if date:
+                        any_canco = int(date[:4])
+                tracks_amb_any.append({'nom': nom, 'any': any_canco})
+                time.sleep(0.3)  # Respectar rate limit MusicBrainz
+            except:
+                tracks_amb_any.append({'nom': nom, 'any': 0})
+
+        # Classificar THEN / NOW
+        then_list = [t for t in tracks_amb_any if 0 < t['any'] < any_tall]
+        now_list = [t for t in tracks_amb_any if t['any'] >= any_tall]
+
+        # Si no tenim anys, distribuir per ordre
+        if not then_list and not now_list:
+            mid = len(tracks_amb_any) // 2
+            then_list = tracks_amb_any[:mid]
+            now_list = tracks_amb_any[mid:]
+            print("Anys no disponibles — distribuint per ordre")
+
+        print(f"THEN: {len(then_list)} · NOW: {len(now_list)}")
+
+        # Intercalar fins a 10
+        tracks = []
+        pos = 1
+        max_len = max(len(then_list), len(now_list))
+        for i in range(max_len):
+            if i < len(then_list) and len(tracks) < 10:
+                tracks.append({
+                    'pos': pos,
+                    'nom': then_list[i]['nom'],
+                    'any': then_list[i]['any'],
+                    'era': 'THEN',
+                    'streams': '',
+                    'cover_url': None,
+                    'timestamp_manual': None,
+                    'nom_manual': None
+                })
+                pos += 1
+            if i < len(now_list) and len(tracks) < 10:
+                tracks.append({
+                    'pos': pos,
+                    'nom': now_list[i]['nom'],
+                    'any': now_list[i]['any'],
+                    'era': 'NOW',
+                    'streams': '',
+                    'cover_url': None,
+                    'timestamp_manual': None,
+                    'nom_manual': None
+                })
+                pos += 1
+
+        return tracks
+
+    except Exception as e:
+        print(f"Error Last.fm: {e}")
+        return []
 
 def partir_nom(nom, max_chars=22):
     if len(nom) <= max_chars:
@@ -225,15 +216,8 @@ def trobar_moment_impactant(audio_path, duracio_total, estil='energetic'):
         print(f"   Error deteccio: {e}")
         return 30.0
 
-print("Obtenint token de Spotify...")
-spotify_token = get_spotify_token()
-
-if spotify_token:
-    print("Token OK — buscant tracks automàticament...")
-    tracks = buscar_tracks_spotify(ARTISTA, ANY_TALL, spotify_token)
-else:
-    print("Sense token Spotify")
-    tracks = []
+print("Buscant tracks...")
+tracks = buscar_tracks_lastfm(ARTISTA, ANY_TALL, LASTFM_API_KEY)
 
 if not tracks:
     print("ERROR: No s'han trobat tracks")
@@ -242,6 +226,10 @@ if not tracks:
 print(f"\nTracks seleccionats ({len(tracks)}):")
 for t in tracks:
     print(f"  [{t['era']}] #{t['pos']}: {t['nom']} ({t['any']})")
+
+# Obtenir portades via Spotify
+print("\nObtenint portades Spotify...")
+spotify_token = get_spotify_token()
 
 clips_paths = []
 
@@ -266,21 +254,12 @@ for track in tracks:
     os.makedirs(os.path.expanduser("~/videos"), exist_ok=True)
 
     # Portada Spotify
-    if cover_url:
-        try:
-            img_data = requests.get(cover_url).content
+    if spotify_token:
+        cover_data = get_spotify_cover(nom, ARTISTA, spotify_token)
+        if cover_data:
             with open(thumb_path, 'wb') as f:
-                f.write(img_data)
-            print(f"   Portada OK")
-        except:
-            pass
-
-    if not os.path.exists(thumb_path) or os.path.getsize(thumb_path) < 1000:
-        if spotify_token:
-            cover_data = get_spotify_cover(nom, ARTISTA, spotify_token)
-            if cover_data:
-                with open(thumb_path, 'wb') as f:
-                    f.write(cover_data)
+                f.write(cover_data)
+            print(f"   Portada Spotify OK")
 
     nom_query = nom.replace("'", "").replace('"', '').strip()
     if any(x in nom.lower() for x in ['remix', 'edit', 'mix', 'version']):
