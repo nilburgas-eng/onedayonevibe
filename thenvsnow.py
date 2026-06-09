@@ -83,7 +83,6 @@ def get_spotify_cover(nom_canco, artista, token):
 def buscar_tracks_lastfm(artista, any_tall, api_key):
     print("Buscant tracks via Last.fm...")
     try:
-        # Top tracks de l'artista
         r = requests.get(
             f"https://ws.audioscrobbler.com/2.0/?method=artist.gettoptracks&artist={requests.utils.quote(artista)}&api_key={api_key}&format=json&limit=50"
         )
@@ -94,66 +93,77 @@ def buscar_tracks_lastfm(artista, any_tall, api_key):
         if not top_tracks:
             return []
 
-        # Per cada track, buscar l'any via MusicBrainz
+        # Deduplicar per nom normalitzat (sense parèntesis/claudàtors)
+        # mantenint l'ordre de popularitat de Last.fm
         tracks_amb_any = []
-        for t in top_tracks[:20]:
+        vistes = set()
+
+        for t in top_tracks[:30]:
             nom = t['name']
+            key_norm = re.sub(r'\s*[\(\[].*?[\)\]]', '', nom.lower()).strip()
+            if key_norm in vistes:
+                continue
+            vistes.add(key_norm)
+
+            # Any via MusicBrainz
+            any_canco = 0
             try:
                 mb = requests.get(
                     f"https://musicbrainz.org/ws/2/recording/?query=recording:{requests.utils.quote(nom)}+artist:{requests.utils.quote(artista)}&fmt=json&limit=1",
                     headers={"User-Agent": "onedayonevibe/1.0 (nilburgas@gmail.com)"}
                 )
                 recordings = mb.json().get('recordings', [])
-                any_canco = 0
                 if recordings:
                     date = recordings[0].get('first-release-date', '')
                     if date:
                         any_canco = int(date[:4])
-                tracks_amb_any.append({'nom': nom, 'any': any_canco})
-                time.sleep(0.3)  # Respectar rate limit MusicBrainz
+                time.sleep(0.3)
             except:
-                tracks_amb_any.append({'nom': nom, 'any': 0})
+                pass
 
-        # Classificar THEN / NOW
+            tracks_amb_any.append({'nom': nom, 'any': any_canco})
+
+        # Classificar (mantenen ordre de popularitat)
         then_list = [t for t in tracks_amb_any if 0 < t['any'] < any_tall]
-        now_list = [t for t in tracks_amb_any if t['any'] >= any_tall]
+        now_list  = [t for t in tracks_amb_any if t['any'] >= any_tall]
 
-        # Si no tenim anys, distribuir per ordre
+        # Si no hi ha anys, distribuir per ordre
         if not then_list and not now_list:
             mid = len(tracks_amb_any) // 2
             then_list = tracks_amb_any[:mid]
-            now_list = tracks_amb_any[mid:]
+            now_list  = tracks_amb_any[mid:]
             print("Anys no disponibles — distribuint per ordre")
 
-        print(f"THEN: {len(then_list)} · NOW: {len(now_list)}")
+        # EQUILIBRI: igualar el nombre de THEN i NOW
+        n = min(len(then_list), len(now_list), 5)
+        if n == 0:
+            # Una era buida: agafar el que hi hagi, max 10
+            print(f"AVÍS: una era buida (THEN:{len(then_list)} NOW:{len(now_list)})")
+            then_list = then_list[:5]
+            now_list  = now_list[:5]
+        else:
+            then_list = then_list[:n]
+            now_list  = now_list[:n]
 
-        # Intercalar fins a 10
+        print(f"THEN: {len(then_list)} · NOW: {len(now_list)} (equilibrat a {n} cada un)")
+
+        # Intercalar
         tracks = []
         pos = 1
         max_len = max(len(then_list), len(now_list))
         for i in range(max_len):
             if i < len(then_list) and len(tracks) < 10:
                 tracks.append({
-                    'pos': pos,
-                    'nom': then_list[i]['nom'],
-                    'any': then_list[i]['any'],
-                    'era': 'THEN',
-                    'streams': '',
-                    'cover_url': None,
-                    'timestamp_manual': None,
-                    'nom_manual': None
+                    'pos': pos, 'nom': then_list[i]['nom'], 'any': then_list[i]['any'],
+                    'era': 'THEN', 'streams': '', 'cover_url': None,
+                    'timestamp_manual': None, 'nom_manual': None
                 })
                 pos += 1
             if i < len(now_list) and len(tracks) < 10:
                 tracks.append({
-                    'pos': pos,
-                    'nom': now_list[i]['nom'],
-                    'any': now_list[i]['any'],
-                    'era': 'NOW',
-                    'streams': '',
-                    'cover_url': None,
-                    'timestamp_manual': None,
-                    'nom_manual': None
+                    'pos': pos, 'nom': now_list[i]['nom'], 'any': now_list[i]['any'],
+                    'era': 'NOW', 'streams': '', 'cover_url': None,
+                    'timestamp_manual': None, 'nom_manual': None
                 })
                 pos += 1
 
