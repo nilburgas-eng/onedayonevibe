@@ -1,0 +1,39 @@
+name: Buscar Then vs Now
+
+on:
+  workflow_dispatch:
+    inputs:
+      artista:
+        description: 'Nom de l artista'
+        required: true
+      any_tall:
+        description: 'Any de tall (THEN abans / NOW despres)'
+        required: false
+        default: '2018'
+
+jobs:
+  buscar:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout codi
+        uses: actions/checkout@v4
+
+      - name: Instal·lar dependencies
+        run: pip install requests
+
+      - name: Buscar cançons
+        env:
+          ARTISTA: ${{ github.event.inputs.artista }}
+          ANY_TALL: ${{ github.event.inputs.any_tall }}
+          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
+        run: python3 thenvsnow_buscar.py
+
+      - name: Commit del JSON
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add thenvsnow_data.json
+          git commit -m "Actualitzar dades Then vs Now" || echo "Sense canvis"
+          git push
