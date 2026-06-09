@@ -82,6 +82,7 @@ jobs:
           ESTIL: ${{ github.event.inputs.estil }}
           SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
           SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
+          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
         run: python3 thenvsnow.py
 
       - name: Pujar video final a GitHub Releases
