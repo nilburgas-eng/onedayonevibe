@@ -69,8 +69,7 @@ def buscar_tracks_spotify(artista, any_tall, token):
 
     # Buscar artista
     r = requests.get(
-        f"https://api.spotify.com/v1/artists/{artist_id}/top-tracks?market=US",
-
+        f"https://api.spotify.com/v1/search?q={requests.utils.quote(artista)}&type=artist&limit=1",
         headers=headers
     )
     items = r.json().get('artists', {}).get('items', [])
@@ -82,7 +81,7 @@ def buscar_tracks_spotify(artista, any_tall, token):
 
     # Top tracks
     r = requests.get(
-        f"https://api.spotify.com/v1/artists/{artist_id}/top-tracks?market=ES",
+        f"https://api.spotify.com/v1/artists/{artist_id}/top-tracks?market=US",
         headers=headers
     )
     top_tracks = r.json().get('tracks', [])
@@ -107,7 +106,6 @@ def buscar_tracks_spotify(artista, any_tall, token):
             if key not in any_per_canco or any_album < any_per_canco[key]:
                 any_per_canco[key] = any_album
 
-    # Classificar THEN / NOW
     then_list = []
     now_list = []
     for t in top_tracks:
@@ -134,7 +132,6 @@ def buscar_tracks_spotify(artista, any_tall, token):
 
     print(f"THEN: {len(then_list)} · NOW: {len(now_list)}")
 
-    # Intercalar fins a 10
     tracks = []
     pos = 1
     max_len = max(len(then_list), len(now_list))
@@ -149,6 +146,7 @@ def buscar_tracks_spotify(artista, any_tall, token):
             pos += 1
 
     return tracks
+
 
 def get_spotify_cover(nom_canco, artista, token):
     try:
