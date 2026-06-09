@@ -69,7 +69,7 @@ def buscar_tracks_spotify(artista, any_tall, token):
 
     # Buscar artista
     r = requests.get(
-        f"https://api.spotify.com/v1/search?q={requests.utils.quote(artista)}&type=artist&limit=1",
+        f"https://api.spotify.com/v1/artists/{artist_id}/top-tracks?market=NL",
         headers=headers
     )
     items = r.json().get('artists', {}).get('items', [])
