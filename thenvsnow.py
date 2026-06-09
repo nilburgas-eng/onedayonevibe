@@ -51,7 +51,6 @@ Y_OUTRO  = 1500
 Y_OUTRO2 = 1558
 Y_OUTRO3 = 1620
 
-# ── CERCA AUTOMÀTICA SPOTIFY ──
 def get_spotify_token():
     try:
         creds = base64.b64encode(f"{SPOTIFY_CLIENT_ID}:{SPOTIFY_SECRET}".encode()).decode()
@@ -79,24 +78,18 @@ def buscar_tracks_spotify(artista, any_tall, token):
     artist_id = items[0]['id']
     print(f"Artista trobat: {items[0]['name']} ({artist_id})")
 
-    # Top tracks
-    r = requests.get(
-        f"https://api.spotify.com/v1/artists/{artist_id}/top-tracks?market=ES",
-        headers=headers
-    )
-    top_tracks_raw = r.json()
-    print(f"Resposta top tracks: {str(top_tracks_raw)[:300]}")
-    top_tracks = top_tracks_raw.get('tracks', [])
-    print(f"Top tracks: {len(top_tracks)}")
-
-    # Albums per obtenir anys originals
+    # Usar albums directament
     r = requests.get(
         f"https://api.spotify.com/v1/artists/{artist_id}/albums?include_groups=single,album&market=ES&limit=50",
         headers=headers
     )
     albums = r.json().get('items', [])
+    print(f"Albums trobats: {len(albums)}")
 
     any_per_canco = {}
+    top_tracks = []
+    vistes = set()
+
     for album in albums[:30]:
         any_album = int(album['release_date'].split('-')[0]) if album.get('release_date') else 0
         r2 = requests.get(
@@ -105,14 +98,23 @@ def buscar_tracks_spotify(artista, any_tall, token):
         )
         for t in r2.json().get('items', []):
             key = t['name'].lower().strip()
-            if key not in any_per_canco or any_album < any_per_canco[key]:
+            if key not in vistes:
+                vistes.add(key)
                 any_per_canco[key] = any_album
+                top_tracks.append({
+                    'name': t['name'],
+                    'album': {'release_date': str(any_album), 'images': album.get('images', [])},
+                    'popularity': 50
+                })
 
+    print(f"Tracks totals: {len(top_tracks)}")
+
+    # Classificar THEN / NOW
     then_list = []
     now_list = []
     for t in top_tracks:
         key = t['name'].lower().strip()
-        any_album = int(t['album']['release_date'].split('-')[0]) if t.get('album', {}).get('release_date') else 0
+        any_album = int(t['album']['release_date']) if t['album']['release_date'].isdigit() else 0
         any_final = any_per_canco.get(key, any_album)
         if any_final == 0:
             continue
@@ -134,6 +136,11 @@ def buscar_tracks_spotify(artista, any_tall, token):
 
     print(f"THEN: {len(then_list)} · NOW: {len(now_list)}")
 
+    # Agafar les 5 millors de cada era
+    then_list = then_list[:5]
+    now_list = now_list[:5]
+
+    # Intercalar
     tracks = []
     pos = 1
     max_len = max(len(then_list), len(now_list)) if then_list or now_list else 0
@@ -148,7 +155,6 @@ def buscar_tracks_spotify(artista, any_tall, token):
             pos += 1
 
     return tracks
-
 
 def get_spotify_cover(nom_canco, artista, token):
     try:
@@ -219,7 +225,6 @@ def trobar_moment_impactant(audio_path, duracio_total, estil='energetic'):
         print(f"   Error deteccio: {e}")
         return 30.0
 
-# ── OBTENIR TRACKS ──
 print("Obtenint token de Spotify...")
 spotify_token = get_spotify_token()
 
@@ -260,13 +265,13 @@ for track in tracks:
     thumb_base = os.path.expanduser(f"~/videos/{pos:02d}_thumb")
     os.makedirs(os.path.expanduser("~/videos"), exist_ok=True)
 
-    # Portada Spotify — usar cover_url directament si disponible
-    if cover_url and spotify_token:
+    # Portada Spotify
+    if cover_url:
         try:
             img_data = requests.get(cover_url).content
             with open(thumb_path, 'wb') as f:
                 f.write(img_data)
-            print(f"   Portada Spotify OK")
+            print(f"   Portada OK")
         except:
             pass
 
