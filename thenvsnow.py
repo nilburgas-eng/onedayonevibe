@@ -292,7 +292,12 @@ for track in tracks:
         if not os.path.exists(thumb_path) and os.path.exists(thumb_webp):
             os.system(f'ffmpeg -i "{thumb_webp}" "{thumb_path}" -y -loglevel error')
 
-    ret = os.system(f'yt-dlp -f "best[ext=mp4]/best" --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "ytsearch1:{query}" --no-playlist -q')
+    if yt_url:
+        font_descarrega = yt_url
+        print(f"   URL manual: {yt_url}")
+    else:
+        font_descarrega = f"ytsearch1:{query}"
+    ret = os.system(f'yt-dlp -f "best[ext=mp4]/best" --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{font_descarrega}" --no-playlist -q')
 
     if ret != 0 or not os.path.exists(video_path) or os.path.getsize(video_path) < 10000:
         print(f"   No s'ha trobat videoclip — usant portada")
