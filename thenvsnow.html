@@ -76,6 +76,7 @@
         <h2>⬇️ Descarregar / Esborrar</h2>
         <button class="btn btn-secondary" onclick="descarregarFinal()">⬇️ Descarregar vídeo final</button>
         <button class="btn btn-danger" onclick="esborrarRelease()">🗑️ Esborrar Release</button>
+        <button class="btn btn-secondary" onclick="canviarToken()">🔑 Canviar token</button>
     </div>
 </div>
 
@@ -88,6 +89,15 @@ window.onload = function() {
     if (!GITHUB_TOKEN) {
         GITHUB_TOKEN = prompt('Introdueix el teu GitHub Token:');
         if (GITHUB_TOKEN) localStorage.setItem('github_token', GITHUB_TOKEN);
+    }
+}
+
+function canviarToken() {
+    const nou = prompt('Introdueix el nou GitHub Token:');
+    if (nou) {
+        GITHUB_TOKEN = nou;
+        localStorage.setItem('github_token', nou);
+        mostrarStatus('✅ Token actualitzat!', 'ok');
     }
 }
 
