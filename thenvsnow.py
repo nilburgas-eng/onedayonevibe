@@ -259,6 +259,7 @@ for track in tracks:
     cover_url        = track.get('cover_url')
     timestamp_manual = track.get('timestamp_manual')
     nom_manual       = track.get('nom_manual')
+    yt_url           = track.get('yt_url')
     durada           = DURADA_CLIP
     es_ultim         = (pos == len(tracks))
     color_era        = COLOR_THEN if era == 'THEN' else COLOR_NOW
