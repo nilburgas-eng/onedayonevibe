@@ -1,272 +1,318 @@
-<!DOCTYPE html>
-<html lang="ca">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>onedayonevibe — Then vs Now</title>
-<style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0d0d0d; color: #fff; min-height: 100vh; padding: 20px; }
-    .container { max-width: 600px; margin: 0 auto; padding: 20px 0; }
-    h1 { font-size: 28px; font-weight: 800; color: #00BFFF; margin-bottom: 4px; }
-    .subtitle { font-size: 14px; color: #666; margin-bottom: 30px; }
-    .card { background: #1a1a1a; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
-    .card h2 { font-size: 14px; font-weight: 600; color: #00BFFF; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
-    label { display: block; font-size: 13px; color: #999; margin-bottom: 6px; }
-    input, select { width: 100%; background: #2a2a2a; border: 1px solid #333; border-radius: 8px; padding: 12px; color: #fff; font-size: 15px; margin-bottom: 14px; outline: none; }
-    input:focus, select:focus { border-color: #00BFFF; }
-    .btn { width: 100%; padding: 16px; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; border: none; margin-bottom: 12px; }
-    .btn:active { opacity: 0.8; }
-    .btn-primary { background: #00BFFF; color: #000; }
-    .btn-green { background: #1DB954; color: #000; }
-    .btn-secondary { background: #2a2a2a; color: #fff; border: 1px solid #444; }
-    .btn-danger { background: #ff4444; color: #fff; }
-    .status { background: #1a1a1a; border-radius: 12px; padding: 16px; margin-bottom: 16px; display: none; }
-    .status.visible { display: block; }
-    .status-text { font-size: 14px; line-height: 1.6; }
-    .status-ok { color: #00ff88; }
-    .status-error { color: #ff4444; }
-    .status-info { color: #00BFFF; }
-    .track { background: #222; border-radius: 10px; padding: 14px; margin-bottom: 12px; border-left: 4px solid #00BFFF; }
-    .track.now { border-left-color: #FF6B00; }
-    .track-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-    .track-nom { font-size: 15px; font-weight: 600; }
-    .track-any { font-size: 12px; color: #888; margin-top: 6px; }
-    .track-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .track-grid input, .track-grid select { margin-bottom: 0; font-size: 13px; padding: 10px; }
-    .track-full { margin-top: 8px; }
-    .track-full input { margin-bottom: 0; font-size: 13px; padding: 10px; }
-    .badge { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 5px; }
-    .badge-then { background: #00BFFF; color: #000; }
-    .badge-now { background: #FF6B00; color: #000; }
-</style>
-</head>
-<body>
-<div class="container">
-    <h1>@onedayonevibe</h1>
-    <p class="subtitle">Then vs Now Generator</p>
+import os, json, re, glob, shutil, subprocess, time, base64
+import librosa, numpy as np
+from scipy.signal import find_peaks, butter, filtfilt
+import requests
 
-    <div class="card">
-        <h2>🔍 Pas 1 — Buscar cançons</h2>
-        <label>Artista</label>
-        <input type="text" id="artista" placeholder="Hardwell" />
-        <label>Any de tall (THEN abans / NOW després)</label>
-        <input type="number" id="any_tall" value="2018" />
-        <label>Estil de detecció</label>
-        <select id="estil">
-            <option value="energetic">⚡ Energètic (EDM, House, Techno)</option>
-            <option value="melodic">🎵 Melòdic (Hardstyle, Trance)</option>
-            <option value="vocal">🎤 Vocal (Pop, cançons amb veu)</option>
-        </select>
-        <button class="btn btn-primary" onclick="buscarCancons()">🔍 1. Buscar cançons</button>
-        <button class="btn btn-secondary" onclick="carregarCancons()">🔄 Carregar llista</button>
-    </div>
+OUTPUT = os.path.expanduser("~/output")
+FONTS  = os.path.expanduser("~/fonts")
+os.makedirs(OUTPUT, exist_ok=True)
 
-    <div id="status" class="status">
-        <div id="status-text" class="status-text"></div>
-    </div>
+FONT_BEBAS     = f"{FONTS}/BebasNeue.ttf"
+FONT_SEMIBOLD  = f"{FONTS}/Montserrat-SemiBold.ttf"
+FONT_EXTRABOLD = f"{FONTS}/Montserrat-ExtraBold.ttf"
+FONT_MEDIUM    = f"{FONTS}/Montserrat-Medium.ttf"
+FONT_FALLBACK  = f"{FONTS}/Montserrat-Bold.ttf"
 
-    <div id="tracks-card" class="card" style="display:none;">
-        <h2>🎬 Pas 2 — Revisar i ajustar</h2>
-        <div id="tracks-list"></div>
-        <button class="btn btn-green" onclick="generarVideo()">🎬 2. Generar vídeo</button>
-    </div>
+for font_path in [FONT_BEBAS, FONT_SEMIBOLD, FONT_EXTRABOLD, FONT_MEDIUM]:
+    if not os.path.exists(font_path) or os.path.getsize(font_path) < 1000:
+        if font_path == FONT_BEBAS: FONT_BEBAS = FONT_FALLBACK
+        elif font_path == FONT_SEMIBOLD: FONT_SEMIBOLD = FONT_FALLBACK
+        elif font_path == FONT_EXTRABOLD: FONT_EXTRABOLD = FONT_FALLBACK
+        elif font_path == FONT_MEDIUM: FONT_MEDIUM = FONT_FALLBACK
 
-    <div class="card">
-        <h2>⬇️ Descarregar / Esborrar</h2>
-        <button class="btn btn-secondary" onclick="descarregarFinal()">⬇️ Descarregar vídeo final</button>
-        <button class="btn btn-danger" onclick="esborrarRelease()">🗑️ Esborrar Release</button>
-        <button class="btn btn-secondary" onclick="canviarToken()">🔑 Canviar token</button>
-    </div>
-</div>
+ARTISTA           = os.environ['ARTISTA']
+ESTIL             = os.environ.get('ESTIL', 'energetic')
+SPOTIFY_CLIENT_ID = os.environ.get('SPOTIFY_CLIENT_ID', '')
+SPOTIFY_SECRET    = os.environ.get('SPOTIFY_CLIENT_SECRET', '')
+COMPTE            = "@onedayonevibe"
+DURADA_CLIP       = 8
+DURADA_OUTRO      = 2.0
+FADE_DURADA       = 0.3
 
-<script>
-const GITHUB_REPO = "nilburgas-eng/onedayonevibe";
-let GITHUB_TOKEN = localStorage.getItem('github_token') || '';
-let tracksActuals = [];
+COLOR_THEN = "0x00BFFF"
+COLOR_NOW  = "0xFF6B00"
 
-window.onload = function() {
-    if (!GITHUB_TOKEN) {
-        GITHUB_TOKEN = prompt('Introdueix el teu GitHub Token:');
-        if (GITHUB_TOKEN) localStorage.setItem('github_token', GITHUB_TOKEN);
-    }
-}
+COVER_W  = 280
+COVER_H  = 280
+COVER_X  = 90
+COVER_Y  = 420
+X_INFO   = 410
+Y_NUM    = 420
+Y_NOM1   = 560
+Y_NOM2   = 630
+Y_TITOL1 = 210
+Y_TITOL2 = 285
+Y_ANY    = 740
+Y_BAR    = 790
+BAR_X    = 90
+BAR_W    = 980
+Y_OUTRO  = 1500
+Y_OUTRO2 = 1558
+Y_OUTRO3 = 1620
 
-function canviarToken() {
-    const nou = prompt('Introdueix el nou GitHub Token:');
-    if (nou) {
-        GITHUB_TOKEN = nou;
-        localStorage.setItem('github_token', nou);
-        mostrarStatus('✅ Token actualitzat!', 'ok');
-    }
-}
+print("Carregant tracks rebuts...")
+TRACKS_RAW = os.environ.get('TRACKS', '')
+tracks = json.loads(TRACKS_RAW)
 
-function mostrarStatus(text, tipus) {
-    const el = document.getElementById('status');
-    const textEl = document.getElementById('status-text');
-    el.classList.add('visible');
-    textEl.innerHTML = `<span class="status-${tipus}">${text}</span>`;
-}
+for t in tracks:
+    if t.get('timestamp_manual') not in (None, '', 0):
+        t['timestamp_manual'] = float(t['timestamp_manual'])
+    else:
+        t['timestamp_manual'] = None
 
-function parseTimestamp(ts) {
-    if (!ts || ts === '--:--' || ts.trim() === '') return null;
-    const parts = ts.split(':');
-    if (parts.length === 2) return parseInt(parts[0]) * 60 + parseInt(parts[1]);
-    if (parts.length === 3) return parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseInt(parts[2]);
-    return null;
-}
+if not tracks:
+    print("ERROR: No s'han rebut tracks")
+    exit(1)
 
-function segonsAStr(s) {
-    if (s === null || s === undefined) return '';
-    const m = Math.floor(s / 60);
-    const seg = Math.floor(s % 60);
-    return `${m}:${seg.toString().padStart(2,'0')}`;
-}
+def get_spotify_token():
+    try:
+        creds = base64.b64encode(f"{SPOTIFY_CLIENT_ID}:{SPOTIFY_SECRET}".encode()).decode()
+        r = requests.post(
+            "https://accounts.spotify.com/api/token",
+            headers={"Authorization": f"Basic {creds}"},
+            data={"grant_type": "client_credentials"}
+        )
+        return r.json().get('access_token')
+    except:
+        return None
 
-async function dispararWorkflow(workflow, inputs) {
-    const r = await fetch(
-        `https://api.github.com/repos/${GITHUB_REPO}/actions/workflows/${workflow}/dispatches`,
-        {
-            method: 'POST',
-            headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ref: 'main', inputs })
-        }
-    );
-    return r.status;
-}
+def get_spotify_cover(nom_canco, artista, token):
+    try:
+        headers = {"Authorization": f"Bearer {token}"}
+        query = f"track:{nom_canco} artist:{artista}"
+        r = requests.get(
+            f"https://api.spotify.com/v1/search?q={requests.utils.quote(query)}&type=track&limit=1",
+            headers=headers
+        )
+        items = r.json().get('tracks', {}).get('items', [])
+        if items:
+            img_url = items[0]['album']['images'][0]['url']
+            return requests.get(img_url).content
+    except:
+        pass
+    return None
 
-async function buscarCancons() {
-    const artista = document.getElementById('artista').value.trim();
-    const any_tall = document.getElementById('any_tall').value.trim();
-    if (!artista) {
-        mostrarStatus('❌ Omple el nom de l\'artista', 'error');
-        return;
-    }
-    mostrarStatus('⏳ Buscant cançons (Last.fm + MusicBrainz)...', 'info');
-    const status = await dispararWorkflow('thenvsnow_buscar.yml', { artista, any_tall });
-    if (status === 204) {
-        mostrarStatus('✅ Cerca iniciada!<br>⏳ Espera 1-2 min i clica "🔄 Carregar llista".', 'ok');
-    } else {
-        mostrarStatus(`❌ Error ${status} — comprova el token`, 'error');
-    }
-}
+def partir_nom(nom, max_chars=22):
+    if len(nom) <= max_chars:
+        return nom, ""
+    idx = nom.rfind(' ', 0, max_chars)
+    if idx == -1:
+        idx = max_chars
+    return nom[:idx].strip(), nom[idx:].strip()
 
-async function carregarCancons() {
-    mostrarStatus('⏳ Carregant llista...', 'info');
-    try {
-        const r = await fetch(
-            `https://api.github.com/repos/${GITHUB_REPO}/contents/thenvsnow_data.json?t=${Date.now()}`,
-            { headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3.raw' } }
-        );
-        if (r.status !== 200) {
-            mostrarStatus('❌ Encara no hi ha llista. Espera que acabi la cerca.', 'error');
-            return;
-        }
-        const data = await r.json();
-        tracksActuals = data.tracks;
-        document.getElementById('artista').value = data.artista;
-        document.getElementById('any_tall').value = data.any_tall;
-        renderTracks();
-        mostrarStatus(`✅ ${tracksActuals.length} cançons carregades. Ajusta i genera!`, 'ok');
-    } catch (e) {
-        mostrarStatus('❌ Error carregant: ' + e.message, 'error');
-    }
-}
+def trobar_moment_impactant(audio_path, duracio_total, estil='energetic'):
+    try:
+        audio, sr = librosa.load(audio_path, sr=22050, mono=True)
+        hop_length = 512
+        inici_cerca = min(30, duracio_total * 0.15)
+        inici_sample = int(inici_cerca * sr)
+        audio_tall = audio[inici_sample:]
+        rms = librosa.feature.rms(y=audio_tall, frame_length=2048, hop_length=hop_length)[0]
+        times = librosa.frames_to_time(np.arange(len(rms)), sr=sr, hop_length=hop_length)
+        rms_smooth = np.convolve(rms, np.ones(50)/50, mode='same')
+        nyq = sr / 2
+        if estil == 'melodic':
+            b, a = butter(4, [500/nyq, 4000/nyq], btype='band')
+            audio_target = filtfilt(b, a, audio_tall)
+        elif estil == 'vocal':
+            b_voc, a_voc = butter(4, [750/nyq, 2500/nyq], btype='band')
+            audio_vocal = filtfilt(b_voc, a_voc, audio_tall)
+            rms_vocal = librosa.feature.rms(y=audio_vocal, frame_length=2048, hop_length=hop_length)[0]
+            rms_vocal_smooth = np.convolve(rms_vocal, np.ones(50)/50, mode='same')
+            rms_combined = rms_vocal_smooth * 0.6 + rms_smooth * 0.4
+            llindar = np.max(rms_smooth) * 0.65
+            candidats, _ = find_peaks(rms_smooth, height=llindar, distance=sr//hop_length*15)
+            if len(candidats) == 0:
+                candidats = [np.argmax(rms_smooth)]
+            millor = max(candidats, key=lambda i: rms_combined[min(i, len(rms_combined)-1)])
+            moment = max(inici_cerca, inici_cerca + times[min(millor, len(times)-1)] - 2)
+            print(f"   Moment (vocal): {int(moment//60):02d}:{int(moment%60):02d}")
+            return moment
+        else:
+            b, a = butter(4, 100/nyq, btype='low')
+            audio_target = filtfilt(b, a, audio_tall)
+        rms_target = librosa.feature.rms(y=audio_target, frame_length=2048, hop_length=hop_length)[0]
+        rms_target_smooth = np.convolve(rms_target, np.ones(50)/50, mode='same')
+        llindar = np.max(rms_smooth) * 0.65
+        candidats, _ = find_peaks(rms_smooth, height=llindar, distance=sr//hop_length*15)
+        if len(candidats) == 0:
+            candidats = [np.argmax(rms_smooth)]
+        millor = max(candidats, key=lambda i: rms_target_smooth[min(i, len(rms_target_smooth)-1)])
+        moment = max(inici_cerca, inici_cerca + times[min(millor, len(times)-1)] - 2)
+        print(f"   Moment ({estil}): {int(moment//60):02d}:{int(moment%60):02d}")
+        return moment
+    except Exception as e:
+        print(f"   Error deteccio: {e}")
+        return 30.0
 
-function renderTracks() {
-    const cont = document.getElementById('tracks-list');
-    cont.innerHTML = '';
-    tracksActuals.forEach((t, i) => {
-        const div = document.createElement('div');
-        div.className = 'track' + (t.era === 'NOW' ? ' now' : '');
-        const badgeClass = t.era === 'NOW' ? 'badge-now' : 'badge-then';
-        div.innerHTML = `
-            <div class="track-head">
-                <span class="track-nom">#${t.pos} ${t.nom}</span>
-                <span class="badge ${badgeClass}">${t.era}</span>
-            </div>
-            <div class="track-grid">
-                <input type="text" placeholder="Timestamp (mm:ss)" value="${segonsAStr(t.timestamp_manual)}" onchange="actualitzar(${i}, 'ts', this.value)" />
-                <select onchange="actualitzar(${i}, 'era', this.value)">
-                    <option value="THEN" ${t.era==='THEN'?'selected':''}>THEN 🔵</option>
-                    <option value="NOW" ${t.era==='NOW'?'selected':''}>NOW 🟠</option>
-                </select>
-            </div>
-            <div class="track-full">
-                <input type="text" placeholder="Nom manual (opcional)" value="${t.nom_manual||''}" onchange="actualitzar(${i}, 'nom', this.value)" />
-            </div>
-            <div class="track-full">
-                <input type="text" placeholder="URL YouTube (opcional)" value="${t.yt_url||''}" onchange="actualitzar(${i}, 'yt', this.value)" />
-            </div>
-            <div class="track-any">Any: ${t.any}</div>
-        `;
-        cont.appendChild(div);
-    });
-    document.getElementById('tracks-card').style.display = 'block';
-}
+print("Obtenint token de Spotify...")
+spotify_token = get_spotify_token()
+print("Token OK" if spotify_token else "Sense token Spotify")
 
-function actualitzar(i, camp, valor) {
-    if (camp === 'ts') tracksActuals[i].timestamp_manual = parseTimestamp(valor);
-    else if (camp === 'era') {
-        tracksActuals[i].era = valor;
-        renderTracks();
-    }
-    else if (camp === 'nom') tracksActuals[i].nom_manual = valor.trim() || null;
-    else if (camp === 'yt') tracksActuals[i].yt_url = valor.trim() || null;
-}
+clips_paths = []
 
-async function generarVideo() {
-    if (tracksActuals.length === 0) {
-        mostrarStatus('❌ Carrega les cançons primer', 'error');
-        return;
-    }
-    const artista = document.getElementById('artista').value.trim();
-    const any_tall = document.getElementById('any_tall').value.trim();
-    const estil = document.getElementById('estil').value;
-    mostrarStatus('⏳ Generant vídeo...', 'info');
-    const status = await dispararWorkflow('thenvsnow.yml', {
-        artista, any_tall, estil,
-        tracks: JSON.stringify(tracksActuals)
-    });
-    if (status === 204) {
-        mostrarStatus('✅ Generació iniciada!<br>⏳ Tarda 15-20 min. Després "Descarregar vídeo final".', 'ok');
-    } else {
-        mostrarStatus(`❌ Error ${status}`, 'error');
-    }
-}
+for track in tracks:
+    pos              = track['pos']
+    nom              = track['nom']
+    any_canco        = track.get('any', '')
+    era              = track.get('era', 'THEN')
+    cover_url        = track.get('cover_url')
+    timestamp_manual = track.get('timestamp_manual')
+    nom_manual       = track.get('nom_manual')
+    yt_url           = track.get('yt_url')
+    durada           = DURADA_CLIP
+    es_ultim         = (pos == len(tracks))
+    color_era        = COLOR_THEN if era == 'THEN' else COLOR_NOW
 
-async function descarregarFinal() {
-    const artista = document.getElementById('artista').value.trim();
-    if (!artista) { mostrarStatus('❌ Omple l\'artista', 'error'); return; }
-    const nom = artista.toLowerCase().replace(/ /g, '_');
-    const r = await fetch(
-        `https://api.github.com/repos/${GITHUB_REPO}/releases/tags/thenvsnow_${nom}`,
-        { headers: { 'Authorization': `token ${GITHUB_TOKEN}` } }
-    );
-    if (r.status !== 200) { mostrarStatus('❌ Release no trobat', 'error'); return; }
-    const release = await r.json();
-    const asset = release.assets.find(a => a.name === 'thenvsnow_final.mp4');
-    if (asset) window.open(asset.browser_download_url, '_blank');
-    else mostrarStatus('❌ Vídeo final no trobat encara', 'error');
-}
+    print(f"\nClip #{pos} [{era}]: {nom} ({any_canco})")
 
-async function esborrarRelease() {
-    const artista = document.getElementById('artista').value.trim();
-    if (!artista) { mostrarStatus('❌ Omple l\'artista', 'error'); return; }
-    const nom = artista.toLowerCase().replace(/ /g, '_');
-    mostrarStatus('⏳ Esborrant...', 'info');
-    const r = await fetch(
-        `https://api.github.com/repos/${GITHUB_REPO}/releases/tags/thenvsnow_${nom}`,
-        { headers: { 'Authorization': `token ${GITHUB_TOKEN}` } }
-    );
-    if (r.status !== 200) { mostrarStatus('❌ Release no trobat', 'error'); return; }
-    const release = await r.json();
-    await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/${release.id}`,
-        { method: 'DELETE', headers: { 'Authorization': `token ${GITHUB_TOKEN}` } });
-    await fetch(`https://api.github.com/repos/${GITHUB_REPO}/git/refs/tags/thenvsnow_${nom}`,
-        { method: 'DELETE', headers: { 'Authorization': `token ${GITHUB_TOKEN}` } });
-    mostrarStatus('✅ Release esborrat!', 'ok');
-}
-</script>
-</body>
-</html>
+    video_path = os.path.expanduser(f"~/videos/{pos:02d}.mp4")
+    audio_path = os.path.expanduser(f"~/videos/{pos:02d}.wav")
+    thumb_path = os.path.expanduser(f"~/videos/{pos:02d}_thumb.jpg")
+    thumb_base = os.path.expanduser(f"~/videos/{pos:02d}_thumb")
+    os.makedirs(os.path.expanduser("~/videos"), exist_ok=True)
+
+    if spotify_token:
+        cover_data = get_spotify_cover(nom, ARTISTA, spotify_token)
+        if cover_data:
+            with open(thumb_path, 'wb') as f:
+                f.write(cover_data)
+            print(f"   Portada Spotify OK")
+
+    nom_query = nom.replace("'", "").replace('"', '').strip()
+    if any(x in nom.lower() for x in ['remix', 'edit', 'mix', 'version']):
+        query = f"{ARTISTA} {nom_query} official"
+    else:
+        query = f"{ARTISTA} {nom_query} {ARTISTA} official video"
+
+    if not os.path.exists(thumb_path) or os.path.getsize(thumb_path) < 1000:
+        os.system(f'yt-dlp --write-thumbnail --skip-download --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{thumb_base}" "ytsearch1:{query}" -q 2>/dev/null')
+        thumb_webp = thumb_base + ".webp"
+        if not os.path.exists(thumb_path) and os.path.exists(thumb_webp):
+            os.system(f'ffmpeg -i "{thumb_webp}" "{thumb_path}" -y -loglevel error')
+
+    if yt_url:
+        font_descarrega = yt_url
+        print(f"   URL manual: {yt_url}")
+    else:
+        font_descarrega = f"ytsearch1:{query}"
+    ret = os.system(f'yt-dlp -f "best[ext=mp4]/best" --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{font_descarrega}" --no-playlist -q')
+
+    if ret != 0 or not os.path.exists(video_path) or os.path.getsize(video_path) < 10000:
+        print(f"   No s'ha trobat videoclip — usant portada")
+        output_path = f"{OUTPUT}/clip_{pos:02d}.mp4"
+        if os.path.exists(thumb_path):
+            os.system(f'ffmpeg -loop 1 -i "{thumb_path}" -f lavfi -i anullsrc=r=44100:cl=stereo -t {durada} -vf "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,fps=30" -c:v libx264 -r 30 -c:a aac -b:a 192k -ar 44100 -shortest "{output_path}" -y -loglevel error')
+        else:
+            os.system(f'ffmpeg -f lavfi -i color=c=black:s=1080x1920:d={durada} -f lavfi -i anullsrc=r=44100:cl=stereo -t {durada} -r 30 -c:v libx264 -c:a aac -b:a 192k -ar 44100 -shortest "{output_path}" -y -loglevel error')
+        clips_paths.append((pos, output_path))
+        continue
+
+    r = subprocess.run(["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", video_path], capture_output=True, text=True)
+    duracio_total = float(json.loads(r.stdout)['format']['duration'])
+
+    os.system(f'ffmpeg -i "{video_path}" -vn -acodec pcm_s16le -ar 22050 -ac 1 "{audio_path}" -y -loglevel error')
+
+    if timestamp_manual is not None:
+        inici = float(timestamp_manual)
+        print(f"   Timestamp manual: {int(inici//60):02d}:{int(inici%60):02d}")
+    else:
+        inici = trobar_moment_impactant(audio_path, duracio_total, ESTIL) if os.path.exists(audio_path) else 30.0
+
+    output_path = f"{OUTPUT}/clip_{pos:02d}.mp4"
+    titol1 = f"{ARTISTA.upper()} THEN vs NOW"
+    nom = nom_manual if nom_manual else nom
+    nom_net = nom.replace("'", "").replace('"', '').replace(':', '-')
+    nom_linia1, nom_linia2 = partir_nom(nom_net, max_chars=22)
+
+    n_total = len(tracks)
+    bar_progress = int(BAR_W * pos / n_total)
+
+    txt = []
+    txt.append(f"drawbox=x=0:y=0:w=1080:h=360:color=black@0.20:t=fill")
+    txt.append(f"drawbox=x=0:y=1580:w=1080:h=340:color=black@0.18:t=fill")
+    txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol1}':fontsize=72:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
+    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{era}':fontsize=280:fontcolor={color_era}@0.12:x=(w-text_w)/2:y=600")
+    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{era}':fontsize=90:fontcolor={color_era}:borderw=2:bordercolor=black@0.8:shadowx=0:shadowy=3:x=(w-text_w)/2:y={Y_TITOL2}")
+    txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia1}':fontsize=58:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM1}")
+    if nom_linia2:
+        txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia2}':fontsize=58:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM2}")
+    if any_canco:
+        txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{any_canco}':fontsize=44:fontcolor={color_era}:borderw=2:bordercolor=black@0.8:shadowx=0:shadowy=2:x={BAR_X}:y={Y_ANY}")
+    txt.append(f"drawbox=x={BAR_X}:y={Y_BAR}:w={BAR_W}:h=5:color=white@0.15:t=fill")
+    txt.append(f"drawbox=x={BAR_X}:y={Y_BAR}:w={bar_progress}:h=5:color={color_era}@0.9:t=fill")
+
+    if es_ultim:
+        compte_text = COMPTE.replace("'", "")
+        t_aparicio = durada - DURADA_OUTRO + 0.3
+        txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{compte_text}':fontsize=50:fontcolor=white@0.82:borderw=2:bordercolor=black@0.6:x=(w-text_w)/2:y={Y_OUTRO}:enable='gte(t,{t_aparicio})'")
+        txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='Electronic Vibes Daily':fontsize=30:fontcolor=0x00BFFF@0.70:borderw=1:bordercolor=black@0.5:x=(w-text_w)/2:y={Y_OUTRO2}:enable='gte(t,{t_aparicio})'")
+        txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='Comment THEN or NOW':fontsize=44:fontcolor=white:borderw=2:bordercolor=black@0.7:x=(w-text_w)/2:y={Y_OUTRO3}:enable='gte(t,{t_aparicio})'")
+
+    txt_str = ",".join(txt)
+    has_thumb = os.path.exists(thumb_path) and os.path.getsize(thumb_path) > 1000
+
+    if has_thumb:
+        fc = (
+            "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
+            "crop=1080:1920:(iw-1080)/2:(ih-1920)/2[bg];"
+            "[1:v]scale={cw}:{ch}:force_original_aspect_ratio=decrease,"
+            "pad={cw}:{ch}:(ow-iw)/2:(oh-ih)/2:color=black@0,setsar=1[cover];"
+            "[bg][cover]overlay={cx}:{cy}[withcover];"
+            "[withcover]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored];"
+            "[colored]{txt}[out]"
+        ).format(cw=COVER_W, ch=COVER_H, cx=COVER_X, cy=COVER_Y, txt=txt_str)
+        cmd = f'ffmpeg -ss {inici} -i "{video_path}" -i "{thumb_path}" -t {durada} -filter_complex "{fc}" -map "[out]" -map 0:a -c:v libx264 -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
+    else:
+        fc = (
+            "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
+            "crop=1080:1920:(iw-1080)/2:(ih-1920)/2[bg];"
+            "[bg]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored];"
+            "[colored]{txt}[out]"
+        ).format(txt=txt_str)
+        cmd = f'ffmpeg -ss {inici} -i "{video_path}" -t {durada} -filter_complex "{fc}" -map "[out]" -map 0:a -c:v libx264 -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
+
+    os.system(cmd)
+    clips_paths.append((pos, output_path))
+    print(f"   OK clip generat")
+
+clips_paths.sort(key=lambda x: x[0])
+clips_valids = []
+for pos, path in clips_paths:
+    if os.path.exists(path) and os.path.getsize(path) > 1000:
+        clips_valids.append(path)
+    else:
+        print(f"   Clip no valid: {path}")
+
+if len(clips_valids) < 2:
+    print("ERROR: No hi ha prou clips valids")
+    exit(1)
+
+print(f"\nMuntant video final amb {len(clips_valids)} clips...")
+durades = []
+for path in clips_valids:
+    r = subprocess.run(["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", path], capture_output=True, text=True)
+    d = float(json.loads(r.stdout)['format']['duration'])
+    durades.append(d)
+
+n_clips = len(clips_valids)
+inputs_str = " ".join([f"-i '{p}'" for p in clips_valids])
+video_filters = []
+audio_filters = []
+offset = durades[0] - FADE_DURADA
+video_filters.append(f"[0:v][1:v]xfade=transition=fade:duration={FADE_DURADA}:offset={offset}[v01]")
+audio_filters.append(f"[0:a][1:a]acrossfade=d={FADE_DURADA}[a01]")
+for i in range(2, n_clips):
+    prev_v = f"v0{i-1}"
+    prev_a = f"a0{i-1}"
+    out_v = f"v0{i}" if i < n_clips - 1 else "vfinal"
+    out_a = f"a0{i}" if i < n_clips - 1 else "afinal"
+    offset += durades[i-1] - FADE_DURADA
+    video_filters.append(f"[{prev_v}][{i}:v]xfade=transition=fade:duration={FADE_DURADA}:offset={offset:.3f}[{out_v}]")
+    audio_filters.append(f"[{prev_a}][{i}:a]acrossfade=d={FADE_DURADA}[{out_a}]")
+
+filter_complex = ";".join(video_filters + audio_filters)
+output_final = f"{OUTPUT}/thenvsnow_final.mp4"
+cmd = f'ffmpeg {inputs_str} -filter_complex "{filter_complex}" -map "[vfinal]" -map "[afinal]" -c:v libx264 -c:a aac -b:a 192k "{output_final}" -y -loglevel error'
+os.system(cmd)
+print("Video final generat!")
