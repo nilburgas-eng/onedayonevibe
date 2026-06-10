@@ -226,11 +226,19 @@ def trobar_moment_impactant(audio_path, duracio_total, estil='energetic'):
         print(f"   Error deteccio: {e}")
         return 30.0
 
-print("Buscant tracks...")
-tracks = buscar_tracks_lastfm(ARTISTA, ANY_TALL, LASTFM_API_KEY)
+print("Carregant tracks rebuts...")
+TRACKS_RAW = os.environ.get('TRACKS', '')
+tracks = json.loads(TRACKS_RAW)
+
+# Convertir timestamp manual (segons) a float si existeix
+for t in tracks:
+    if t.get('timestamp_manual') not in (None, '', 0):
+        t['timestamp_manual'] = float(t['timestamp_manual'])
+    else:
+        t['timestamp_manual'] = None
 
 if not tracks:
-    print("ERROR: No s'han trobat tracks")
+    print("ERROR: No s'han rebut tracks")
     exit(1)
 
 print(f"\nTracks seleccionats ({len(tracks)}):")
