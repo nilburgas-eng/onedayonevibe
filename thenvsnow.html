@@ -81,9 +81,15 @@
 
 <script>
 const GITHUB_REPO = "nilburgas-eng/onedayonevibe";
-const GITHUB_TOKEN = "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";
-
+let GITHUB_TOKEN = localStorage.getItem('github_token') || '';
 let tracksActuals = [];
+
+window.onload = function() {
+    if (!GITHUB_TOKEN) {
+        GITHUB_TOKEN = prompt('Introdueix el teu GitHub Token:');
+        if (GITHUB_TOKEN) localStorage.setItem('github_token', GITHUB_TOKEN);
+    }
+}
 
 function mostrarStatus(text, tipus) {
     const el = document.getElementById('status');
