@@ -1,0 +1,86 @@
+{
+  "artista": "Martin Garrix",
+  "any_tall": 2021,
+  "tracks": [
+    {
+      "pos": 1,
+      "nom": "In the Name of Love",
+      "any": 2017,
+      "era": "THEN",
+      "cover_url": null,
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 2,
+      "nom": "Pressure (feat. Tove Lo)",
+      "any": 2021,
+      "era": "NOW",
+      "cover_url": null,
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 3,
+      "nom": "Animals",
+      "any": 2013,
+      "era": "THEN",
+      "cover_url": null,
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 4,
+      "nom": "We Are The People (feat. Bono & The Edge) - Official UEFA EURO 2020 Song",
+      "any": 2021,
+      "era": "NOW",
+      "cover_url": null,
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 5,
+      "nom": "There for You",
+      "any": 2017,
+      "era": "THEN",
+      "cover_url": null,
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 6,
+      "nom": "Told You So",
+      "any": 2026,
+      "era": "NOW",
+      "cover_url": null,
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 7,
+      "nom": "Summer Days (feat. Macklemore & Patrick Stump of Fall Out Boy)",
+      "any": 2019,
+      "era": "THEN",
+      "cover_url": null,
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 8,
+      "nom": "Love Runs Out (feat. G-Eazy & Sasha Alex Sloan)",
+      "any": 2021,
+      "era": "NOW",
+      "cover_url": null,
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    }
+  ]
+}
