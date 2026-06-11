@@ -1,142 +1,63 @@
-name: Generar Then vs Now
-
-on:
-  workflow_dispatch:
-    inputs:
-      artista:
-        description: 'Nom de l artista (ex: Hardwell)'
-        required: true
-      any_tall:
-        description: 'Any de tall THEN/NOW (ex: 2018)'
-        required: false
-        default: '2018'
-      estil:
-        description: 'Estil de deteccio: energetic, melodic o vocal'
-        required: false
-        default: 'energetic'
-      tracks:
-        description: 'Llista de cançons JSON'
-        required: true
-
-jobs:
-  generar:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout codi
-        uses: actions/checkout@v4
-
-      - name: Instal·lar dependències
-        run: |
-          pip install yt-dlp requests google-auth google-auth-oauthlib google-api-python-client numpy scipy librosa
-          sudo apt-get update
-          sudo apt-get install -y --fix-missing ffmpeg curl wget
-
-      - name: Descarregar fonts
-        run: |
-          mkdir -p ~/fonts
-          wget -q "https://github.com/google/fonts/raw/main/ofl/bebasneue/BebasNeue-Regular.ttf" -O ~/fonts/BebasNeue.ttf
-          wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-SemiBold.ttf" -O ~/fonts/Montserrat-SemiBold.ttf
-          wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-ExtraBold.ttf" -O ~/fonts/Montserrat-ExtraBold.ttf
-          wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-Medium.ttf" -O ~/fonts/Montserrat-Medium.ttf
-          wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-Bold.ttf" -O ~/fonts/Montserrat-Bold.ttf
-          echo "Fonts: $(ls ~/fonts/ | wc -l)"
-
-      - name: Descarregar credencials des del Drive
-        run: |
-          python3 << 'PYEOF'
-          import requests
-          file_id = "${{ secrets.GDRIVE_FILE_ID }}"
-          url = f"https://drive.google.com/uc?export=download&id={file_id}"
-          r = requests.get(url)
-          with open('credentials.json', 'wb') as f:
-              f.write(r.content)
-          print(f"Credencials: {len(r.content)} bytes")
-          PYEOF
-
-      - name: Descarregar cookies des del Drive
-        run: |
-          python3 << 'PYEOF'
-          from google.oauth2.service_account import Credentials
-          from googleapiclient.discovery import build
-          from googleapiclient.http import MediaIoBaseDownload
-          import io
-          creds = Credentials.from_service_account_file('credentials.json', scopes=['https://www.googleapis.com/auth/drive'])
-          service = build('drive', 'v3', credentials=creds)
-          results = service.files().list(q="name='cookies.txt'", fields="files(id, name)").execute()
-          files = results.get('files', [])
-          if not files:
-              raise Exception("No s'ha trobat cookies.txt")
-          file_id = files[0]['id']
-          request = service.files().get_media(fileId=file_id)
-          with open('cookies.txt', 'wb') as f:
-              downloader = MediaIoBaseDownload(f, request)
-              done = False
-              while not done:
-                  _, done = downloader.next_chunk()
-          print("Cookies OK")
-          PYEOF
-
-      - name: Generar Then vs Now
-        env:
-          ARTISTA: ${{ github.event.inputs.artista }}
-          ANY_TALL: ${{ github.event.inputs.any_tall }}
-          ESTIL: ${{ github.event.inputs.estil }}
-          TRACKS: ${{ github.event.inputs.tracks }}
-          SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
-          SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
-          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
-        run: python3 thenvsnow.py
-
       - name: Pujar video final a GitHub Releases
         env:
           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
         run: |
+          set +e
           artista="${{ github.event.inputs.artista }}"
           nom=$(echo "$artista" | tr '[:upper:]' '[:lower:]' | tr ' ' '_')
           repo="${{ github.repository }}"
+          tag="thenvsnow_${nom}"
 
-          release=$(curl -s \
-            -H "Authorization: token $GITHUB_TOKEN" \
-            "https://api.github.com/repos/${repo}/releases/tags/thenvsnow_${nom}")
+          # Comprovar si el release existeix
+          release=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${repo}/releases/tags/${tag}")
+          release_id=$(echo "$release" | python3 -c "import sys,json
+try:
+    print(json.load(sys.stdin)['id'])
+except:
+    print('')")
 
-          if echo "$release" | python3 -c "import sys,json; json.load(sys.stdin)['id']" 2>/dev/null; then
-            upload_url=$(echo $release | python3 -c "import sys,json; print(json.load(sys.stdin)['upload_url'].split('{')[0])")
-            echo "Release existent trobat"
-          else
+          if [ -z "$release_id" ]; then
+            echo "Creant release nou..."
             new_release=$(curl -s -X POST \
               -H "Authorization: token $GITHUB_TOKEN" \
               -H "Content-Type: application/json" \
-              https://api.github.com/repos/${repo}/releases \
-              -d "{\"tag_name\":\"thenvsnow_${nom}\",\"name\":\"thenvsnow_${nom}\",\"draft\":false}")
-            upload_url=$(echo $new_release | python3 -c "import sys,json; print(json.load(sys.stdin)['upload_url'].split('{')[0])")
-            echo "Release nou creat"
+              "https://api.github.com/repos/${repo}/releases" \
+              -d "{\"tag_name\":\"${tag}\",\"name\":\"${tag}\",\"draft\":false}")
+            upload_url=$(echo "$new_release" | python3 -c "import sys,json
+try:
+    print(json.load(sys.stdin)['upload_url'].split('{')[0])
+except Exception as e:
+    print('ERROR')")
+          else
+            echo "Release existent trobat"
+            upload_url=$(echo "$release" | python3 -c "import sys,json; print(json.load(sys.stdin)['upload_url'].split('{')[0])")
+            # Esborrar asset anterior si existeix
+            asset_id=$(echo "$release" | python3 -c "import sys,json
+assets = json.load(sys.stdin).get('assets', [])
+for a in assets:
+    if a['name'] == 'thenvsnow_final.mp4':
+        print(a['id'])
+        break")
+            if [ ! -z "$asset_id" ]; then
+              curl -s -X DELETE -H "Authorization: token $GITHUB_TOKEN" \
+                "https://api.github.com/repos/${repo}/releases/assets/${asset_id}"
+              echo "Asset anterior esborrat"
+            fi
           fi
 
-          asset_id=$(curl -s \
-            -H "Authorization: token $GITHUB_TOKEN" \
-            "https://api.github.com/repos/${repo}/releases/tags/thenvsnow_${nom}" \
-            | python3 -c "
-          import sys,json
-          assets = json.load(sys.stdin).get('assets', [])
-          for a in assets:
-              if a['name'] == 'thenvsnow_final.mp4':
-                  print(a['id'])
-                  break
-          ")
-
-          if [ ! -z "$asset_id" ]; then
-            curl -s -X DELETE \
-              -H "Authorization: token $GITHUB_TOKEN" \
-              "https://api.github.com/repos/${repo}/releases/assets/${asset_id}"
-            echo "Asset anterior esborrat"
+          if [ "$upload_url" = "ERROR" ] || [ -z "$upload_url" ]; then
+            echo "ERROR creant el release. Resposta:"
+            echo "$new_release"
+            exit 1
           fi
 
+          echo "Pujant video a: $upload_url"
           curl -s -X POST \
             -H "Authorization: token $GITHUB_TOKEN" \
             -H "Content-Type: video/mp4" \
             --data-binary @"$HOME/output/thenvsnow_final.mp4" \
             "${upload_url}?name=thenvsnow_final.mp4"
 
+          echo ""
           echo "Pujat!"
