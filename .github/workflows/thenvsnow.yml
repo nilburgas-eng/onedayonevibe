@@ -6,6 +6,9 @@ on:
       artista:
         description: 'Nom de l artista (ex: Hardwell)'
         required: true
+      tracks:
+        description: 'Tracks en format JSON'
+        required: true
       any_tall:
         description: 'Any de tall THEN/NOW (ex: 2018)'
         required: false
@@ -14,9 +17,6 @@ on:
         description: 'Estil de deteccio: energetic, melodic o vocal'
         required: false
         default: 'energetic'
-      tracks:
-        description: 'Llista de cançons JSON'
-        required: true
 
 jobs:
   generar:
@@ -80,10 +80,11 @@ jobs:
 
       - name: Generar Then vs Now
         env:
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
           ARTISTA: ${{ github.event.inputs.artista }}
+          TRACKS: ${{ github.event.inputs.tracks }}
           ANY_TALL: ${{ github.event.inputs.any_tall }}
           ESTIL: ${{ github.event.inputs.estil }}
-          TRACKS: ${{ github.event.inputs.tracks }}
           SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
           SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
           LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
@@ -93,60 +94,50 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
         run: |
-          set +e
           artista="${{ github.event.inputs.artista }}"
           nom=$(echo "$artista" | tr '[:upper:]' '[:lower:]' | tr ' ' '_')
           repo="${{ github.repository }}"
-          tag="thenvsnow_${nom}"
 
-          release=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-            "https://api.github.com/repos/${repo}/releases/tags/${tag}")
-          release_id=$(echo "$release" | python3 -c "import sys,json
-try:
-    print(json.load(sys.stdin)['id'])
-except:
-    print('')")
+          release=$(curl -s \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${repo}/releases/tags/thenvsnow_${nom}")
 
-          if [ -z "$release_id" ]; then
-            echo "Creant release nou..."
+          if echo "$release" | python3 -c "import sys,json; json.load(sys.stdin)['id']" 2>/dev/null; then
+            upload_url=$(echo $release | python3 -c "import sys,json; print(json.load(sys.stdin)['upload_url'].split('{')[0])")
+            echo "Release existent trobat"
+          else
             new_release=$(curl -s -X POST \
               -H "Authorization: token $GITHUB_TOKEN" \
               -H "Content-Type: application/json" \
-              "https://api.github.com/repos/${repo}/releases" \
-              -d "{\"tag_name\":\"${tag}\",\"name\":\"${tag}\",\"draft\":false}")
-            upload_url=$(echo "$new_release" | python3 -c "import sys,json
-try:
-    print(json.load(sys.stdin)['upload_url'].split('{')[0])
-except Exception as e:
-    print('ERROR')")
-          else
-            echo "Release existent trobat"
-            upload_url=$(echo "$release" | python3 -c "import sys,json; print(json.load(sys.stdin)['upload_url'].split('{')[0])")
-            asset_id=$(echo "$release" | python3 -c "import sys,json
-assets = json.load(sys.stdin).get('assets', [])
-for a in assets:
-    if a['name'] == 'thenvsnow_final.mp4':
-        print(a['id'])
-        break")
-            if [ ! -z "$asset_id" ]; then
-              curl -s -X DELETE -H "Authorization: token $GITHUB_TOKEN" \
-                "https://api.github.com/repos/${repo}/releases/assets/${asset_id}"
-              echo "Asset anterior esborrat"
-            fi
+              https://api.github.com/repos/${repo}/releases \
+              -d "{\"tag_name\":\"thenvsnow_${nom}\",\"name\":\"thenvsnow_${nom}\",\"draft\":false}")
+            upload_url=$(echo $new_release | python3 -c "import sys,json; print(json.load(sys.stdin)['upload_url'].split('{')[0])")
+            echo "Release nou creat"
           fi
 
-          if [ "$upload_url" = "ERROR" ] || [ -z "$upload_url" ]; then
-            echo "ERROR creant el release. Resposta:"
-            echo "$new_release"
-            exit 1
+          asset_id=$(curl -s \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${repo}/releases/tags/thenvsnow_${nom}" \
+            | python3 -c "
+          import sys,json
+          assets = json.load(sys.stdin).get('assets', [])
+          for a in assets:
+              if a['name'] == 'thenvsnow_final.mp4':
+                  print(a['id'])
+                  break
+          ")
+
+          if [ ! -z "$asset_id" ]; then
+            curl -s -X DELETE \
+              -H "Authorization: token $GITHUB_TOKEN" \
+              "https://api.github.com/repos/${repo}/releases/assets/${asset_id}"
+            echo "Asset anterior esborrat"
           fi
 
-          echo "Pujant video a: $upload_url"
           curl -s -X POST \
             -H "Authorization: token $GITHUB_TOKEN" \
             -H "Content-Type: video/mp4" \
             --data-binary @"$HOME/output/thenvsnow_final.mp4" \
             "${upload_url}?name=thenvsnow_final.mp4"
 
-          echo ""
-          echo "Pujat!"
+          echo "✅ Pujat!"
