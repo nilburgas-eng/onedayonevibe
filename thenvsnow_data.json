@@ -1,11 +1,11 @@
 {
-  "artista": "Hardwell",
+  "artista": "Harwell",
   "any_tall": 2020,
   "tracks": [
     {
       "pos": 1,
-      "nom": "Call Me A Spaceman - Radio Edit",
-      "any": 2012,
+      "nom": "Spaceman",
+      "any": 2018,
       "era": "THEN",
       "cover_url": null,
       "timestamp_manual": null,
@@ -14,26 +14,6 @@
     },
     {
       "pos": 2,
-      "nom": "ACID",
-      "any": 2023,
-      "era": "NOW",
-      "cover_url": null,
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 3,
-      "nom": "Power",
-      "any": 2017,
-      "era": "THEN",
-      "cover_url": null,
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 4,
       "nom": "Dare You - Radio Edit",
       "any": 2020,
       "era": "NOW",
@@ -43,9 +23,29 @@
       "yt_url": null
     },
     {
+      "pos": 3,
+      "nom": "Call Me A Spaceman - Radio Edit",
+      "any": 2012,
+      "era": "THEN",
+      "cover_url": null,
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 4,
+      "nom": "Thinking About You",
+      "any": 2026,
+      "era": "NOW",
+      "cover_url": null,
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
       "pos": 5,
-      "nom": "Apollo - Radio Edit",
-      "any": 2013,
+      "nom": "Power",
+      "any": 2018,
       "era": "THEN",
       "cover_url": null,
       "timestamp_manual": null,
@@ -64,27 +64,7 @@
     },
     {
       "pos": 7,
-      "nom": "Bella Ciao",
-      "any": 2018,
-      "era": "THEN",
-      "cover_url": null,
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 8,
-      "nom": "I FEEL LIKE DANCING",
-      "any": 2022,
-      "era": "NOW",
-      "cover_url": null,
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 9,
-      "nom": "How We Do - Original Mix",
+      "nom": "Apollo - Radio Edit",
       "any": 2013,
       "era": "THEN",
       "cover_url": null,
@@ -93,9 +73,9 @@
       "yt_url": null
     },
     {
-      "pos": 10,
-      "nom": "Revolution",
-      "any": 2023,
+      "pos": 8,
+      "nom": "Follow Me",
+      "any": 2025,
       "era": "NOW",
       "cover_url": null,
       "timestamp_manual": null,
