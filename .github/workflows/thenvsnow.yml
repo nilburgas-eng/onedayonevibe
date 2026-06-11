@@ -27,7 +27,7 @@ jobs:
       - name: Checkout codi
         uses: actions/checkout@v4
 
-      - name: Instal·lar dependències
+      - name: Instal·lar dependencies
         run: |
           pip install yt-dlp requests google-auth google-auth-oauthlib google-api-python-client numpy scipy librosa
           sudo apt-get update
@@ -90,64 +90,49 @@ jobs:
           LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
         run: python3 thenvsnow.py
 
-            - name: Pujar video final a GitHub Releases
+      - name: Pujar video final a GitHub Releases
         env:
           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
         run: |
-          set +e
-          artista="${{ github.event.inputs.artista }}"
-          nom=$(echo "$artista" | tr '[:upper:]' '[:lower:]' | tr ' ' '_')
-          repo="${{ github.repository }}"
-          tag="thenvsnow_${nom}"
+          python3 << 'PYEOF'
+          import os, requests
+          repo = "${{ github.repository }}"
+          artista = "${{ github.event.inputs.artista }}"
+          nom = artista.lower().replace(' ', '_')
+          tag = f"thenvsnow_{nom}"
+          token = os.environ['GITHUB_TOKEN']
+          headers = {"Authorization": f"token {token}"}
 
-          release=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-            "https://api.github.com/repos/${repo}/releases/tags/${tag}")
-          release_id=$(echo "$release" | python3 -c "import sys,json
-try:
-    print(json.load(sys.stdin)['id'])
-except:
-    print('')")
+          r = requests.get(f"https://api.github.com/repos/{repo}/releases/tags/{tag}", headers=headers)
+          if r.status_code == 200:
+              release = r.json()
+              upload_url = release['upload_url'].split('{')[0]
+              print("Release existent trobat")
+              for a in release.get('assets', []):
+                  if a['name'] == 'thenvsnow_final.mp4':
+                      requests.delete(f"https://api.github.com/repos/{repo}/releases/assets/{a['id']}", headers=headers)
+                      print("Asset anterior esborrat")
+          else:
+              print("Creant release nou...")
+              r = requests.post(
+                  f"https://api.github.com/repos/{repo}/releases",
+                  headers=headers,
+                  json={"tag_name": tag, "name": tag, "draft": False}
+              )
+              if r.status_code not in (200, 201):
+                  print(f"ERROR creant release: {r.status_code}")
+                  print(r.text)
+                  exit(1)
+              upload_url = r.json()['upload_url'].split('{')[0]
 
-          if [ -z "$release_id" ]; then
-            echo "Creant release nou..."
-            new_release=$(curl -s -X POST \
-              -H "Authorization: token $GITHUB_TOKEN" \
-              -H "Content-Type: application/json" \
-              "https://api.github.com/repos/${repo}/releases" \
-              -d "{\"tag_name\":\"${tag}\",\"name\":\"${tag}\",\"draft\":false}")
-            upload_url=$(echo "$new_release" | python3 -c "import sys,json
-try:
-    print(json.load(sys.stdin)['upload_url'].split('{')[0])
-except:
-    print('ERROR')")
-          else
-            echo "Release existent trobat"
-            upload_url=$(echo "$release" | python3 -c "import sys,json; print(json.load(sys.stdin)['upload_url'].split('{')[0])")
-            asset_id=$(echo "$release" | python3 -c "import sys,json
-assets = json.load(sys.stdin).get('assets', [])
-for a in assets:
-    if a['name'] == 'thenvsnow_final.mp4':
-        print(a['id'])
-        break")
-            if [ ! -z "$asset_id" ]; then
-              curl -s -X DELETE -H "Authorization: token $GITHUB_TOKEN" \
-                "https://api.github.com/repos/${repo}/releases/assets/${asset_id}"
-              echo "Asset anterior esborrat"
-            fi
-          fi
-
-          if [ "$upload_url" = "ERROR" ] || [ -z "$upload_url" ]; then
-            echo "ERROR creant release. Resposta:"
-            echo "$new_release"
-            exit 1
-          fi
-
-          echo "Pujant a: $upload_url"
-          curl -s -X POST \
-            -H "Authorization: token $GITHUB_TOKEN" \
-            -H "Content-Type: video/mp4" \
-            --data-binary @"$HOME/output/thenvsnow_final.mp4" \
-            "${upload_url}?name=thenvsnow_final.mp4"
-
-          echo ""
-          echo "Pujat!"
+          video = os.path.expanduser("~/output/thenvsnow_final.mp4")
+          mida = os.path.getsize(video)
+          print(f"Pujant thenvsnow_final.mp4: {mida/1024/1024:.1f} MB")
+          with open(video, 'rb') as f:
+              r2 = requests.post(
+                  f"{upload_url}?name=thenvsnow_final.mp4",
+                  headers={**headers, "Content-Type": "video/mp4"},
+                  data=f
+              )
+          print(f"Pujat: {r2.status_code}")
+          PYEOF
