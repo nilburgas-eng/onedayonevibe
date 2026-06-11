@@ -74,6 +74,7 @@
 
     <div class="card">
         <h2>⬇️ Descarregar / Esborrar</h2>
+        <button class="btn btn-secondary" onclick="veureEstat()">📊 Consultar estat</button>
         <button class="btn btn-secondary" onclick="descarregarFinal()">⬇️ Descarregar vídeo final</button>
         <button class="btn btn-danger" onclick="esborrarRelease()">🗑️ Esborrar Release</button>
         <button class="btn btn-secondary" onclick="canviarToken()">🔑 Canviar token</button>
@@ -132,7 +133,11 @@ async function dispararWorkflow(workflow, inputs) {
             body: JSON.stringify({ ref: 'main', inputs })
         }
     );
-    return r.status;
+    let detall = '';
+    if (r.status !== 204) {
+        try { detall = (await r.json()).message || ''; } catch(e) {}
+    }
+    return { status: r.status, detall };
 }
 
 async function buscarCancons() {
@@ -143,11 +148,11 @@ async function buscarCancons() {
         return;
     }
     mostrarStatus('⏳ Buscant cançons (Last.fm + MusicBrainz)...', 'info');
-    const status = await dispararWorkflow('thenvsnow_buscar.yml', { artista, any_tall });
-    if (status === 204) {
+    const res = await dispararWorkflow('thenvsnow_buscar.yml', { artista, any_tall });
+    if (res.status === 204) {
         mostrarStatus('✅ Cerca iniciada!<br>⏳ Espera 1-2 min i clica "🔄 Carregar llista".', 'ok');
     } else {
-        mostrarStatus(`❌ Error ${status} — comprova el token`, 'error');
+        mostrarStatus(`❌ Error ${res.status}: ${res.detall}`, 'error');
     }
 }
 
@@ -204,7 +209,6 @@ function renderTracks() {
             <div class="track-full">
                 <input type="text" placeholder="URL YouTube (opcional)" value="${t.yt_url||''}" onchange="actualitzar(${i}, 'yt', this.value)" />
             </div>
-            <div class="track-any">Any: ${t.any}</div>
         `;
         cont.appendChild(div);
     });
@@ -221,11 +225,23 @@ function actualitzar(i, camp, valor) {
     else if (camp === 'yt') tracksActuals[i].yt_url = valor.trim() || null;
     else if (camp === 'any') tracksActuals[i].any = valor.trim() ? parseInt(valor) : '';
 }
+
 function eliminarTrack(i) {
     tracksActuals.splice(i, 1);
     tracksActuals.forEach((t, idx) => t.pos = idx + 1);
     renderTracks();
 }
+
+function netejarTracks() {
+    return tracksActuals.map(t => {
+        const o = { pos: t.pos, nom: t.nom, any: t.any, era: t.era };
+        if (t.timestamp_manual !== null && t.timestamp_manual !== undefined) o.timestamp_manual = t.timestamp_manual;
+        if (t.nom_manual) o.nom_manual = t.nom_manual;
+        if (t.yt_url) o.yt_url = t.yt_url;
+        return o;
+    });
+}
+
 async function generarVideo() {
     if (tracksActuals.length === 0) {
         mostrarStatus('❌ Carrega les cançons primer', 'error');
@@ -235,15 +251,33 @@ async function generarVideo() {
     const any_tall = document.getElementById('any_tall').value.trim();
     const estil = document.getElementById('estil').value;
     mostrarStatus('⏳ Generant vídeo...', 'info');
-    const status = await dispararWorkflow('thenvsnow.yml', {
+    const res = await dispararWorkflow('thenvsnow.yml', {
         artista, any_tall, estil,
-        tracks: JSON.stringify(tracksActuals)
+        tracks: JSON.stringify(netejarTracks())
     });
-    if (status === 204) {
+    if (res.status === 204) {
         mostrarStatus('✅ Generació iniciada!<br>⏳ Tarda 15-20 min. Després "Descarregar vídeo final".', 'ok');
     } else {
-        mostrarStatus(`❌ Error ${status}`, 'error');
+        mostrarStatus(`❌ Error ${res.status}: ${res.detall}`, 'error');
     }
+}
+
+async function veureEstat() {
+    mostrarStatus('⏳ Consultant estat...', 'info');
+    const r = await fetch(
+        `https://api.github.com/repos/${GITHUB_REPO}/actions/runs?per_page=5`,
+        { headers: { 'Authorization': `token ${GITHUB_TOKEN}` } }
+    );
+    const data = await r.json();
+    const runs = data.workflow_runs;
+    if (!runs || runs.length === 0) { mostrarStatus('❌ No hi ha workflows recents', 'error'); return; }
+    let html = '<b>Últims workflows:</b><br><br>';
+    for (const run of runs) {
+        const icon = run.status === 'completed' ? (run.conclusion === 'success' ? '✅' : '❌') : '⏳';
+        html += `${icon} <b>${run.name}</b> — ${run.conclusion || run.status}<br>`;
+        html += `&nbsp;&nbsp;&nbsp;${new Date(run.created_at).toLocaleString()}<br><br>`;
+    }
+    mostrarStatus(html, 'info');
 }
 
 async function descarregarFinal() {
