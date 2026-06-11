@@ -183,7 +183,10 @@ function renderTracks() {
         div.innerHTML = `
             <div class="track-head">
                 <span class="track-nom">#${t.pos} ${t.nom}</span>
-                <span class="badge ${badgeClass}">${t.era}</span>
+                <div>
+                    <span class="badge ${badgeClass}">${t.era}</span>
+                    <button onclick="eliminarTrack(${i})" style="background:#ff4444;color:#fff;border:none;border-radius:5px;padding:3px 10px;font-size:14px;font-weight:700;cursor:pointer;margin-left:6px;">🗑️</button>
+                </div>
             </div>
             <div class="track-grid">
                 <input type="text" placeholder="Timestamp (mm:ss)" value="${segonsAStr(t.timestamp_manual)}" onchange="actualitzar(${i}, 'ts', this.value)" />
@@ -218,7 +221,11 @@ function actualitzar(i, camp, valor) {
     else if (camp === 'yt') tracksActuals[i].yt_url = valor.trim() || null;
     else if (camp === 'any') tracksActuals[i].any = valor.trim() ? parseInt(valor) : '';
 }
-
+function eliminarTrack(i) {
+    tracksActuals.splice(i, 1);
+    tracksActuals.forEach((t, idx) => t.pos = idx + 1);
+    renderTracks();
+}
 async function generarVideo() {
     if (tracksActuals.length === 0) {
         mostrarStatus('❌ Carrega les cançons primer', 'error');
