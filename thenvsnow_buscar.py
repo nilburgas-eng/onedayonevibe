@@ -22,7 +22,8 @@ def buscar_tracks_lastfm(artista, any_tall, api_key):
 
     for t in top_tracks[:30]:
         nom = t['name']
-        key_norm = re.sub(r'\s*[\(\[].*?[\)\]]', '', nom.lower()).strip()
+        key_norm = re.sub(r'\s*[\(\[].*?[\)\]]', '', nom.lower())
+        key_norm = re.sub(r'\s*-\s*.*$', '', key_norm).strip()
         if key_norm in vistes:
             continue
         vistes.add(key_norm)
