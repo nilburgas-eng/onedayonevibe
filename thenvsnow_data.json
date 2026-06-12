@@ -1,11 +1,11 @@
 {
-  "artista": "Harwell",
-  "any_tall": 2020,
+  "artista": "David Guetta",
+  "any_tall": 2021,
   "tracks": [
     {
       "pos": 1,
-      "nom": "Spaceman",
-      "any": 2018,
+      "nom": "Titanium (feat. Sia)",
+      "any": 2011,
       "era": "THEN",
       "cover_url": null,
       "timestamp_manual": null,
@@ -14,8 +14,8 @@
     },
     {
       "pos": 2,
-      "nom": "Dare You - Radio Edit",
-      "any": 2020,
+      "nom": "I'm Good (Blue)",
+      "any": 2023,
       "era": "NOW",
       "cover_url": null,
       "timestamp_manual": null,
@@ -24,8 +24,8 @@
     },
     {
       "pos": 3,
-      "nom": "Call Me A Spaceman - Radio Edit",
-      "any": 2012,
+      "nom": "Memories (feat. Kid Cudi)",
+      "any": 2010,
       "era": "THEN",
       "cover_url": null,
       "timestamp_manual": null,
@@ -34,8 +34,8 @@
     },
     {
       "pos": 4,
-      "nom": "Thinking About You",
-      "any": 2026,
+      "nom": "Baby Don't Hurt Me",
+      "any": 2023,
       "era": "NOW",
       "cover_url": null,
       "timestamp_manual": null,
@@ -44,8 +44,8 @@
     },
     {
       "pos": 5,
-      "nom": "Power",
-      "any": 2018,
+      "nom": "Sexy Bitch (feat. Akon)",
+      "any": 2009,
       "era": "THEN",
       "cover_url": null,
       "timestamp_manual": null,
@@ -54,8 +54,8 @@
     },
     {
       "pos": 6,
-      "nom": "Nothing Else Matters vs F*CKING SOCIETY - Hardwell Mashup",
-      "any": 2022,
+      "nom": "I Don't Wanna Wait",
+      "any": 2024,
       "era": "NOW",
       "cover_url": null,
       "timestamp_manual": null,
@@ -64,8 +64,8 @@
     },
     {
       "pos": 7,
-      "nom": "Apollo - Radio Edit",
-      "any": 2013,
+      "nom": "Where Them Girls At (feat. Nicki Minaj & Flo Rida)",
+      "any": 2012,
       "era": "THEN",
       "cover_url": null,
       "timestamp_manual": null,
@@ -74,8 +74,28 @@
     },
     {
       "pos": 8,
-      "nom": "Follow Me",
-      "any": 2025,
+      "nom": "Crazy What Love Can Do",
+      "any": 2022,
+      "era": "NOW",
+      "cover_url": null,
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 9,
+      "nom": "Without You (feat. Usher)",
+      "any": 2012,
+      "era": "THEN",
+      "cover_url": null,
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 10,
+      "nom": "When We Were Young (The Logical Song)",
+      "any": 2023,
       "era": "NOW",
       "cover_url": null,
       "timestamp_manual": null,
