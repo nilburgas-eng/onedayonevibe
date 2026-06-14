@@ -1,11 +1,11 @@
 {
-  "artista": "David Guetta",
+  "artista": "Dimitri Vegas & Like Mike",
   "any_tall": 2021,
   "tracks": [
     {
       "pos": 1,
-      "nom": "Titanium (feat. Sia)",
-      "any": 2011,
+      "nom": "Say My Name",
+      "any": 2020,
       "era": "THEN",
       "cover_url": null,
       "timestamp_manual": null,
@@ -14,47 +14,7 @@
     },
     {
       "pos": 2,
-      "nom": "I'm Good (Blue)",
-      "any": 2023,
-      "era": "NOW",
-      "cover_url": null,
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 3,
-      "nom": "Memories (feat. Kid Cudi)",
-      "any": 2010,
-      "era": "THEN",
-      "cover_url": null,
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 4,
-      "nom": "Baby Don't Hurt Me",
-      "any": 2023,
-      "era": "NOW",
-      "cover_url": null,
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 5,
-      "nom": "Sexy Bitch (feat. Akon)",
-      "any": 2009,
-      "era": "THEN",
-      "cover_url": null,
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 6,
-      "nom": "I Don't Wanna Wait",
+      "nom": "Thank You (Not So Bad)",
       "any": 2024,
       "era": "NOW",
       "cover_url": null,
@@ -63,9 +23,49 @@
       "yt_url": null
     },
     {
+      "pos": 3,
+      "nom": "Instagram",
+      "any": 2016,
+      "era": "THEN",
+      "cover_url": null,
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 4,
+      "nom": "Makina Time",
+      "any": 2026,
+      "era": "NOW",
+      "cover_url": null,
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 5,
+      "nom": "Complicated (Feat. Kiiara)",
+      "any": 2017,
+      "era": "THEN",
+      "cover_url": null,
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 6,
+      "nom": "Meet Her At The Love Parade",
+      "any": 2023,
+      "era": "NOW",
+      "cover_url": null,
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
       "pos": 7,
-      "nom": "Where Them Girls At (feat. Nicki Minaj & Flo Rida)",
-      "any": 2012,
+      "nom": "Tremor - Sensation 2014 Anthem",
+      "any": 2014,
       "era": "THEN",
       "cover_url": null,
       "timestamp_manual": null,
@@ -74,8 +74,8 @@
     },
     {
       "pos": 8,
-      "nom": "Crazy What Love Can Do",
-      "any": 2022,
+      "nom": "She Knows - With Akon",
+      "any": 2023,
       "era": "NOW",
       "cover_url": null,
       "timestamp_manual": null,
@@ -84,8 +84,8 @@
     },
     {
       "pos": 9,
-      "nom": "Without You (feat. Usher)",
-      "any": 2012,
+      "nom": "Get in Trouble (So What)",
+      "any": 2020,
       "era": "THEN",
       "cover_url": null,
       "timestamp_manual": null,
@@ -94,8 +94,8 @@
     },
     {
       "pos": 10,
-      "nom": "When We Were Young (The Logical Song)",
-      "any": 2023,
+      "nom": "Sweet Caroline",
+      "any": 2022,
       "era": "NOW",
       "cover_url": null,
       "timestamp_manual": null,
