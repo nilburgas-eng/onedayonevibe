@@ -90,6 +90,16 @@ def scrape_chart(setmana):
     linies = [l.strip() for l in net.split('\n')]
     linies = [l for l in linies if l]
 
+    # Setmana: buscar patró "2026 Week 24 June 13" o similar
+    setmana_text = ""
+    m_set = re.search(r'(\d{4})\s+Week\s+(\d+)\s+([A-Z][a-z]+\s+\d+)', net)
+    if m_set:
+        setmana_text = f"{m_set.group(1)} WEEK {m_set.group(2)}"
+    else:
+        m_set2 = re.search(r'(\d{4})\s+Week\s+(\d+)', net)
+        if m_set2:
+            setmana_text = f"{m_set2.group(1)} WEEK {m_set2.group(2)}"
+
     tracks = []
     i = 0
     pos = 1
@@ -98,6 +108,16 @@ def scrape_chart(setmana):
         if linies[i].startswith('Last week:'):
             lw_match = re.search(r'Last week:\s*([\d-]+)', linies[i])
             last_week = lw_match.group(1).strip() if lw_match else '-'
+            # Peak i Weeks: buscar a les línies següents del bloc
+            peak = '-'
+            weeks = '-'
+            for k in range(i, min(i + 6, len(linies))):
+                pm = re.search(r'Peak position:\s*([\d-]+)', linies[k])
+                if pm:
+                    peak = pm.group(1).strip()
+                wm = re.search(r'Weeks on chart:\s*([\d-]+)', linies[k])
+                if wm:
+                    weeks = wm.group(1).strip()
             candidates = []
             j = i - 1
             while j >= 0 and len(candidates) < 2:
@@ -137,11 +157,12 @@ def scrape_chart(setmana):
                     break
 
             tracks.append({'pos': pos, 'nom': nom, 'artista': artista,
-                           'last_week': last_week, 'yt_url': yt_url})
+                           'last_week': last_week, 'peak': peak, 'weeks': weeks,
+                           'yt_url': yt_url})
             pos += 1
         i += 1
 
-    return tracks
+    return tracks, setmana_text
 
 def calc_moviment(pos, last_week):
     if last_week == '-' or last_week == '':
