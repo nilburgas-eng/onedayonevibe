@@ -85,44 +85,59 @@ def scrape_chart(setmana):
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
     html = requests.get(url, headers=headers).text
 
-    # Cada entrada: TITOL / ARTISTA / Last week: X / Peak / Weeks + enllaços
-    # Partim per blocs de "Last week:"
-    tracks = []
-    blocs = re.split(r'Last week:', html)
-    # El primer tros no té dades de cançó útils
-    pos = 1
-    for i in range(1, len(blocs)):
-        prev = blocs[i-1]
-        bloc = blocs[i]
-        # last week (just després del split)
-        m_lw = re.match(r'\s*([\d-]+)', bloc)
-        last_week = m_lw.group(1).strip() if m_lw else '-'
-        # YouTube link al bloc anterior (el més proper)
-        yt_matches = re.findall(r'(https://www\.youtube\.com/watch\?v=[\w-]+|https://youtu\.be/[\w-]+)', prev)
-        yt_url = yt_matches[-1] if yt_matches else None
-        # Titol i artista: les dues últimes línies amb text del bloc previ abans dels enllaços
-        linies = [l.strip() for l in prev.split('\n') if l.strip() and not l.strip().startswith('http') and not l.strip().startswith('![') and not l.strip().startswith('*') and 'Peak position' not in l and 'Weeks on chart' not in l]
-        # Agafem les dues últimes línies de text net
-        text_linies = [l for l in linies if len(l) > 1 and not re.match(r'^[\d\s.:-]+$', l)]
-        if len(text_linies) >= 2:
-            nom = text_linies[-2]
-            artista = text_linies[-1]
-        elif len(text_linies) == 1:
-            nom = text_linies[-1]
-            artista = ''
-        else:
-            continue
+    # Treure etiquetes HTML i normalitzar
+    text = re.sub(r'<script[^>]*>.*?</script>', '', html, flags=re.DOTALL)
+    text = re.sub(r'<style[^>]*>.*?</style>', '', text, flags=re.DOTALL)
 
-        tracks.append({
-            'pos': pos,
-            'nom': nom,
-            'artista': artista,
-            'last_week': last_week,
-            'yt_url': yt_url
-        })
-        pos += 1
-        if pos > 10:
-            break
+    # Extreure tots els enllaços de YouTube en ordre
+    yt_all = re.findall(r'(https://www\.youtube\.com/watch\?v=[\w-]+|https://youtu\.be/[\w-]+)', html)
+
+    # Cada entrada del chart està delimitada per "Last week:". Capturem el bloc
+    # anterior a cada "Last week:" per treure titol+artista, i el valor de last week.
+    tracks = []
+    # Partim per "Peak position:" perque cada cançó té TITOL/ARTISTA ... Last week: X Peak position: Y
+    # Usem un patró que capturi titol, artista i last week junts
+    # Treiem tags HTML del text complet primer
+    net = re.sub(r'<[^>]+>', '\n', html)
+    net = re.sub(r'&amp;', '&', net)
+    net = re.sub(r'&#039;|&#39;', "'", net)
+    net = re.sub(r'&quot;', '"', net)
+    linies = [l.strip() for l in net.split('\n')]
+    linies = [l for l in linies if l]
+
+    # Recorrem buscant "Last week:" i agafem context
+    i = 0
+    pos = 1
+    while i < len(linies) and pos <= 10:
+        if linies[i].startswith('Last week:'):
+            lw_match = re.search(r'Last week:\s*([\d-]+)', linies[i])
+            last_week = lw_match.group(1).strip() if lw_match else '-'
+            # Titol i artista: les dues línies de text no-buides immediatament abans,
+            # saltant línies que siguin enllaços, imatges o numeros sols
+            candidates = []
+            j = i - 1
+            while j >= 0 and len(candidates) < 2:
+                l = linies[j]
+                if (l and not l.startswith('http') and not l.startswith('![')
+                    and not l.startswith('Last week') and not l.startswith('Peak position')
+                    and not l.startswith('Weeks on chart') and 'javascript' not in l
+                    and not re.match(r'^[\d\s.:•\-]+$', l) and len(l) > 1):
+                    candidates.insert(0, l)
+                j -= 1
+            if len(candidates) >= 2:
+                nom = candidates[-2]
+                artista = candidates[-1]
+            elif len(candidates) == 1:
+                nom = candidates[0]
+                artista = ''
+            else:
+                i += 1
+                continue
+            yt_url = yt_all[pos-1] if pos-1 < len(yt_all) else None
+            tracks.append({'pos': pos, 'nom': nom, 'artista': artista,
+                           'last_week': last_week, 'yt_url': yt_url})
+            pos += 1
+        i += 1
 
     return tracks
 
