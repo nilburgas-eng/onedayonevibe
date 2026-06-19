@@ -20,7 +20,7 @@ for font_path in [FONT_BEBAS, FONT_SEMIBOLD, FONT_EXTRABOLD, FONT_MEDIUM]:
         elif font_path == FONT_EXTRABOLD: FONT_EXTRABOLD = FONT_FALLBACK
         elif font_path == FONT_MEDIUM: FONT_MEDIUM = FONT_FALLBACK
 
-SETMANA           = os.environ.get('SETMANA', '')  # ex: 2026-week-1, buit = última
+SETMANA           = os.environ.get('SETMANA', '')
 ESTIL             = os.environ.get('ESTIL', 'energetic')
 SPOTIFY_CLIENT_ID = os.environ.get('SPOTIFY_CLIENT_ID', '')
 SPOTIFY_SECRET    = os.environ.get('SPOTIFY_CLIENT_SECRET', '')
@@ -30,13 +30,11 @@ DURADA_TOP1       = 12
 DURADA_OUTRO      = 2.0
 FADE_DURADA       = 0.3
 
-# Colors moviment
-COLOR_UP   = "0x1DB954"  # verd
-COLOR_DOWN = "0xFF4444"  # vermell
-COLOR_NEW  = "0xFFD700"  # groc
-COLOR_SAME = "0x999999"  # gris
+COLOR_UP   = "0x1DB954"
+COLOR_DOWN = "0xFF4444"
+COLOR_NEW  = "0xFFD700"
+COLOR_SAME = "0x999999"
 
-# Layout (calcat del Top 10)
 COVER_W  = 280
 COVER_H  = 280
 COVER_X  = 90
@@ -47,8 +45,8 @@ Y_NOM1   = 560
 Y_NOM2   = 630
 Y_TITOL1 = 210
 Y_TITOL2 = 285
-Y_MOV    = 740
-Y_BAR    = 800
+Y_MOV    = 760
+Y_BAR    = 830
 BAR_X    = 90
 BAR_W    = 980
 Y_OUTRO  = 1560
@@ -144,36 +142,6 @@ def scrape_chart(setmana):
         i += 1
 
     return tracks
-            lw_match = re.search(r'Last week:\s*([\d-]+)', linies[i])
-            last_week = lw_match.group(1).strip() if lw_match else '-'
-            # Titol i artista: les dues línies de text no-buides immediatament abans,
-            # saltant línies que siguin enllaços, imatges o numeros sols
-            candidates = []
-            j = i - 1
-            while j >= 0 and len(candidates) < 2:
-                l = linies[j]
-                if (l and not l.startswith('http') and not l.startswith('![')
-                    and not l.startswith('Last week') and not l.startswith('Peak position')
-                    and not l.startswith('Weeks on chart') and 'javascript' not in l
-                    and not re.match(r'^[\d\s.:•\-]+$', l) and len(l) > 1):
-                    candidates.insert(0, l)
-                j -= 1
-            if len(candidates) >= 2:
-                nom = candidates[-2]
-                artista = candidates[-1]
-            elif len(candidates) == 1:
-                nom = candidates[0]
-                artista = ''
-            else:
-                i += 1
-                continue
-            yt_url = yt_all[pos-1] if pos-1 < len(yt_all) else None
-            tracks.append({'pos': pos, 'nom': nom, 'artista': artista,
-                           'last_week': last_week, 'yt_url': yt_url})
-            pos += 1
-        i += 1
-
-    return tracks
 
 def calc_moviment(pos, last_week):
     if last_week == '-' or last_week == '':
@@ -181,7 +149,7 @@ def calc_moviment(pos, last_week):
     try:
         lw = int(last_week)
     except:
-        return '=', COLOR_SAME, '='
+        return '=', COLOR_SAME, 'SAME'
     diff = lw - pos
     if diff > 0:
         return f"+{diff}", COLOR_UP, 'UP'
@@ -261,7 +229,7 @@ if not tracks:
 
 print(f"\nTracks ({len(tracks)}):")
 for t in tracks:
-    print(f"  #{t['pos']}: {t['nom']} - {t['artista']} (LW: {t['last_week']})")
+    print(f"  #{t['pos']}: {t['nom']} - {t['artista']} (LW: {t['last_week']}) YT: {'SI' if t.get('yt_url') else 'NO'}")
 
 print("\nObtenint token de Spotify...")
 spotify_token = get_spotify_token()
@@ -278,7 +246,7 @@ for track in tracks:
     timestamp_manual = track.get('timestamp_manual')
     nom_manual       = track.get('nom_manual')
     durada           = DURADA_TOP1 if pos == 1 else DURADA_CLIP
-    es_ultim         = (pos == len(tracks))
+    es_ultim         = (pos == 1)  # l'outro va al #1 (l'últim que es veu)
 
     mov_text, mov_color, mov_tipus = calc_moviment(pos, last_week)
     print(f"\nClip #{pos}: {nom} - {artista} [{mov_text}]")
@@ -295,16 +263,16 @@ for track in tracks:
                 f.write(cover_data)
             print(f"   Portada Spotify OK")
 
-    # Descarrega: yt_url del chart si existeix, sino cerca
     if yt_url:
         font = yt_url
         print(f"   URL chart: {yt_url}")
     else:
         font = f"ytsearch1:{artista} {nom} official video"
+        print(f"   Cerca: {artista} {nom}")
     ret = os.system(f'yt-dlp -f "best[ext=mp4]/best" --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{font}" --no-playlist -q')
 
     if ret != 0 or not os.path.exists(video_path) or os.path.getsize(video_path) < 10000:
-        print(f"   No s'ha trobat videoclip — usant portada")
+        print(f"   No s'ha trobat videoclip - usant portada")
         output_path = f"{OUTPUT}/clip_{pos:02d}.mp4"
         if os.path.exists(thumb_path):
             os.system(f'ffmpeg -loop 1 -i "{thumb_path}" -f lavfi -i anullsrc=r=44100:cl=stereo -t {durada} -vf "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,fps=30" -c:v libx264 -r 30 -c:a aac -b:a 192k -ar 44100 -shortest "{output_path}" -y -loglevel error')
@@ -336,7 +304,6 @@ for track in tracks:
     n_total = len(tracks)
     bar_progress = int(BAR_W * (n_total - pos + 1) / n_total)
 
-    # Text del moviment
     if mov_tipus == 'NEW':
         mov_label = "NEW ENTRY"
     elif mov_tipus == 'UP':
@@ -355,9 +322,11 @@ for track in tracks:
     txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia1}':fontsize=58:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM1}")
     if nom_linia2:
         txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia2}':fontsize=58:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM2}")
+        y_art = Y_NOM2 + 70
+    else:
+        y_art = Y_NOM2
     if artista_net:
-        txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='{artista_net}':fontsize=38:fontcolor=white@0.80:borderw=2:bordercolor=black@0.7:x={X_INFO}:y={Y_NOM2 if not nom_linia2 else Y_NOM2+70}")
-    # Moviment amb color
+        txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='{artista_net}':fontsize=38:fontcolor=white@0.80:borderw=2:bordercolor=black@0.7:x={X_INFO}:y={y_art}")
     txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{mov_label}':fontsize=46:fontcolor={mov_color}:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=2:x={BAR_X}:y={Y_MOV}")
     txt.append(f"drawbox=x={BAR_X}:y={Y_BAR}:w={BAR_W}:h=5:color=white@0.15:t=fill")
     txt.append(f"drawbox=x={BAR_X}:y={Y_BAR}:w={bar_progress}:h=5:color=0x00BFFF@0.9:t=fill")
@@ -395,6 +364,7 @@ for track in tracks:
     clips_paths.append((pos, output_path))
     print(f"   OK clip generat")
 
+# Ordenar de #10 a #1 (clímax al #1 al final del vídeo)
 clips_paths.sort(key=lambda x: x[0], reverse=True)
 clips_valids = []
 for pos, path in clips_paths:
