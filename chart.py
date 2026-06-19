@@ -105,11 +105,63 @@ def scrape_chart(setmana):
     linies = [l.strip() for l in net.split('\n')]
     linies = [l for l in linies if l]
 
-    # Recorrem buscant "Last week:" i agafem context
+    # Recorrem buscant "Last week:" i agafem context.
+    # Cada cançó apareix 2 cops, així que deduplicem per (nom, artista).
     i = 0
     pos = 1
+    vistos = set()
     while i < len(linies) and pos <= 10:
         if linies[i].startswith('Last week:'):
+            lw_match = re.search(r'Last week:\s*([\d-]+)', linies[i])
+            last_week = lw_match.group(1).strip() if lw_match else '-'
+            candidates = []
+            j = i - 1
+            while j >= 0 and len(candidates) < 2:
+                l = linies[j]
+                if (l and not l.startswith('http') and not l.startswith('![')
+                    and not l.startswith('Last week') and not l.startswith('Peak position')
+                    and not l.startswith('Weeks on chart') and 'javascript' not in l
+                    and not re.match(r'^[\d\s.:•\-]+$', l) and len(l) > 1):
+                    candidates.insert(0, l)
+                j -= 1
+            if len(candidates) >= 2:
+                nom = candidates[-2]
+                artista = candidates[-1]
+            elif len(candidates) == 1:
+                nom = candidates[0]
+                artista = ''
+            else:
+                i += 1
+                continue
+
+            key = (nom.lower(), artista.lower())
+            if key in vistos:
+                i += 1
+                continue
+            vistos.add(key)
+
+            # YouTube: buscar dins el bloc d'aquesta cançó (entre aquesta posició
+            # i la següent "Last week"). Si no en té (javascript:;), queda None.
+            bloc_fi = i
+            for k in range(i+1, min(i+40, len(linies))):
+                if linies[k].startswith('Last week:'):
+                    bloc_fi = k
+                    break
+            else:
+                bloc_fi = min(i+40, len(linies))
+            yt_url = None
+            for k in range(max(0, i-25), bloc_fi):
+                m = re.match(r'(https://www\.youtube\.com/watch\?v=[\w-]+|https://youtu\.be/[\w-]+)', linies[k])
+                if m:
+                    yt_url = m.group(1)
+                    break
+
+            tracks.append({'pos': pos, 'nom': nom, 'artista': artista,
+                           'last_week': last_week, 'yt_url': yt_url})
+            pos += 1
+        i += 1
+
+    return tracks
             lw_match = re.search(r'Last week:\s*([\d-]+)', linies[i])
             last_week = lw_match.group(1).strip() if lw_match else '-'
             # Titol i artista: les dues línies de text no-buides immediatament abans,
