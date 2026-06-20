@@ -1,11 +1,11 @@
 {
-  "artista": "Dimitri Vegas & Like Mike",
-  "any_tall": 2018,
+  "artista": "Kshmr",
+  "any_tall": 2020,
   "tracks": [
     {
       "pos": 1,
-      "nom": "Instagram",
-      "any": 2015,
+      "nom": "Wildcard (feat. Sidnie Tipton)",
+      "any": 2016,
       "era": "THEN",
       "cover_url": null,
       "timestamp_manual": null,
@@ -14,8 +14,8 @@
     },
     {
       "pos": 2,
-      "nom": "Thank You (Not So Bad)",
-      "any": 2024,
+      "nom": "Kids (feat. MKLA)",
+      "any": 2021,
       "era": "NOW",
       "cover_url": null,
       "timestamp_manual": null,
@@ -24,8 +24,8 @@
     },
     {
       "pos": 3,
-      "nom": "Complicated (Feat. Kiiara)",
-      "any": 2017,
+      "nom": "My Best Life (feat. Mike Waters) - Club Mix",
+      "any": 2019,
       "era": "THEN",
       "cover_url": null,
       "timestamp_manual": null,
@@ -34,8 +34,8 @@
     },
     {
       "pos": 4,
-      "nom": "Say My Name",
-      "any": 2020,
+      "nom": "Ready To Love",
+      "any": 2021,
       "era": "NOW",
       "cover_url": null,
       "timestamp_manual": null,
@@ -44,8 +44,8 @@
     },
     {
       "pos": 5,
-      "nom": "Tremor - Sensation 2014 Anthem",
-      "any": 2014,
+      "nom": "No Regrets (feat. Krewella)",
+      "any": 2019,
       "era": "THEN",
       "cover_url": null,
       "timestamp_manual": null,
@@ -54,7 +54,7 @@
     },
     {
       "pos": 6,
-      "nom": "Get in Trouble (So What)",
+      "nom": "Devil Inside Me (feat. KARRA)",
       "any": 2020,
       "era": "NOW",
       "cover_url": null,
@@ -64,8 +64,8 @@
     },
     {
       "pos": 7,
-      "nom": "The Hum",
-      "any": 2015,
+      "nom": "Carry Me Home (feat. Jake Reese)",
+      "any": 2019,
       "era": "THEN",
       "cover_url": null,
       "timestamp_manual": null,
@@ -74,8 +74,8 @@
     },
     {
       "pos": 8,
-      "nom": "Repeat After Me",
-      "any": 2019,
+      "nom": "Close Your Eyes",
+      "any": 2021,
       "era": "NOW",
       "cover_url": null,
       "timestamp_manual": null,
@@ -84,8 +84,8 @@
     },
     {
       "pos": 9,
-      "nom": "Mammoth",
-      "any": 2015,
+      "nom": "Do Bad Well (feat. Nevve)",
+      "any": 2019,
       "era": "THEN",
       "cover_url": null,
       "timestamp_manual": null,
@@ -94,8 +94,8 @@
     },
     {
       "pos": 10,
-      "nom": "Beast (All as One)",
-      "any": 2019,
+      "nom": "The World We Left Behind (feat. KARRA)",
+      "any": 2021,
       "era": "NOW",
       "cover_url": null,
       "timestamp_manual": null,
