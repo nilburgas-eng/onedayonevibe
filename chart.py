@@ -164,6 +164,7 @@ def scrape_chart(setmana):
 
     return tracks, setmana_text
 
+
 def calc_moviment(pos, last_week):
     if last_week == '-' or last_week == '':
         return 'NEW', COLOR_NEW, 'NEW'
