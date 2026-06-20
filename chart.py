@@ -21,6 +21,7 @@ for font_path in [FONT_BEBAS, FONT_SEMIBOLD, FONT_EXTRABOLD, FONT_MEDIUM]:
         elif font_path == FONT_MEDIUM: FONT_MEDIUM = FONT_FALLBACK
 
 SETMANA           = os.environ.get('SETMANA', '')
+SETMANA_TEXT_ENV  = os.environ.get('SETMANA_TEXT', '')
 ESTIL             = os.environ.get('ESTIL', 'energetic')
 SPOTIFY_CLIENT_ID = os.environ.get('SPOTIFY_CLIENT_ID', '')
 SPOTIFY_SECRET    = os.environ.get('SPOTIFY_CLIENT_SECRET', '')
@@ -38,15 +39,17 @@ COLOR_SAME = "0x999999"
 COVER_W  = 280
 COVER_H  = 280
 COVER_X  = 90
-COVER_Y  = 420
+COVER_Y  = 470
 X_INFO   = 410
-Y_NUM    = 420
-Y_NOM1   = 560
-Y_NOM2   = 630
-Y_TITOL1 = 210
-Y_TITOL2 = 285
-Y_MOV    = 760
-Y_BAR    = 830
+Y_NUM    = 470
+Y_NOM1   = 610
+Y_NOM2   = 680
+Y_TITOL1 = 180
+Y_TITOL2 = 258
+Y_SETMANA = 318
+Y_MOV    = 800
+Y_STATS  = 880
+Y_BAR    = 1010
 BAR_X    = 90
 BAR_W    = 980
 Y_OUTRO  = 1560
@@ -90,11 +93,11 @@ def scrape_chart(setmana):
     linies = [l.strip() for l in net.split('\n')]
     linies = [l for l in linies if l]
 
-    # Setmana: buscar patró "2026 Week 24 June 13" o similar
+    # Setmana: buscar patró "2026 Week 24 June 13" o "2026 Week 24"
     setmana_text = ""
     m_set = re.search(r'(\d{4})\s+Week\s+(\d+)\s+([A-Z][a-z]+\s+\d+)', net)
     if m_set:
-        setmana_text = f"{m_set.group(1)} WEEK {m_set.group(2)}"
+        setmana_text = f"{m_set.group(1)} WEEK {m_set.group(2)} - {m_set.group(3).upper()}"
     else:
         m_set2 = re.search(r'(\d{4})\s+Week\s+(\d+)', net)
         if m_set2:
@@ -108,7 +111,6 @@ def scrape_chart(setmana):
         if linies[i].startswith('Last week:'):
             lw_match = re.search(r'Last week:\s*([\d-]+)', linies[i])
             last_week = lw_match.group(1).strip() if lw_match else '-'
-            # Peak i Weeks: buscar a les línies següents del bloc
             peak = '-'
             weeks = '-'
             for k in range(i, min(i + 6, len(linies))):
@@ -163,7 +165,6 @@ def scrape_chart(setmana):
         i += 1
 
     return tracks, setmana_text
-
 
 def calc_moviment(pos, last_week):
     if last_week == '-' or last_week == '':
@@ -236,6 +237,7 @@ TRACKS_RAW = os.environ.get('TRACKS', '')
 if TRACKS_RAW:
     print("Carregant tracks rebuts (manual)...")
     tracks = json.loads(TRACKS_RAW)
+    setmana_text = SETMANA_TEXT_ENV
     for t in tracks:
         if t.get('timestamp_manual') not in (None, '', 0):
             t['timestamp_manual'] = float(t['timestamp_manual'])
@@ -243,7 +245,8 @@ if TRACKS_RAW:
             t['timestamp_manual'] = None
 else:
     print("Scraping del chart...")
-    tracks = scrape_chart(SETMANA)
+    tracks, setmana_text = scrape_chart(SETMANA)
+    print(f"Setmana: {setmana_text}")
 
 if not tracks:
     print("ERROR: No s'han trobat tracks")
@@ -251,7 +254,7 @@ if not tracks:
 
 print(f"\nTracks ({len(tracks)}):")
 for t in tracks:
-    print(f"  #{t['pos']}: {t['nom']} - {t['artista']} (LW: {t['last_week']}) YT: {'SI' if t.get('yt_url') else 'NO'}")
+    print(f"  #{t['pos']}: {t['nom']} - {t['artista']} (LW:{t['last_week']} Peak:{t.get('peak','-')} Wks:{t.get('weeks','-')}) YT:{'SI' if t.get('yt_url') else 'NO'}")
 
 print("\nObtenint token de Spotify...")
 spotify_token = get_spotify_token()
@@ -264,11 +267,13 @@ for track in tracks:
     nom              = track['nom']
     artista          = track.get('artista', '')
     last_week        = track.get('last_week', '-')
+    peak             = track.get('peak', '-')
+    weeks            = track.get('weeks', '-')
     yt_url           = track.get('yt_url')
     timestamp_manual = track.get('timestamp_manual')
     nom_manual       = track.get('nom_manual')
     durada           = DURADA_TOP1 if pos == 1 else DURADA_CLIP
-    es_ultim         = (pos == 1)  # l'outro va al #1 (l'últim que es veu)
+    es_ultim         = (pos == 1)
 
     mov_text, mov_color, mov_tipus = calc_moviment(pos, last_week)
     print(f"\nClip #{pos}: {nom} - {artista} [{mov_text}]")
@@ -316,7 +321,7 @@ for track in tracks:
 
     output_path = f"{OUTPUT}/clip_{pos:02d}.mp4"
     titol1 = "GLOBAL DANCE CHART"
-    titol2 = "THIS WEEK"
+    setmana_disp = setmana_text if setmana_text else "THIS WEEK"
 
     nom = nom_manual if nom_manual else nom
     nom_net = nom.replace("'", "").replace('"', '').replace(':', '-')
@@ -336,20 +341,25 @@ for track in tracks:
         mov_label = "NO CHANGE"
 
     txt = []
-    txt.append(f"drawbox=x=0:y=0:w=1080:h=360:color=black@0.20:t=fill")
+    txt.append(f"drawbox=x=0:y=0:w=1080:h=400:color=black@0.22:t=fill")
     txt.append(f"drawbox=x=0:y=1580:w=1080:h=340:color=black@0.18:t=fill")
     txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol1}':fontsize=75:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
-    txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{titol2}':fontsize=38:fontcolor=0x00BFFF:borderw=2:bordercolor=black@0.6:x=(w-text_w)/2:y={Y_TITOL2}")
+    txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{setmana_disp}':fontsize=34:fontcolor=0x00BFFF:borderw=2:bordercolor=black@0.6:x=(w-text_w)/2:y={Y_TITOL2}")
     txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='#{pos}':fontsize=130:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=3:x={X_INFO}:y={Y_NUM}")
-    txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia1}':fontsize=58:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM1}")
+    txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia1}':fontsize=56:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM1}")
     if nom_linia2:
-        txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia2}':fontsize=58:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM2}")
-        y_art = Y_NOM2 + 70
+        txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia2}':fontsize=56:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM2}")
+        y_art = Y_NOM2 + 68
     else:
         y_art = Y_NOM2
     if artista_net:
-        txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='{artista_net}':fontsize=38:fontcolor=white@0.80:borderw=2:bordercolor=black@0.7:x={X_INFO}:y={y_art}")
-    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{mov_label}':fontsize=46:fontcolor={mov_color}:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=2:x={BAR_X}:y={Y_MOV}")
+        txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='{artista_net}':fontsize=36:fontcolor=white@0.80:borderw=2:bordercolor=black@0.7:x={X_INFO}:y={y_art}")
+    # Moviment amb color
+    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{mov_label}':fontsize=44:fontcolor={mov_color}:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=2:x={BAR_X}:y={Y_MOV}")
+    # 3 dades en columna: Last week / Peak / Weeks
+    txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='LAST WEEK\\: {last_week}':fontsize=34:fontcolor=white@0.85:borderw=2:bordercolor=black@0.8:x={BAR_X}:y={Y_STATS}")
+    txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='PEAK\\: {peak}':fontsize=34:fontcolor=white@0.85:borderw=2:bordercolor=black@0.8:x={BAR_X}:y={Y_STATS+44}")
+    txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='WEEKS ON CHART\\: {weeks}':fontsize=34:fontcolor=white@0.85:borderw=2:bordercolor=black@0.8:x={BAR_X}:y={Y_STATS+88}")
     txt.append(f"drawbox=x={BAR_X}:y={Y_BAR}:w={BAR_W}:h=5:color=white@0.15:t=fill")
     txt.append(f"drawbox=x={BAR_X}:y={Y_BAR}:w={bar_progress}:h=5:color=0x00BFFF@0.9:t=fill")
 
@@ -424,3 +434,4 @@ output_final = f"{OUTPUT}/chart_final.mp4"
 cmd = f'ffmpeg {inputs_str} -filter_complex "{filter_complex}" -map "[vfinal]" -map "[afinal]" -c:v libx264 -c:a aac -b:a 192k "{output_final}" -y -loglevel error'
 os.system(cmd)
 print("Video final generat!")
+
