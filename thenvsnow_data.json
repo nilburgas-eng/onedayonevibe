@@ -1,11 +1,11 @@
 {
-  "artista": "Kshmr",
+  "artista": "Defqon",
   "any_tall": 2020,
   "tracks": [
     {
       "pos": 1,
-      "nom": "Wildcard (feat. Sidnie Tipton)",
-      "any": 2016,
+      "nom": "Trippy @ Night",
+      "any": 2001,
       "era": "THEN",
       "cover_url": null,
       "timestamp_manual": null,
@@ -14,8 +14,8 @@
     },
     {
       "pos": 2,
-      "nom": "Kids (feat. MKLA)",
-      "any": 2021,
+      "nom": "Space Pirates  / Till the break of dawn",
+      "any": 2023,
       "era": "NOW",
       "cover_url": null,
       "timestamp_manual": null,
@@ -24,8 +24,8 @@
     },
     {
       "pos": 3,
-      "nom": "My Best Life (feat. Mike Waters) - Club Mix",
-      "any": 2019,
+      "nom": "Delysid",
+      "any": 2014,
       "era": "THEN",
       "cover_url": null,
       "timestamp_manual": null,
@@ -34,8 +34,8 @@
     },
     {
       "pos": 4,
-      "nom": "Ready To Love",
-      "any": 2021,
+      "nom": "Tommy four seven  / Armed",
+      "any": 2024,
       "era": "NOW",
       "cover_url": null,
       "timestamp_manual": null,
@@ -44,8 +44,8 @@
     },
     {
       "pos": 5,
-      "nom": "No Regrets (feat. Krewella)",
-      "any": 2019,
+      "nom": "Scrap The System (Defqon.1 Australia 2013 Anthem)",
+      "any": 2014,
       "era": "THEN",
       "cover_url": null,
       "timestamp_manual": null,
@@ -54,47 +54,7 @@
     },
     {
       "pos": 6,
-      "nom": "Devil Inside Me (feat. KARRA)",
-      "any": 2020,
-      "era": "NOW",
-      "cover_url": null,
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 7,
-      "nom": "Carry Me Home (feat. Jake Reese)",
-      "any": 2019,
-      "era": "THEN",
-      "cover_url": null,
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 8,
-      "nom": "Close Your Eyes",
-      "any": 2021,
-      "era": "NOW",
-      "cover_url": null,
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 9,
-      "nom": "Do Bad Well (feat. Nevve)",
-      "any": 2019,
-      "era": "THEN",
-      "cover_url": null,
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 10,
-      "nom": "The World We Left Behind (feat. KARRA)",
+      "nom": "Evil Inside Me",
       "any": 2021,
       "era": "NOW",
       "cover_url": null,
