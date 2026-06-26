@@ -1,0 +1,86 @@
+{
+  "artista": "Martin Garrix",
+  "tracks": [
+    {
+      "pos": 1,
+      "nom": "Virus (How About Now)",
+      "any": 2014,
+      "cover_url": null,
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 2,
+      "nom": "Don't Look Down",
+      "any": 2015,
+      "cover_url": null,
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 3,
+      "nom": "Animals",
+      "any": 2016,
+      "cover_url": null,
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 4,
+      "nom": "In the Name of Love",
+      "any": 2017,
+      "cover_url": null,
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 5,
+      "nom": "There for You",
+      "any": 2018,
+      "cover_url": null,
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 6,
+      "nom": "Summer Days (feat. Macklemore & Patrick Stump of Fall Out Boy)",
+      "any": 2019,
+      "cover_url": null,
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 7,
+      "nom": "Drown (feat. Clinton Kane)",
+      "any": 2020,
+      "cover_url": null,
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 8,
+      "nom": "Pressure (feat. Tove Lo)",
+      "any": 2021,
+      "cover_url": null,
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 9,
+      "nom": "Told You So",
+      "any": 2026,
+      "cover_url": null,
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    }
+  ]
+}
