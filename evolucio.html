@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>onedayonevibe — Evolucio</title>
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0d0d0d; color: #fff; min-height: 100vh; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px 0; }
+    h1 { font-size: 28px; font-weight: 800; color: #00BFFF; margin-bottom: 4px; }
+    .subtitle { font-size: 14px; color: #666; margin-bottom: 30px; }
+    .card { background: #1a1a1a; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+    .card h2 { font-size: 14px; font-weight: 600; color: #00BFFF; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
+    label { display: block; font-size: 13px; color: #999; margin-bottom: 6px; }
+    input, select { width: 100%; background: #2a2a2a; border: 1px solid #333; border-radius: 8px; padding: 12px; color: #fff; font-size: 15px; margin-bottom: 14px; outline: none; }
+    input:focus, select:focus { border-color: #00BFFF; }
+    .btn { width: 100%; padding: 16px; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; border: none; margin-bottom: 12px; }
+    .btn:active { opacity: 0.8; }
+    .btn-primary { background: #00BFFF; color: #000; }
+    .btn-green { background: #1DB954; color: #000; }
+    .btn-secondary { background: #2a2a2a; color: #fff; border: 1px solid #444; }
+    .btn-danger { background: #ff4444; color: #fff; }
+    .status { background: #1a1a1a; border-radius: 12px; padding: 16px; margin-bottom: 16px; display: none; }
+    .status.visible { display: block; }
+    .status-text { font-size: 14px; line-height: 1.6; }
+    .status-ok { color: #00ff88; }
+    .status-error { color: #ff4444; }
+    .status-info { color: #00BFFF; }
+    .track { background: #222; border-radius: 10px; padding: 14px; margin-bottom: 12px; border-left: 4px solid #00BFFF; }
+    .track-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .track-nom { font-size: 15px; font-weight: 600; }
+    .track-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .track-grid input { margin-bottom: 0; font-size: 13px; padding: 10px; }
+    .track-full { margin-top: 8px; }
+    .track-full input { margin-bottom: 0; font-size: 13px; padding: 10px; }
+    .badge { font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 5px; background: #00BFFF; color: #000; }
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>@onedayonevibe</h1>
+    <p class="subtitle">Evolution Generator</p>
+
+    <div class="card">
+        <h2>🔍 Pas 1 — Buscar cançons</h2>
+        <label>Artista</label>
+        <input type="text" id="artista" placeholder="Martin Garrix" />
+        <label>Estil de detecció</label>
+        <select id="estil">
+            <option value="energetic">⚡ Energètic (EDM, House, Techno)</option>
+            <option value="melodic">🎵 Melòdic (Hardstyle, Trance)</option>
+            <option value="vocal">🎤 Vocal (Pop, cançons amb veu)</option>
+        </select>
+        <button class="btn btn-primary" onclick="buscarCancons()">🔍 1. Buscar cançons</button>
+        <button class="btn btn-secondary" onclick="carregarCancons()">🔄 Carregar llista</button>
+    </div>
+
+    <div id="status" class="status">
+        <div id="status-text" class="status-text"></div>
+    </div>
+
+    <div id="tracks-card" class="card" style="display:none;">
+        <h2>🎬 Pas 2 — Revisar i ajustar</h2>
+        <div id="tracks-list"></div>
+        <button class="btn btn-green" onclick="generarVideo()">🎬 2. Generar vídeo</button>
+    </div>
+
+    <div class="card">
+        <h2>⬇️ Descarregar / Esborrar</h2>
+        <button class="btn btn-secondary" onclick="veureEstat()">📊 Consultar estat</button>
+        <button class="btn btn-secondary" onclick="descarregarFinal()">⬇️ Descarregar vídeo final</button>
+        <button class="btn btn-danger" onclick="esborrarRelease()">🗑️ Esborrar Release</button>
+        <button class="btn btn-secondary" onclick="canviarToken()">🔑 Canviar token</button>
+    </div>
+</div>
+
+<script>
+const GITHUB_REPO = "nilburgas-eng/onedayonevibe";
+let GITHUB_TOKEN = localStorage.getItem('github_token') || '';
+let tracksActuals = [];
+
+window.onload = function() {
+    if (!GITHUB_TOKEN) {
+        GITHUB_TOKEN = prompt('Introdueix el teu GitHub Token:');
+        if (GITHUB_TOKEN) localStorage.setItem('github_token', GITHUB_TOKEN);
+    }
+}
+
+function canviarToken() {
+    const nou = prompt('Introdueix el nou GitHub Token:');
+    if (nou) {
+        GITHUB_TOKEN = nou;
+        localStorage.setItem('github_token', nou);
+        mostrarStatus('✅ Token actualitzat!', 'ok');
+    }
+}
+
+function mostrarStatus(text, tipus) {
+    const el = document.getElementById('status');
+    const textEl = document.getElementById('status-text');
+    el.classList.add('visible');
+    textEl.innerHTML = `<span class="status-${tipus}">${text}</span>`;
+}
+
+function parseTimestamp(ts) {
+    if (!ts || ts === '--:--' || ts.trim() === '') return null;
+    const parts = ts.split(':');
+    if (parts.length === 2) return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+    if (parts.length === 3) return parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseInt(parts[2]);
+    return null;
+}
+
+function segonsAStr(s) {
+    if (s === null || s === undefined) return '';
+    const m = Math.floor(s / 60);
+    const seg = Math.floor(s % 60);
+    return `${m}:${seg.toString().padStart(2,'0')}`;
+}
+
+async function dispararWorkflow(workflow, inputs) {
+    const r = await fetch(
+        `https://api.github.com/repos/${GITHUB_REPO}/actions/workflows/${workflow}/dispatches`,
+        {
+            method: 'POST',
+            headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ref: 'main', inputs })
+        }
+    );
+    let detall = '';
+    if (r.status !== 204) {
+        try { detall = (await r.json()).message || ''; } catch(e) {}
+    }
+    return { status: r.status, detall };
+}
+
+async function buscarCancons() {
+    const artista = document.getElementById('artista').value.trim();
+    if (!artista) {
+        mostrarStatus('❌ Omple el nom de l\'artista', 'error');
+        return;
+    }
+    mostrarStatus('⏳ Buscant cançons (Last.fm + MusicBrainz)...', 'info');
+    const res = await dispararWorkflow('evolucio_buscar.yml', { artista });
+    if (res.status === 204) {
+        mostrarStatus('✅ Cerca iniciada!<br>⏳ Espera 1-2 min i clica "🔄 Carregar llista".', 'ok');
+    } else {
+        mostrarStatus(`❌ Error ${res.status}: ${res.detall}`, 'error');
+    }
+}
+
+async function carregarCancons() {
+    mostrarStatus('⏳ Carregant llista...', 'info');
+    try {
+        const r = await fetch(
+            `https://api.github.com/repos/${GITHUB_REPO}/contents/evolucio_data.json?t=${Date.now()}`,
+            { headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3.raw' } }
+        );
+        if (r.status !== 200) {
+            mostrarStatus('❌ Encara no hi ha llista. Espera que acabi la cerca.', 'error');
+            return;
+        }
+        const data = await r.json();
+        tracksActuals = data.tracks;
+        document.getElementById('artista').value = data.artista;
+        renderTracks();
+        mostrarStatus(`✅ ${tracksActuals.length} cançons carregades. Ajusta i genera!`, 'ok');
+    } catch (e) {
+        mostrarStatus('❌ Error carregant: ' + e.message, 'error');
+    }
+}
+
+function renderTracks() {
+    const cont = document.getElementById('tracks-list');
+    cont.innerHTML = '';
+    tracksActuals.forEach((t, i) => {
+        const div = document.createElement('div');
+        div.className = 'track';
+        div.innerHTML = `
+            <div class="track-head">
+                <span class="track-nom">#${t.pos} ${t.nom}</span>
+                <div>
+                    <span class="badge">${t.any}</span>
+                    <button onclick="eliminarTrack(${i})" style="background:#ff4444;color:#fff;border:none;border-radius:5px;padding:3px 10px;font-size:14px;font-weight:700;cursor:pointer;margin-left:6px;">🗑️</button>
+                </div>
+            </div>
+            <div class="track-grid">
+                <input type="text" placeholder="Timestamp (mm:ss)" value="${segonsAStr(t.timestamp_manual)}" onchange="actualitzar(${i}, 'ts', this.value)" />
+                <input type="number" placeholder="Any" value="${t.any||''}" onchange="actualitzar(${i}, 'any', this.value)" />
+            </div>
+            <div class="track-full">
+                <input type="text" placeholder="Nom manual (opcional)" value="${t.nom_manual||''}" onchange="actualitzar(${i}, 'nom', this.value)" />
+            </div>
+            <div class="track-full">
+                <input type="text" placeholder="URL YouTube (opcional)" value="${t.yt_url||''}" onchange="actualitzar(${i}, 'yt', this.value)" />
+            </div>
+        `;
+        cont.appendChild(div);
+    });
+    document.getElementById('tracks-card').style.display = 'block';
+}
+
+function actualitzar(i, camp, valor) {
+    if (camp === 'ts') tracksActuals[i].timestamp_manual = parseTimestamp(valor);
+    else if (camp === 'any') tracksActuals[i].any = valor.trim() ? parseInt(valor) : '';
+    else if (camp === 'nom') tracksActuals[i].nom_manual = valor.trim() || null;
+    else if (camp === 'yt') tracksActuals[i].yt_url = valor.trim() || null;
+}
+
+function eliminarTrack(i) {
+    tracksActuals.splice(i, 1);
+    tracksActuals.forEach((t, idx) => t.pos = idx + 1);
+    renderTracks();
+}
+
+function netejarTracks() {
+    return tracksActuals.map(t => {
+        const o = { pos: t.pos, nom: t.nom, any: t.any };
+        if (t.timestamp_manual !== null && t.timestamp_manual !== undefined) o.timestamp_manual = t.timestamp_manual;
+        if (t.nom_manual) o.nom_manual = t.nom_manual;
+        if (t.yt_url) o.yt_url = t.yt_url;
+        return o;
+    });
+}
+
+async function generarVideo() {
+    if (tracksActuals.length === 0) {
+        mostrarStatus('❌ Carrega les cançons primer', 'error');
+        return;
+    }
+    const artista = document.getElementById('artista').value.trim();
+    const estil = document.getElementById('estil').value;
+    mostrarStatus('⏳ Generant vídeo...', 'info');
+    const res = await dispararWorkflow('evolucio.yml', {
+        artista, estil,
+        tracks: JSON.stringify(netejarTracks())
+    });
+    if (res.status === 204) {
+        mostrarStatus('✅ Generació iniciada!<br>⏳ Tarda 15-20 min. Després "Descarregar vídeo final".', 'ok');
+    } else {
+        mostrarStatus(`❌ Error ${res.status}: ${res.detall}`, 'error');
+    }
+}
+
+async function veureEstat() {
+    mostrarStatus('⏳ Consultant estat...', 'info');
+    const r = await fetch(
+        `https://api.github.com/repos/${GITHUB_REPO}/actions/runs?per_page=5`,
+        { headers: { 'Authorization': `token ${GITHUB_TOKEN}` } }
+    );
+    const data = await r.json();
+    const runs = data.workflow_runs;
+    if (!runs || runs.length === 0) { mostrarStatus('❌ No hi ha workflows recents', 'error'); return; }
+    let html = '<b>Últims workflows:</b><br><br>';
+    for (const run of runs) {
+        const icon = run.status === 'completed' ? (run.conclusion === 'success' ? '✅' : '❌') : '⏳';
+        html += `${icon} <b>${run.name}</b> — ${run.conclusion || run.status}<br>`;
+        html += `&nbsp;&nbsp;&nbsp;${new Date(run.created_at).toLocaleString()}<br><br>`;
+    }
+    mostrarStatus(html, 'info');
+}
+
+async function descarregarFinal() {
+    const artista = document.getElementById('artista').value.trim();
+    if (!artista) { mostrarStatus('❌ Omple l\'artista', 'error'); return; }
+    const nom = artista.toLowerCase().replace(/ /g, '_');
+    const r = await fetch(
+        `https://api.github.com/repos/${GITHUB_REPO}/releases/tags/evolucio_${nom}`,
+        { headers: { 'Authorization': `token ${GITHUB_TOKEN}` } }
+    );
+    if (r.status !== 200) { mostrarStatus('❌ Release no trobat', 'error'); return; }
+    const release = await r.json();
+    const asset = release.assets.find(a => a.name === 'evolucio_final.mp4');
+    if (asset) window.open(asset.browser_download_url, '_blank');
+    else mostrarStatus('❌ Vídeo final no trobat encara', 'error');
+}
+
+async function esborrarRelease() {
+    const artista = document.getElementById('artista').value.trim();
+    if (!artista) { mostrarStatus('❌ Omple l\'artista', 'error'); return; }
+    const nom = artista.toLowerCase().replace(/ /g, '_');
+    mostrarStatus('⏳ Esborrant...', 'info');
+    const r = await fetch(
+        `https://api.github.com/repos/${GITHUB_REPO}/releases/tags/evolucio_${nom}`,
+        { headers: { 'Authorization': `token ${GITHUB_TOKEN}` } }
+    );
+    if (r.status !== 200) { mostrarStatus('❌ Release no trobat', 'error'); return; }
+    const release = await r.json();
+    await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/${release.id}`,
+        { method: 'DELETE', headers: { 'Authorization': `token ${GITHUB_TOKEN}` } });
+    await fetch(`https://api.github.com/repos/${GITHUB_REPO}/git/refs/tags/evolucio_${nom}`,
+        { method: 'DELETE', headers: { 'Authorization': `token ${GITHUB_TOKEN}` } });
+    mostrarStatus('✅ Release esborrat!', 'ok');
+}
+</script>
+</body>
+</html>
