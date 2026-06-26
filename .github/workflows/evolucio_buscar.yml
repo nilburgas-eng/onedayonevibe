@@ -1,0 +1,34 @@
+name: Buscar Evolucio
+
+on:
+  workflow_dispatch:
+    inputs:
+      artista:
+        description: 'Nom de l artista'
+        required: true
+
+jobs:
+  buscar:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout codi
+        uses: actions/checkout@v4
+
+      - name: Instal·lar dependencies
+        run: pip install requests
+
+      - name: Buscar cançons
+        env:
+          ARTISTA: ${{ github.event.inputs.artista }}
+          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
+        run: python3 evolucio_buscar.py
+
+      - name: Commit del JSON
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add evolucio_data.json
+          git commit -m "Actualitzar dades Evolucio" || echo "Sense canvis"
+          git push
