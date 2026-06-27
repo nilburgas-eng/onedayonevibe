@@ -1,18 +1,9 @@
 {
-  "artista": "David Guetta",
+  "artista": "Calvin Harris",
   "tracks": [
     {
       "pos": 1,
-      "nom": "The World Is Mine",
-      "any": 2006,
-      "cover_url": null,
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 2,
-      "nom": "Love Don't Let Me Go",
+      "nom": "Acceptable in the 80's",
       "any": 2007,
       "cover_url": null,
       "timestamp_manual": null,
@@ -20,26 +11,17 @@
       "yt_url": null
     },
     {
+      "pos": 2,
+      "nom": "The Girls",
+      "any": 2008,
+      "cover_url": null,
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
       "pos": 3,
-      "nom": "Sexy Bitch (feat. Akon)",
-      "any": 2009,
-      "cover_url": null,
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 4,
-      "nom": "Memories (feat. Kid Cudi)",
-      "any": 2010,
-      "cover_url": null,
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 5,
-      "nom": "Titanium (feat. Sia)",
+      "nom": "Feel So Close - Radio Edit",
       "any": 2011,
       "cover_url": null,
       "timestamp_manual": null,
@@ -47,8 +29,8 @@
       "yt_url": null
     },
     {
-      "pos": 6,
-      "nom": "Where Them Girls At (feat. Nicki Minaj & Flo Rida)",
+      "pos": 4,
+      "nom": "Sweet Nothing (feat. Florence Welch)",
       "any": 2012,
       "cover_url": null,
       "timestamp_manual": null,
@@ -56,8 +38,8 @@
       "yt_url": null
     },
     {
-      "pos": 7,
-      "nom": "Play Hard (feat. Ne-Yo & Akon)",
+      "pos": 5,
+      "nom": "My Way",
       "any": 2013,
       "cover_url": null,
       "timestamp_manual": null,
@@ -65,8 +47,8 @@
       "yt_url": null
     },
     {
-      "pos": 8,
-      "nom": "Lovers on the Sun (feat. Sam Martin)",
+      "pos": 6,
+      "nom": "Under Control (feat. Hurts)",
       "any": 2014,
       "cover_url": null,
       "timestamp_manual": null,
@@ -74,8 +56,8 @@
       "yt_url": null
     },
     {
-      "pos": 9,
-      "nom": "Turn Me On (feat. Nicki Minaj)",
+      "pos": 7,
+      "nom": "Summer",
       "any": 2015,
       "cover_url": null,
       "timestamp_manual": null,
@@ -83,9 +65,27 @@
       "yt_url": null
     },
     {
-      "pos": 10,
-      "nom": "This One's For You (feat. Zara Larsson) (Official Song UEFA EURO 2016)",
+      "pos": 8,
+      "nom": "Outside (feat. Ellie Goulding)",
       "any": 2016,
+      "cover_url": null,
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 9,
+      "nom": "This Is What You Came For",
+      "any": 2017,
+      "cover_url": null,
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 10,
+      "nom": "One Kiss (with Dua Lipa)",
+      "any": 2018,
       "cover_url": null,
       "timestamp_manual": null,
       "nom_manual": null,
