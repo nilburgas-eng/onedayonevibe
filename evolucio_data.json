@@ -1,10 +1,10 @@
 {
-  "artista": "Calvin Harris",
+  "artista": "Avicii",
   "tracks": [
     {
       "pos": 1,
-      "nom": "Acceptable in the 80's",
-      "any": 2007,
+      "nom": "Dear Boy",
+      "any": 2010,
       "cover_url": null,
       "timestamp_manual": null,
       "nom_manual": null,
@@ -12,16 +12,7 @@
     },
     {
       "pos": 2,
-      "nom": "The Girls",
-      "any": 2008,
-      "cover_url": null,
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 3,
-      "nom": "Feel So Close - Radio Edit",
+      "nom": "Fade Into Darkness - Vocal Radio Mix",
       "any": 2011,
       "cover_url": null,
       "timestamp_manual": null,
@@ -29,8 +20,8 @@
       "yt_url": null
     },
     {
-      "pos": 4,
-      "nom": "Sweet Nothing (feat. Florence Welch)",
+      "pos": 3,
+      "nom": "I Could Be The One (Avicii Vs. Nicky Romero) - Radio Edit",
       "any": 2012,
       "cover_url": null,
       "timestamp_manual": null,
@@ -38,8 +29,8 @@
       "yt_url": null
     },
     {
-      "pos": 5,
-      "nom": "My Way",
+      "pos": 4,
+      "nom": "Wake Me Up",
       "any": 2013,
       "cover_url": null,
       "timestamp_manual": null,
@@ -47,8 +38,8 @@
       "yt_url": null
     },
     {
-      "pos": 6,
-      "nom": "Under Control (feat. Hurts)",
+      "pos": 5,
+      "nom": "Addicted to You",
       "any": 2014,
       "cover_url": null,
       "timestamp_manual": null,
@@ -56,8 +47,8 @@
       "yt_url": null
     },
     {
-      "pos": 7,
-      "nom": "Summer",
+      "pos": 6,
+      "nom": "The Nights",
       "any": 2015,
       "cover_url": null,
       "timestamp_manual": null,
@@ -65,8 +56,8 @@
       "yt_url": null
     },
     {
-      "pos": 8,
-      "nom": "Outside (feat. Ellie Goulding)",
+      "pos": 7,
+      "nom": "Hey Brother",
       "any": 2016,
       "cover_url": null,
       "timestamp_manual": null,
@@ -74,8 +65,8 @@
       "yt_url": null
     },
     {
-      "pos": 9,
-      "nom": "This Is What You Came For",
+      "pos": 8,
+      "nom": "Lonely Together (feat. Rita Ora)",
       "any": 2017,
       "cover_url": null,
       "timestamp_manual": null,
@@ -83,9 +74,18 @@
       "yt_url": null
     },
     {
-      "pos": 10,
-      "nom": "One Kiss (with Dua Lipa)",
+      "pos": 9,
+      "nom": "Lay Me Down",
       "any": 2018,
+      "cover_url": null,
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 10,
+      "nom": "Heaven",
+      "any": 2019,
       "cover_url": null,
       "timestamp_manual": null,
       "nom_manual": null,
