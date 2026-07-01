@@ -1,11 +1,40 @@
-import os, json, re, time
+import os, json, re, base64
 import requests
 
-ARTISTA        = os.environ['ARTISTA']
-ANY_TALL       = int(os.environ.get('ANY_TALL', '2018'))
-LASTFM_API_KEY = os.environ.get('LASTFM_API_KEY', '')
+ARTISTA           = os.environ['ARTISTA']
+ANY_TALL          = int(os.environ.get('ANY_TALL', '2018'))
+LASTFM_API_KEY    = os.environ.get('LASTFM_API_KEY', '')
+SPOTIFY_CLIENT_ID = os.environ.get('SPOTIFY_CLIENT_ID', '')
+SPOTIFY_SECRET    = os.environ.get('SPOTIFY_CLIENT_SECRET', '')
 
-def buscar_tracks_lastfm(artista, any_tall, api_key):
+def get_spotify_token():
+    try:
+        creds = base64.b64encode(f"{SPOTIFY_CLIENT_ID}:{SPOTIFY_SECRET}".encode()).decode()
+        r = requests.post("https://accounts.spotify.com/api/token",
+            headers={"Authorization": f"Basic {creds}"},
+            data={"grant_type": "client_credentials"})
+        return r.json().get('access_token')
+    except:
+        return None
+
+def get_spotify_any(nom, artista, token):
+    try:
+        headers = {"Authorization": f"Bearer {token}"}
+        query = f"track:{nom} artist:{artista}"
+        r = requests.get(
+            f"https://api.spotify.com/v1/search?q={requests.utils.quote(query)}&type=track&limit=1",
+            headers=headers
+        )
+        items = r.json().get('tracks', {}).get('items', [])
+        if items:
+            date = items[0]['album'].get('release_date', '')
+            if date and len(date) >= 4:
+                return int(date[:4])
+    except:
+        pass
+    return 0
+
+def buscar_tracks_lastfm(artista, any_tall, api_key, sp_token):
     print("Buscant tracks via Last.fm...")
     r = requests.get(
         f"https://ws.audioscrobbler.com/2.0/?method=artist.gettoptracks&artist={requests.utils.quote(artista)}&api_key={api_key}&format=json&limit=50"
@@ -13,13 +42,10 @@ def buscar_tracks_lastfm(artista, any_tall, api_key):
     data = r.json()
     top_tracks = data.get('toptracks', {}).get('track', [])
     print(f"Top tracks Last.fm: {len(top_tracks)}")
-
     if not top_tracks:
         return []
-
     tracks_amb_any = []
     vistes = set()
-
     for t in top_tracks[:30]:
         nom = t['name']
         key_norm = re.sub(r'\s*[\(\[].*?[\)\]]', '', nom.lower())
@@ -27,33 +53,17 @@ def buscar_tracks_lastfm(artista, any_tall, api_key):
         if key_norm in vistes:
             continue
         vistes.add(key_norm)
-
-        any_canco = 0
-        try:
-            mb = requests.get(
-                f"https://musicbrainz.org/ws/2/recording/?query=recording:{requests.utils.quote(nom)}+artist:{requests.utils.quote(artista)}&fmt=json&limit=1",
-                headers={"User-Agent": "onedayonevibe/1.0 (nilburgas@gmail.com)"}
-            )
-            recordings = mb.json().get('recordings', [])
-            if recordings:
-                date = recordings[0].get('first-release-date', '')
-                if date:
-                    any_canco = int(date[:4])
-            time.sleep(0.3)
-        except:
-            pass
-
+        any_canco = get_spotify_any(nom, artista, sp_token)
+        if any_canco > 0:
+            print(f"   {any_canco} - {nom}")
         tracks_amb_any.append({'nom': nom, 'any': any_canco})
-
     then_list = [t for t in tracks_amb_any if 0 < t['any'] < any_tall]
     now_list  = [t for t in tracks_amb_any if t['any'] >= any_tall]
-
     if not then_list and not now_list:
         mid = len(tracks_amb_any) // 2
         then_list = tracks_amb_any[:mid]
         now_list  = tracks_amb_any[mid:]
         print("Anys no disponibles — distribuint per ordre")
-
     n = min(len(then_list), len(now_list), 5)
     if n == 0:
         print(f"AVIS: una era buida (THEN:{len(then_list)} NOW:{len(now_list)})")
@@ -62,9 +72,7 @@ def buscar_tracks_lastfm(artista, any_tall, api_key):
     else:
         then_list = then_list[:n]
         now_list  = now_list[:n]
-
     print(f"THEN: {len(then_list)} · NOW: {len(now_list)} (equilibrat a {n} cada un)")
-
     tracks = []
     pos = 1
     max_len = max(len(then_list), len(now_list))
@@ -83,10 +91,13 @@ def buscar_tracks_lastfm(artista, any_tall, api_key):
                 'timestamp_manual': None, 'nom_manual': None, 'yt_url': None
             })
             pos += 1
-
     return tracks
 
-tracks = buscar_tracks_lastfm(ARTISTA, ANY_TALL, LASTFM_API_KEY)
+print("Obtenint token de Spotify...")
+sp_token = get_spotify_token()
+print("Token OK" if sp_token else "Sense token Spotify")
+
+tracks = buscar_tracks_lastfm(ARTISTA, ANY_TALL, LASTFM_API_KEY, sp_token)
 
 if not tracks:
     print("ERROR: No s'han trobat tracks")
