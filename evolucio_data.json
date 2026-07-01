@@ -1,10 +1,10 @@
 {
-  "artista": "Hardwell",
+  "artista": "Afrojack",
   "tracks": [
     {
       "pos": 1,
-      "nom": "Creatures of the Night",
-      "any": 1998,
+      "nom": "Radioman",
+      "any": 2009,
       "cover_url": null,
       "timestamp_manual": null,
       "nom_manual": null,
@@ -12,43 +12,7 @@
     },
     {
       "pos": 2,
-      "nom": "Countdown - Original Mix",
-      "any": 2006,
-      "cover_url": null,
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 3,
-      "nom": "Never Say Goodbye - Radio Edit",
-      "any": 2011,
-      "cover_url": null,
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 4,
-      "nom": "Call Me A Spaceman - Radio Edit",
-      "any": 2012,
-      "cover_url": null,
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 5,
-      "nom": "How We Do - Original Mix",
-      "any": 2013,
-      "cover_url": null,
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 6,
-      "nom": "Young Again",
+      "nom": "Freedom",
       "any": 2014,
       "cover_url": null,
       "timestamp_manual": null,
@@ -56,36 +20,27 @@
       "yt_url": null
     },
     {
-      "pos": 7,
-      "nom": "Follow Me",
-      "any": 2015,
+      "pos": 3,
+      "nom": "Anywhere With You",
+      "any": 2021,
       "cover_url": null,
       "timestamp_manual": null,
       "nom_manual": null,
       "yt_url": null
     },
     {
-      "pos": 8,
-      "nom": "Thinking About You",
-      "any": 2016,
+      "pos": 4,
+      "nom": "Worlds On Fire (with R3HAB & Au/Ra)",
+      "any": 2022,
       "cover_url": null,
       "timestamp_manual": null,
       "nom_manual": null,
       "yt_url": null
     },
     {
-      "pos": 9,
-      "nom": "Power",
-      "any": 2017,
-      "cover_url": null,
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 10,
-      "nom": "Bella Ciao",
-      "any": 2018,
+      "pos": 5,
+      "nom": "Never Forget You",
+      "any": 2025,
       "cover_url": null,
       "timestamp_manual": null,
       "nom_manual": null,
