@@ -1,11 +1,11 @@
 {
-  "artista": "Defqon",
-  "any_tall": 2020,
+  "artista": "Afrojack",
+  "any_tall": 2018,
   "tracks": [
     {
       "pos": 1,
-      "nom": "Trippy @ Night",
-      "any": 2001,
+      "nom": "Ten Feet Tall",
+      "any": 2014,
       "era": "THEN",
       "cover_url": null,
       "timestamp_manual": null,
@@ -14,8 +14,8 @@
     },
     {
       "pos": 2,
-      "nom": "Space Pirates  / Till the break of dawn",
-      "any": 2023,
+      "nom": "Hero",
+      "any": 2021,
       "era": "NOW",
       "cover_url": null,
       "timestamp_manual": null,
@@ -24,7 +24,7 @@
     },
     {
       "pos": 3,
-      "nom": "Delysid",
+      "nom": "The Spark",
       "any": 2014,
       "era": "THEN",
       "cover_url": null,
@@ -34,8 +34,8 @@
     },
     {
       "pos": 4,
-      "nom": "Tommy four seven  / Armed",
-      "any": 2024,
+      "nom": "Anywhere With You",
+      "any": 2021,
       "era": "NOW",
       "cover_url": null,
       "timestamp_manual": null,
@@ -44,8 +44,8 @@
     },
     {
       "pos": 5,
-      "nom": "Scrap The System (Defqon.1 Australia 2013 Anthem)",
-      "any": 2014,
+      "nom": "SummerThing!",
+      "any": 2015,
       "era": "THEN",
       "cover_url": null,
       "timestamp_manual": null,
@@ -54,8 +54,48 @@
     },
     {
       "pos": 6,
-      "nom": "Evil Inside Me",
-      "any": 2021,
+      "nom": "Our Time",
+      "any": 2025,
+      "era": "NOW",
+      "cover_url": null,
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 7,
+      "nom": "Take Over Control (feat. Eva Simons)",
+      "any": 2011,
+      "era": "THEN",
+      "cover_url": null,
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 8,
+      "nom": "All Night (feat. Ally Brooke)",
+      "any": 2020,
+      "era": "NOW",
+      "cover_url": null,
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 9,
+      "nom": "Do Or Die - Afrojack vs. THIRTY SECONDS TO MARS Remix",
+      "any": 2014,
+      "era": "THEN",
+      "cover_url": null,
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 10,
+      "nom": "Worlds On Fire (with R3HAB & Au/Ra)",
+      "any": 2022,
       "era": "NOW",
       "cover_url": null,
       "timestamp_manual": null,
