@@ -1,10 +1,10 @@
 {
-  "artista": "Afrojack",
+  "artista": "Avicii",
   "tracks": [
     {
       "pos": 1,
-      "nom": "Radioman",
-      "any": 2009,
+      "nom": "Levels - Radio Edit",
+      "any": 2011,
       "cover_url": null,
       "timestamp_manual": null,
       "nom_manual": null,
@@ -12,8 +12,8 @@
     },
     {
       "pos": 2,
-      "nom": "Freedom",
-      "any": 2014,
+      "nom": "I Could Be The One (Avicii Vs. Nicky Romero) - Radio Edit",
+      "any": 2012,
       "cover_url": null,
       "timestamp_manual": null,
       "nom_manual": null,
@@ -21,8 +21,8 @@
     },
     {
       "pos": 3,
-      "nom": "Anywhere With You",
-      "any": 2021,
+      "nom": "Wake Me Up",
+      "any": 2013,
       "cover_url": null,
       "timestamp_manual": null,
       "nom_manual": null,
@@ -30,8 +30,8 @@
     },
     {
       "pos": 4,
-      "nom": "Worlds On Fire (with R3HAB & Au/Ra)",
-      "any": 2022,
+      "nom": "The Nights",
+      "any": 2014,
       "cover_url": null,
       "timestamp_manual": null,
       "nom_manual": null,
@@ -39,8 +39,35 @@
     },
     {
       "pos": 5,
-      "nom": "Never Forget You",
-      "any": 2025,
+      "nom": "Waiting for Love",
+      "any": 2015,
+      "cover_url": null,
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 6,
+      "nom": "Taste The Feeling (Avicii Vs. Conrad Sewell)",
+      "any": 2016,
+      "cover_url": null,
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 7,
+      "nom": "Without You (feat. Sandro Cavazza)",
+      "any": 2017,
+      "cover_url": null,
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 8,
+      "nom": "SOS (feat. Aloe Blacc)",
+      "any": 2019,
       "cover_url": null,
       "timestamp_manual": null,
       "nom_manual": null,
