@@ -23,6 +23,8 @@ jobs:
         env:
           ARTISTA: ${{ github.event.inputs.artista }}
           LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
+          SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
+          SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
         run: python3 evolucio_buscar.py
 
       - name: Commit del JSON
