@@ -1,10 +1,10 @@
 {
-  "artista": "World Cup Songs",
+  "artista": "World Cup",
   "tracks": [
     {
       "pos": 1,
-      "nom": "Here We Go -",
-      "any": 2005,
+      "nom": "Wavin' Flag",
+      "any": 2010,
       "cover_url": null,
       "timestamp_manual": null,
       "nom_manual": null,
@@ -12,8 +12,8 @@
     },
     {
       "pos": 2,
-      "nom": "National Anthem",
-      "any": 2011,
+      "nom": "We are the champion",
+      "any": 2012,
       "cover_url": null,
       "timestamp_manual": null,
       "nom_manual": null,
@@ -21,7 +21,16 @@
     },
     {
       "pos": 3,
-      "nom": "Portugal World Cup",
+      "nom": "Total Chips",
+      "any": 2014,
+      "cover_url": null,
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 4,
+      "nom": "World Cup Song 2026",
       "any": 2026,
       "cover_url": null,
       "timestamp_manual": null,
