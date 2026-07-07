@@ -1,10 +1,10 @@
 {
-  "artista": "Angerfist",
+  "artista": "World Cup Songs",
   "tracks": [
     {
       "pos": 1,
-      "nom": "Fuck Off",
-      "any": 2006,
+      "nom": "Here We Go -",
+      "any": 2005,
       "cover_url": null,
       "timestamp_manual": null,
       "nom_manual": null,
@@ -12,8 +12,8 @@
     },
     {
       "pos": 2,
-      "nom": "Bite Yo Style",
-      "any": 2008,
+      "nom": "National Anthem",
+      "any": 2011,
       "cover_url": null,
       "timestamp_manual": null,
       "nom_manual": null,
@@ -21,71 +21,8 @@
     },
     {
       "pos": 3,
-      "nom": "Incoming",
-      "any": 2012,
-      "cover_url": null,
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 4,
-      "nom": "Knock Knock",
-      "any": 2014,
-      "cover_url": null,
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 5,
-      "nom": "Dance With the Wolves",
-      "any": 2015,
-      "cover_url": null,
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 6,
-      "nom": "Hoax",
-      "any": 2017,
-      "cover_url": null,
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 7,
-      "nom": "Solid Stigma",
-      "any": 2019,
-      "cover_url": null,
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 8,
-      "nom": "R3VOLUTION",
-      "any": 2020,
-      "cover_url": null,
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 9,
-      "nom": "What Happened",
-      "any": 2021,
-      "cover_url": null,
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 10,
-      "nom": "Cannibal",
-      "any": 2022,
+      "nom": "Portugal World Cup",
+      "any": 2026,
       "cover_url": null,
       "timestamp_manual": null,
       "nom_manual": null,
