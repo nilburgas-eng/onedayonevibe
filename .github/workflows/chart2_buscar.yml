@@ -1,0 +1,27 @@
+name: Buscar Chart2
+
+on:
+  workflow_dispatch:
+
+jobs:
+  buscar:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout codi
+        uses: actions/checkout@v4
+
+      - name: Instal·lar dependencies
+        run: pip install requests
+
+      - name: Buscar cançons
+        run: python3 chart2_buscar.py
+
+      - name: Commit del JSON
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add chart2_data.json
+          git commit -m "Actualitzar dades Chart2" || echo "Sense canvis"
+          git push
