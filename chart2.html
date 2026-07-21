@@ -60,7 +60,7 @@
 
     <div id="tracks-card" class="card" style="display:none;">
         <h2>🎬 Pas 2 — Revisar i ajustar</h2>
-        <p style="font-size:12px;color:#666;margin-bottom:14px;">Edita nom, artista, moment o cola temes propis amb la URL de YouTube.</p>
+        <p style="font-size:12px;color:#666;margin-bottom:14px;">Edita nom, artista, moment o cola temes propis amb la URL de YouTube. El botó 🎬 obre el vídeo o la cerca a YouTube.</p>
         <div id="tracks-list"></div>
         <button class="btn btn-secondary" onclick="afegirTrack()">➕ Afegir cançó</button>
         <button class="btn btn-green" onclick="generarVideo()">🎬 2. Generar vídeo</button>
@@ -175,7 +175,10 @@ function renderTracks() {
         div.innerHTML = `
             <div class="track-head">
                 <span class="track-nom">#${t.pos}</span>
-                <button onclick="eliminarTrack(${i})" style="background:#ff4444;color:#fff;border:none;border-radius:5px;padding:3px 10px;font-size:14px;font-weight:700;cursor:pointer;">🗑️</button>
+                <div>
+                    <button onclick="obrirYoutube(${i})" style="background:#00BFFF;color:#000;border:none;border-radius:5px;padding:3px 10px;font-size:14px;font-weight:700;cursor:pointer;margin-right:6px;">🎬</button>
+                    <button onclick="eliminarTrack(${i})" style="background:#ff4444;color:#fff;border:none;border-radius:5px;padding:3px 10px;font-size:14px;font-weight:700;cursor:pointer;">🗑️</button>
+                </div>
             </div>
             <div class="track-full">
                 <input type="text" placeholder="Nom cançó" value="${(t.nom_manual||t.nom||'').replace(/"/g,'&quot;')}" onchange="actualitzar(${i}, 'nom', this.value)" />
@@ -213,6 +216,16 @@ function afegirTrack() {
         timestamp_manual: null, nom_manual: null, yt_url: null
     });
     renderTracks();
+}
+
+function obrirYoutube(i) {
+    const t = tracksActuals[i];
+    if (t.yt_url) {
+        window.open(t.yt_url, '_blank');
+    } else {
+        const q = encodeURIComponent(`${t.artista} ${t.nom} official video`);
+        window.open(`https://www.youtube.com/results?search_query=${q}`, '_blank');
+    }
 }
 
 function netejarTracks() {
