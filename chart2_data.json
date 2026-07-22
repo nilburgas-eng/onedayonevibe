@@ -1,10 +1,12 @@
 {
+  "genere": "electronica",
   "setmana_text": "WEEK OF JULY 21, 2026",
   "tracks": [
     {
       "pos": 1,
       "nom": "IN YOUR EYES",
       "artista": "ALESSO, ONEREPUBLIC",
+      "cover_url": null,
       "timestamp_manual": null,
       "nom_manual": null,
       "yt_url": null
@@ -13,6 +15,7 @@
       "pos": 2,
       "nom": "ELEVATE",
       "artista": "DISCO FRIES X MINTD, KAYRAE",
+      "cover_url": null,
       "timestamp_manual": null,
       "nom_manual": null,
       "yt_url": null
@@ -21,6 +24,7 @@
       "pos": 3,
       "nom": "HOW DO WE SAY GOODBYE",
       "artista": "ROGER SANCHEZ & KAREN HARDING",
+      "cover_url": null,
       "timestamp_manual": null,
       "nom_manual": null,
       "yt_url": null
@@ -29,6 +33,7 @@
       "pos": 4,
       "nom": "LOVE SENSATION (RADIO EDIT)",
       "artista": "MADONNA",
+      "cover_url": null,
       "timestamp_manual": null,
       "nom_manual": null,
       "yt_url": null
@@ -37,6 +42,7 @@
       "pos": 5,
       "nom": "TORTURE OF THE HEART",
       "artista": "DVBBS & NELLY FURTADO",
+      "cover_url": null,
       "timestamp_manual": null,
       "nom_manual": null,
       "yt_url": null
@@ -45,6 +51,7 @@
       "pos": 6,
       "nom": "HANDS ON ME",
       "artista": "BECKY HILL",
+      "cover_url": null,
       "timestamp_manual": null,
       "nom_manual": null,
       "yt_url": null
@@ -53,6 +60,7 @@
       "pos": 7,
       "nom": "LIKE A CHILD",
       "artista": "ARMIN VAN BUUREN F/ ARGY & MARLO REX",
+      "cover_url": null,
       "timestamp_manual": null,
       "nom_manual": null,
       "yt_url": null
@@ -61,6 +69,7 @@
       "pos": 8,
       "nom": "ALL MY LIFE",
       "artista": "TIMMY TRUMPET & FRANK WALKER F/ JOHN MARTIN",
+      "cover_url": null,
       "timestamp_manual": null,
       "nom_manual": null,
       "yt_url": null
@@ -69,6 +78,7 @@
       "pos": 9,
       "nom": "BETTER TIMES",
       "artista": "ROBIN SCHULZ F/ BARBZ",
+      "cover_url": null,
       "timestamp_manual": null,
       "nom_manual": null,
       "yt_url": null
@@ -77,6 +87,7 @@
       "pos": 10,
       "nom": "EVERYTHING'S FINE (PM)",
       "artista": "ALOK & JENNIFER LOPEZ",
+      "cover_url": null,
       "timestamp_manual": null,
       "nom_manual": null,
       "yt_url": null
