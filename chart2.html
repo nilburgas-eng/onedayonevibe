@@ -34,16 +34,20 @@
     .track-grid input { margin-bottom: 0; font-size: 13px; padding: 10px; }
     .track-full { margin-top: 8px; }
     .track-full input { margin-bottom: 0; font-size: 13px; padding: 10px; }
-    .badge { font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 5px; background: #00BFFF; color: #000; }
 </style>
 </head>
 <body>
 <div class="container">
     <h1>@onedayonevibe</h1>
-    <p class="subtitle">Electronic Music Chart Generator</p>
+    <p class="subtitle">Chart Setmanal Generator</p>
 
     <div class="card">
         <h2>🔍 Pas 1 — Carregar chart</h2>
+        <label>Gènere</label>
+        <select id="genere">
+            <option value="electronica">🎧 Electrònica general</option>
+            <option value="hardstyle">⚡ Hardstyle</option>
+        </select>
         <label>Estil de detecció</label>
         <select id="estil">
             <option value="energetic">⚡ Energètic (EDM, House, Techno)</option>
@@ -136,8 +140,9 @@ async function dispararWorkflow(workflow, inputs) {
 }
 
 async function buscarChart() {
+    const genere = document.getElementById('genere').value;
     mostrarStatus('⏳ Carregant chart de la setmana...', 'info');
-    const res = await dispararWorkflow('chart2_buscar.yml', {});
+    const res = await dispararWorkflow('chart2_buscar.yml', { genere });
     if (res.status === 204) {
         mostrarStatus('✅ Cerca iniciada!<br>⏳ Espera 30 seg i clica "🔄 Carregar llista".', 'ok');
     } else {
@@ -159,6 +164,7 @@ async function carregarChart() {
         const data = await r.json();
         tracksActuals = data.tracks;
         setmanaText = data.setmana_text || '';
+        if (data.genere) document.getElementById('genere').value = data.genere;
         renderTracks();
         mostrarStatus(`✅ ${tracksActuals.length} cançons carregades (${setmanaText}). Ajusta i genera!`, 'ok');
     } catch (e) {
@@ -212,7 +218,7 @@ function eliminarTrack(i) {
 function afegirTrack() {
     tracksActuals.push({
         pos: tracksActuals.length + 1,
-        nom: '', artista: '',
+        nom: '', artista: '', cover_url: null,
         timestamp_manual: null, nom_manual: null, yt_url: null
     });
     renderTracks();
@@ -231,6 +237,7 @@ function obrirYoutube(i) {
 function netejarTracks() {
     return tracksActuals.map(t => {
         const o = { pos: t.pos, nom: t.nom, artista: t.artista };
+        if (t.cover_url) o.cover_url = t.cover_url;
         if (t.timestamp_manual !== null && t.timestamp_manual !== undefined) o.timestamp_manual = t.timestamp_manual;
         if (t.yt_url) o.yt_url = t.yt_url;
         return o;
