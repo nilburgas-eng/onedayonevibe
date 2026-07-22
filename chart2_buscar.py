@@ -49,6 +49,20 @@ def scrape_hardstyle():
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
     html = requests.get(url, headers=headers).text
 
+    # === DEBUG ===
+    print("=== DEBUG: mida HTML:", len(html))
+    idx = html.find('track_image')
+    print("=== Primera aparicio track_image a la posicio:", idx)
+    if idx > 0:
+        print("=== Fragment al voltant de track_image:")
+        print(html[idx-300:idx+700])
+    idx2 = html.find('/en/tracks/')
+    print("=== Primera aparicio /en/tracks/ a la posicio:", idx2)
+    if idx2 > 0:
+        print("=== Fragment al voltant de /en/tracks/:")
+        print(html[idx2-200:idx2+500])
+    print("=== FI DEBUG ===")
+
     setmana_text = "HARDSTYLE TOP 10"
 
     tracks = []
