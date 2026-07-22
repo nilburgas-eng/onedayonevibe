@@ -54,7 +54,11 @@ def scrape_hardstyle():
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
     html = requests.get(url, headers=headers).text
 
-    setmana_text = "HARDSTYLE TOP 10"
+        import datetime
+    avui = datetime.date.today()
+    dilluns = avui - datetime.timedelta(days=avui.weekday())
+    setmana_text = f"WEEK OF {dilluns.strftime('%B %d, %Y').upper()}"
+
 
     tracks = []
     # Cada cançó és un bloc <div class="track listView ..." data-track-id="UUID">
