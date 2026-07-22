@@ -250,9 +250,11 @@ async function generarVideo() {
         return;
     }
     const estil = document.getElementById('estil').value;
+    const genere = document.getElementById('genere').value;
     mostrarStatus('⏳ Generant vídeo...', 'info');
     const res = await dispararWorkflow('chart2.yml', {
         estil,
+        genere,
         setmana_text: setmanaText,
         tracks: JSON.stringify(netejarTracks())
     });
