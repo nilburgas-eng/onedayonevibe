@@ -19,17 +19,14 @@ on:
         description: 'Estil: energetic, melodic o vocal'
         required: false
         default: 'energetic'
-
-
-
-jobs:
-  generar:
-    runs-on: ubuntu-latest
-    permissions:
+      jobs:
+        generar:
+  runs-on: ubuntu-latest
+        permissions:
       contents: write
     steps:
       - name: Checkout codi
-        uses: actions/checkout@v4
+         uses: actions/checkout@v4
 
       - name: Instal·lar dependencies
         run: |
