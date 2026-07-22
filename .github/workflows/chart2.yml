@@ -7,14 +7,19 @@ on:
         description: 'Tracks JSON (opcional, salta scraping)'
         required: false
         default: ''
-      setmana_text:
+            setmana_text:
         description: 'Text de la setmana'
         required: false
         default: ''
+      genere:
+        description: 'Genere: electronica o hardstyle'
+        required: false
+        default: 'electronica'
       estil:
         description: 'Estil: energetic, melodic o vocal'
         required: false
         default: 'energetic'
+
 
 jobs:
   generar:
@@ -78,11 +83,14 @@ jobs:
 
       - name: Generar Chart2
         env:
+                  env:
           TRACKS: ${{ github.event.inputs.tracks }}
           SETMANA_TEXT: ${{ github.event.inputs.setmana_text }}
+          GENERE: ${{ github.event.inputs.genere }}
           ESTIL: ${{ github.event.inputs.estil }}
           SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
           SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
+
         run: python3 chart2.py
 
       - name: Pujar video final a GitHub Releases
