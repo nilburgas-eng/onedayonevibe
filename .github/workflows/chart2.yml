@@ -7,7 +7,7 @@ on:
         description: 'Tracks JSON (opcional, salta scraping)'
         required: false
         default: ''
-  setmana_text:
+      setmana_text:
         description: 'Text de la setmana'
         required: false
         default: ''
@@ -19,6 +19,7 @@ on:
         description: 'Estil: energetic, melodic o vocal'
         required: false
         default: 'energetic'
+
 
 
 jobs:
