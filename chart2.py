@@ -49,9 +49,9 @@ BAR_W    = 980
 Y_OUTRO  = 1560
 Y_OUTRO2 = 1618
 
-def get_spotify_token():
+def get_fy_token():
     try:
-        creds = base64.b64encode(f"{SPOTIFY_CLIENT_ID}:{SPOTIFY_SECRET}".encode()).decode()
+        creds = base64.b64encode(f"{FY_CLIENT_ID}:{FY_SECRET}".encode()).decode()
         r = requests.post("https://accounts.spotify.com/api/token",
             headers={"Authorization": f"Basic {creds}"},
             data={"grant_type": "client_credentials"})
@@ -214,7 +214,17 @@ for track in tracks:
     thumb_path = os.path.expanduser(f"~/videos/{pos:02d}_thumb.jpg")
     os.makedirs(os.path.expanduser("~/videos"), exist_ok=True)
 
-    if spotify_token:
+    cover_url = track.get('cover_url')
+    if cover_url:
+        try:
+            cover_data = requests.get(cover_url, timeout=15).content
+            if cover_data and len(cover_data) > 1000:
+                with open(thumb_path, 'wb') as f:
+                    f.write(cover_data)
+                print(f"   Portada directa OK")
+        except:
+            pass
+    if (not os.path.exists(thumb_path) or os.path.getsize(thumb_path) < 1000) and spotify_token:
         cover_data = get_spotify_cover(nom, artista, spotify_token)
         if cover_data:
             with open(thumb_path, 'wb') as f:
