@@ -2,6 +2,11 @@ name: Buscar Chart2
 
 on:
   workflow_dispatch:
+    inputs:
+      genere:
+        description: 'Genere: electronica o hardstyle'
+        required: false
+        default: 'electronica'
 
 jobs:
   buscar:
@@ -16,6 +21,8 @@ jobs:
         run: pip install requests
 
       - name: Buscar cançons
+        env:
+          GENERE: ${{ github.event.inputs.genere }}
         run: python3 chart2_buscar.py
 
       - name: Commit del JSON
