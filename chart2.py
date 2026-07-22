@@ -22,6 +22,7 @@ for font_path in [FONT_BEBAS, FONT_SEMIBOLD, FONT_EXTRABOLD, FONT_MEDIUM]:
 
 ESTIL             = os.environ.get('ESTIL', 'energetic')
 SETMANA_TEXT_ENV  = os.environ.get('SETMANA_TEXT', '')
+GENERE            = os.environ.get('GENERE', 'electronica')
 SPOTIFY_CLIENT_ID = os.environ.get('SPOTIFY_CLIENT_ID', '')
 SPOTIFY_SECRET    = os.environ.get('SPOTIFY_CLIENT_SECRET', '')
 COMPTE            = "@onedayonevibe"
@@ -35,15 +36,16 @@ COLOR_ACCENT = "0x00BFFF"
 COVER_W  = 280
 COVER_H  = 280
 COVER_X  = 90
-COVER_Y  = 470
+COVER_Y  = 500
 X_INFO   = 410
-Y_NUM    = 470
-Y_NOM1   = 610
-Y_NOM2   = 680
-Y_TITOL1 = 190
-Y_TITOL2 = 268
-Y_ARTISTA = 760
-Y_BAR    = 850
+Y_NUM    = 500
+Y_NOM1   = 640
+Y_NOM2   = 710
+Y_TITOL1 = 170
+Y_TITOL1B = 240
+Y_TITOL2 = 320
+Y_ARTISTA = 790
+Y_BAR    = 870
 BAR_X    = 90
 BAR_W    = 980
 Y_OUTRO  = 1560
@@ -70,51 +72,6 @@ def get_spotify_cover(nom_canco, artista, token):
     except:
         pass
     return None
-
-def scrape_chart():
-    url = "https://www.electricfm.com/music/weekly-top-20-chart"
-    print(f"Scraping: {url}")
-    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
-    html = requests.get(url, headers=headers).text
-
-    # Data de la setmana: "Week of July 21, 2026"
-    setmana_text = ""
-    m = re.search(r'Week of ([A-Z][a-z]+ \d+, \d{4})', html)
-    if m:
-        setmana_text = f"WEEK OF {m.group(1).upper()}"
-
-    # Treure tags i normalitzar
-    net = re.sub(r'<[^>]+>', '\n', html)
-    net = re.sub(r'&amp;', '&', net)
-    net = re.sub(r'&#039;|&#39;', "'", net)
-    net = re.sub(r'&quot;', '"', net)
-    linies = [l.strip() for l in net.split('\n')]
-    linies = [l for l in linies if l]
-
-    # Cada cançó: "#N" seguit de TITOL i ARTISTA (repetits 2 cops)
-    tracks = []
-    vistos = set()
-    i = 0
-    while i < len(linies) and len(tracks) < 10:
-        m_pos = re.match(r'^#(\d+)$', linies[i])
-        if m_pos:
-            pos_num = int(m_pos.group(1))
-            # Les seguents linies no-buides: titol i artista
-            resta = [l for l in linies[i+1:i+6] if l and not re.match(r'^#\d+$', l)]
-            if len(resta) >= 2:
-                nom = resta[0]
-                artista = resta[1]
-                key = (nom.lower(), artista.lower())
-                if key not in vistos and pos_num <= 10:
-                    vistos.add(key)
-                    tracks.append({
-                        'pos': pos_num, 'nom': nom, 'artista': artista,
-                        'timestamp_manual': None, 'nom_manual': None, 'yt_url': None
-                    })
-        i += 1
-
-    tracks.sort(key=lambda t: t['pos'])
-    return tracks, setmana_text
 
 def partir_nom(nom, max_chars=22):
     if len(nom) <= max_chars:
@@ -167,21 +124,16 @@ def trobar_moment_impactant(audio_path, duracio_total, estil='energetic'):
         print(f"   Error deteccio: {e}")
         return 30.0
 
-# TRACKS manual o scraping
+# TRACKS manual (sempre ve de la web app)
 TRACKS_RAW = os.environ.get('TRACKS', '')
-if TRACKS_RAW:
-    print("Carregant tracks rebuts (manual)...")
-    tracks = json.loads(TRACKS_RAW)
-    setmana_text = SETMANA_TEXT_ENV
-    for t in tracks:
-        if t.get('timestamp_manual') not in (None, '', 0):
-            t['timestamp_manual'] = float(t['timestamp_manual'])
-        else:
-            t['timestamp_manual'] = None
-else:
-    print("Scraping del chart...")
-    tracks, setmana_text = scrape_chart()
-    print(f"Setmana: {setmana_text}")
+print("Carregant tracks rebuts...")
+tracks = json.loads(TRACKS_RAW)
+setmana_text = SETMANA_TEXT_ENV
+for t in tracks:
+    if t.get('timestamp_manual') not in (None, '', 0):
+        t['timestamp_manual'] = float(t['timestamp_manual'])
+    else:
+        t['timestamp_manual'] = None
 
 if not tracks:
     print("ERROR: No s'han trobat tracks")
@@ -194,6 +146,14 @@ for t in tracks:
 print("\nObtenint token de Spotify...")
 spotify_token = get_spotify_token()
 print("Token OK" if spotify_token else "Sense token Spotify")
+
+# Titol segons genere
+if GENERE == 'hardstyle':
+    titol_l1 = "THE #1 HARDSTYLE"
+    titol_l2 = "TRACK THIS WEEK"
+else:
+    titol_l1 = "THE #1 ELECTRONIC"
+    titol_l2 = "TRACK THIS WEEK"
 
 clips_paths = []
 
@@ -261,7 +221,6 @@ for track in tracks:
         inici = trobar_moment_impactant(audio_path, duracio_total, ESTIL) if os.path.exists(audio_path) else 30.0
 
     output_path = f"{OUTPUT}/clip_{pos:02d}.mp4"
-    titol1 = "ELECTRONIC MUSIC CHART"
     setmana_disp = setmana_text if setmana_text else "TOP 10 OF THE WEEK"
 
     nom = nom_manual if nom_manual else nom
@@ -273,9 +232,10 @@ for track in tracks:
     bar_progress = int(BAR_W * (n_total - pos + 1) / n_total)
 
     txt = []
-    txt.append(f"drawbox=x=0:y=0:w=1080:h=380:color=black@0.22:t=fill")
+    txt.append(f"drawbox=x=0:y=0:w=1080:h=400:color=black@0.24:t=fill")
     txt.append(f"drawbox=x=0:y=1580:w=1080:h=340:color=black@0.18:t=fill")
-    txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol1}':fontsize=72:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
+    txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol_l1}':fontsize=68:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
+    txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol_l2}':fontsize=68:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1B}")
     txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{setmana_disp}':fontsize=32:fontcolor={COLOR_ACCENT}:borderw=2:bordercolor=black@0.6:x=(w-text_w)/2:y={Y_TITOL2}")
     txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='#{pos}':fontsize=130:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=3:x={X_INFO}:y={Y_NUM}")
     txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia1}':fontsize=56:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM1}")
