@@ -49,9 +49,9 @@ BAR_W    = 980
 Y_OUTRO  = 1560
 Y_OUTRO2 = 1618
 
-def get_fy_token():
+def get_spotify_token():
     try:
-        creds = base64.b64encode(f"{FY_CLIENT_ID}:{FY_SECRET}".encode()).decode()
+        creds = base64.b64encode(f"{SPOTIFY_CLIENT_ID}:{SPOTIFY_SECRET}".encode()).decode()
         r = requests.post("https://accounts.spotify.com/api/token",
             headers={"Authorization": f"Basic {creds}"},
             data={"grant_type": "client_credentials"})
