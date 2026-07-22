@@ -83,7 +83,6 @@ jobs:
 
       - name: Generar Chart2
         env:
-
           TRACKS: ${{ github.event.inputs.tracks }}
           SETMANA_TEXT: ${{ github.event.inputs.setmana_text }}
           GENERE: ${{ github.event.inputs.genere }}
