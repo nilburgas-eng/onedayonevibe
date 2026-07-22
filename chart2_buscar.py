@@ -43,47 +43,65 @@ def scrape_electronica():
     tracks.sort(key=lambda t: t['pos'])
     return tracks, setmana_text
 
+def html_unescape(s):
+    s = s.replace('&amp;', '&').replace('&#039;', "'").replace('&#39;', "'")
+    s = s.replace('&quot;', '"').replace('&nbsp;', ' ')
+    return s.strip()
+
 def scrape_hardstyle():
     url = "https://hardstyle.com/en/charts?genre=hardstyle"
     print(f"Scraping hardstyle: {url}")
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
     html = requests.get(url, headers=headers).text
 
-    # === DEBUG ===
-    print("=== DEBUG: mida HTML:", len(html))
-    idx = html.find('track_image')
-    print("=== Primera aparicio track_image a la posicio:", idx)
-    if idx > 0:
-        print("=== Fragment al voltant de track_image:")
-        print(html[idx-300:idx+700])
-    idx2 = html.find('/en/tracks/')
-    print("=== Primera aparicio /en/tracks/ a la posicio:", idx2)
-    if idx2 > 0:
-        print("=== Fragment al voltant de /en/tracks/:")
-        print(html[idx2-200:idx2+500])
-    print("=== FI DEBUG ===")
-
     setmana_text = "HARDSTYLE TOP 10"
 
     tracks = []
-    blocs = re.split(r'track_image/', html)
+    # Cada cançó és un bloc <div class="track listView ..." data-track-id="UUID">
+    # El dividim per data-track-id per aïllar cada cançó
+    blocs = re.split(r'data-track-id="([\w-]+)"', html)
+    # blocs alterna: [text, uuid, text, uuid, ...]
+    vistos = set()
     pos = 1
-    for i in range(1, len(blocs)):
+    for i in range(1, len(blocs), 2):
         if pos > 10:
             break
-        bloc = blocs[i][:2500]
-        m_img = re.match(r'([\w-]+/\d+x\d+/\d+)', bloc)
-        cover_url = f"https://hardstyle.com/track_image/{m_img.group(1)}" if m_img else None
-        m = re.search(r'\]\(https://hardstyle\.com/en/tracks/[\w-]+/[\w-]+\s+"([^"]+)"\)', bloc)
-        titol = m.group(1) if m else None
-        m_art = re.search(r'\]\(https://hardstyle\.com/en/(?:artists/[\w-]+|music\?artist=[^\)]+)\s+"([^"]+)"\)', bloc)
-        artista = m_art.group(1) if m_art else ''
+        uuid = blocs[i]
+        if uuid in vistos:
+            continue
+        contingut = blocs[i+1] if i+1 < len(blocs) else ''
+        bloc = contingut[:3000]
+
+        # Títol: <a class="linkTitle trackTitle" ... title="TITOL">
+        m_titol = re.search(r'class="linkTitle trackTitle"[^>]*title="([^"]+)"', bloc)
+        if not m_titol:
+            # provar amb el títol de l'enllaç number/imageWrapper del bloc anterior
+            prev = blocs[i-1][-1500:] if i-1 >= 0 else ''
+            m_titol = re.search(r'class="linkTitle trackTitle"[^>]*title="([^"]+)"', prev)
+            if m_titol:
+                bloc = prev + bloc
+        titol = html_unescape(m_titol.group(1)) if m_titol else None
+
+        # Portada: <img src="/track_image/UUID/...">
+        m_img = re.search(r'src="(/track_image/[\w-]+/\d+x\d+/\d+)"', bloc)
+        if not m_img:
+            m_img = re.search(r'/track_image/' + re.escape(uuid) + r'/\d+x\d+/\d+', bloc)
+            cover_url = f"https://hardstyle.com{m_img.group(0)}" if m_img else None
+        else:
+            cover_url = f"https://hardstyle.com{m_img.group(1)}"
+
+        # Artista: primer enllaç a /en/artists/ o /en/music?artist= amb title
+        m_art = re.search(r'href="/en/(?:artists/[\w-]+|music\?artist=[^"]+)"[^>]*title="([^"]+)"', bloc)
+        artista = html_unescape(m_art.group(1)) if m_art else ''
+
         if titol:
+            vistos.add(uuid)
             tracks.append({
                 'pos': pos, 'nom': titol, 'artista': artista, 'cover_url': cover_url,
                 'timestamp_manual': None, 'nom_manual': None, 'yt_url': None
             })
             pos += 1
+
     return tracks, setmana_text
 
 if GENERE == 'hardstyle':
