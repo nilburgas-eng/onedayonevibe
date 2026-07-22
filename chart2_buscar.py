@@ -1,9 +1,11 @@
 import os, json, re
 import requests
 
-def scrape_chart():
+GENERE = os.environ.get('GENERE', 'electronica')
+
+def scrape_electronica():
     url = "https://www.electricfm.com/music/weekly-top-20-chart"
-    print(f"Scraping: {url}")
+    print(f"Scraping electronica: {url}")
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
     html = requests.get(url, headers=headers).text
 
@@ -34,15 +36,46 @@ def scrape_chart():
                 if key not in vistos and pos_num <= 10:
                     vistos.add(key)
                     tracks.append({
-                        'pos': pos_num, 'nom': nom, 'artista': artista,
+                        'pos': pos_num, 'nom': nom, 'artista': artista, 'cover_url': None,
                         'timestamp_manual': None, 'nom_manual': None, 'yt_url': None
                     })
         i += 1
-
     tracks.sort(key=lambda t: t['pos'])
     return tracks, setmana_text
 
-tracks, setmana_text = scrape_chart()
+def scrape_hardstyle():
+    url = "https://hardstyle.com/en/charts?genre=hardstyle"
+    print(f"Scraping hardstyle: {url}")
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+    html = requests.get(url, headers=headers).text
+
+    setmana_text = "HARDSTYLE TOP 10"
+
+    tracks = []
+    blocs = re.split(r'track_image/', html)
+    pos = 1
+    for i in range(1, len(blocs)):
+        if pos > 10:
+            break
+        bloc = blocs[i][:2500]
+        m_img = re.match(r'([\w-]+/\d+x\d+/\d+)', bloc)
+        cover_url = f"https://hardstyle.com/track_image/{m_img.group(1)}" if m_img else None
+        m = re.search(r'\]\(https://hardstyle\.com/en/tracks/[\w-]+/[\w-]+\s+"([^"]+)"\)', bloc)
+        titol = m.group(1) if m else None
+        m_art = re.search(r'\]\(https://hardstyle\.com/en/(?:artists/[\w-]+|music\?artist=[^\)]+)\s+"([^"]+)"\)', bloc)
+        artista = m_art.group(1) if m_art else ''
+        if titol:
+            tracks.append({
+                'pos': pos, 'nom': titol, 'artista': artista, 'cover_url': cover_url,
+                'timestamp_manual': None, 'nom_manual': None, 'yt_url': None
+            })
+            pos += 1
+    return tracks, setmana_text
+
+if GENERE == 'hardstyle':
+    tracks, setmana_text = scrape_hardstyle()
+else:
+    tracks, setmana_text = scrape_electronica()
 
 if not tracks:
     print("ERROR: No s'han trobat tracks")
@@ -54,6 +87,7 @@ for t in tracks:
     print(f"  #{t['pos']}: {t['nom']} - {t['artista']}")
 
 data = {
+    'genere': GENERE,
     'setmana_text': setmana_text,
     'tracks': tracks
 }
