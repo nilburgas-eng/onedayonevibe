@@ -33,6 +33,7 @@ TOP_N            = 5
 DURADA_CLIP      = 10
 DURADA_OUTRO     = 2.0
 FADE_DURADA      = 0.3
+VIDEO_OPTS = "-c:v libx264 -preset slow -crf 18 -pix_fmt yuv420p"
 PADDING_X        = 100
 Y_TITOL1         = 260
 Y_TITOL2         = 340
@@ -497,7 +498,7 @@ for clip in clips_info:
         filtres.append("drawtext=fontfile='" + FONT_MEDIUM + "':text='Electronic Vibes Daily':fontsize=30:fontcolor=0x00BFFF@0.75:shadowcolor=black@0.20:shadowx=0:shadowy=1:x=(w-text_w)/2:y=(h/2)+248:enable='gte(t," + str(t_aparicio) + ")'")
 
     vf = ",".join(filtres)
-    cmd = f'ffmpeg -ss {inici} -i "{INPUT}/set.mp4" -t {durada} -vf "crop=ih*9/16:ih:(iw-ih*9/16)/2:0,scale=1080:1920,setsar=1,colorchannelmixer=ra=0.85:ga=0.85:ba=0.85,{vf}" -c:v libx264 -c:a aac -b:a 192k "{output_path}" -y -loglevel error'
+    cmd = f'ffmpeg -ss {inici} -i "{INPUT}/set.mp4" -t {durada} -vf "crop=ih*9/16:ih:(iw-ih*9/16)/2:0,scale=1080:1920,setsar=1,colorchannelmixer=ra=0.85:ga=0.85:ba=0.85,{vf}" {VIDEO_OPTS} -c:a aac -b:a 192k "{output_path}" -y -loglevel error'
     os.system(cmd)
     clips_paths.append(output_path)
     print(f"Clip {posicio} generat")
@@ -527,6 +528,6 @@ for i in range(2, n_clips):
 
 filter_complex = ";".join(video_filters + audio_filters)
 output_final = f"{OUTPUT}/top5_final.mp4"
-cmd = f'ffmpeg {inputs_str} -filter_complex "{filter_complex}" -map "[vfinal]" -map "[afinal]" -c:v libx264 -c:a aac -b:a 192k "{output_final}" -y -loglevel error'
+cmd = f'ffmpeg {inputs_str} -filter_complex "{filter_complex}" -map "[vfinal]" -map "[afinal]" {VIDEO_OPTS} -c:a aac -b:a 192k "{output_final}" -y -loglevel error'
 os.system(cmd)
 print("Video final generat!")
