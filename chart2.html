@@ -92,6 +92,15 @@ window.onload = function() {
         GITHUB_TOKEN = prompt('Introdueix el teu GitHub Token:');
         if (GITHUB_TOKEN) localStorage.setItem('github_token', GITHUB_TOKEN);
     }
+    // Omplir el subtitol amb la data del dilluns d'aquesta setmana
+    const avui = new Date();
+    const dia = avui.getDay();
+    const diff = dia === 0 ? 6 : dia - 1;
+    const dilluns = new Date(avui);
+    dilluns.setDate(avui.getDate() - diff);
+    const mesos = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const dataText = `Week of ${mesos[dilluns.getMonth()]} ${dilluns.getDate()}, ${dilluns.getFullYear()}`;
+    document.getElementById('setmana').value = dataText;
 }
 
 function canviarToken() {
