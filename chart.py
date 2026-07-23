@@ -308,8 +308,13 @@ for track in tracks:
         clips_paths.append((pos, output_path))
         continue
 
-    r = subprocess.run(["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", video_path], capture_output=True, text=True)
-    duracio_total = float(json.loads(r.stdout)['format']['duration'])
+    r = subprocess.run(["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", "-show_streams", video_path], capture_output=True, text=True)
+    info = json.loads(r.stdout)
+    duracio_total = float(info['format']['duration'])
+    for s in info.get('streams', []):
+        if s.get('codec_type') == 'video':
+            print(f"   RESOLUCIO BAIXADA: {s.get('width')}x{s.get('height')}")
+            break
 
     os.system(f'ffmpeg -i "{video_path}" -vn -acodec pcm_s16le -ar 22050 -ac 1 "{audio_path}" -y -loglevel error')
 
