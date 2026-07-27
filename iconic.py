@@ -37,12 +37,15 @@ YTDLP_FORMAT = 'bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[he
 COLOR_ACCENT = "0x00BFFF"
 
 NIVELLS = {
-    'VERY EASY': "0x1DB954",
-    'EASY':      "0xA3E635",
-    'MEDIUM':    "0xFFD700",
-    'HARD':      "0xFF6B00",
-    'EXTREME':   "0xFF4444",
+    'SUPER EASY': "0x1DB954",
+    'EASY':       "0xA3E635",
+    'MEDIUM':     "0xFFD700",
+    'HARD':       "0xFF8C00",
+    'VERY HARD':  "0xFF6B00",
+    'EXPERT':     "0xFF4444",
+    'LEGEND':     "0xFFD700",
 }
+NIVELL_DEFAULT = {7: 'SUPER EASY', 6: 'EASY', 5: 'MEDIUM', 4: 'HARD', 3: 'VERY HARD', 2: 'EXPERT', 1: 'LEGEND'}
 NIVELL_DEFAULT = {5: 'VERY EASY', 4: 'EASY', 3: 'MEDIUM', 2: 'HARD', 1: 'EXTREME'}
 
 COVER_W  = 280
@@ -158,7 +161,7 @@ print("\nObtenint token de Spotify...")
 spotify_token = get_spotify_token()
 print("Token OK" if spotify_token else "Sense token Spotify")
 
-titol_l1 = "IF YOU KNOW ALL 5"
+titol_l1 = f"IF YOU KNOW ALL {len(tracks)}"
 titol_l2 = f"YOU\u2019RE A REAL {FANOF.upper()} FAN"
 subtitol = f"PART {PART}"
 
