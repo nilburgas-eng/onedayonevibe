@@ -159,7 +159,7 @@ spotify_token = get_spotify_token()
 print("Token OK" if spotify_token else "Sense token Spotify")
 
 titol_l1 = "IF YOU KNOW ALL 5"
-titol_l2 = f"YOU'RE A REAL {FANOF.upper()} FAN"
+titol_l2 = f"YOU`RE A REAL {FANOF.upper()} FAN"
 subtitol = f"PART {PART}"
 
 clips_paths = []
