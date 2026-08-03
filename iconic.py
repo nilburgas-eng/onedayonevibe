@@ -51,17 +51,17 @@ NIVELL_DEFAULT = {5: 'VERY EASY', 4: 'EASY', 3: 'MEDIUM', 2: 'HARD', 1: 'EXTREME
 COVER_W  = 280
 COVER_H  = 280
 COVER_X  = 90
-COVER_Y  = 520
+COVER_Y  = 620
 X_INFO   = 410
-Y_NUM    = 520
-Y_NOM1   = 660
-Y_NOM2   = 730
-Y_TITOL1 = 160
-Y_TITOL1B = 225
-Y_TITOL2 = 302
-Y_NIVELL = 810
-Y_ARTISTA = 880
-Y_BAR    = 960
+Y_NUM    = 620
+Y_NOM1   = 760
+Y_NOM2   = 830
+Y_TITOL1 = 260
+Y_TITOL1B = 325
+Y_TITOL2 = 402
+Y_NIVELL = 910
+Y_ARTISTA = 980
+Y_BAR    = 1060
 BAR_X    = 90
 BAR_W    = 980
 Y_OUTRO  = 1560
@@ -238,7 +238,7 @@ for track in tracks:
     bar_progress = int(BAR_W * (n_total - pos + 1) / n_total)
 
     txt = []
-    txt.append(f"drawbox=x=0:y=0:w=1080:h=390:color=black@0.24:t=fill")
+    txt.append(f"drawbox=x=0:y=0:w=1080:h=440:color=black@0.24:t=fill")
     txt.append(f"drawbox=x=0:y=1580:w=1080:h=340:color=black@0.18:t=fill")
     txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol_l1}':fontsize=64:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
     txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol_l2}':fontsize=52:fontcolor={COLOR_ACCENT}:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1B}")
