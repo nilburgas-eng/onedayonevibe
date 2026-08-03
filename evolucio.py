@@ -37,14 +37,14 @@ COLOR_ACCENT = "0x00BFFF"
 COVER_W  = 280
 COVER_H  = 280
 COVER_X  = 90
-COVER_Y  = 470
+COVER_Y  = 530
 X_INFO   = 410
-Y_ANY    = 430
-Y_NOM1   = 600
-Y_NOM2   = 670
-Y_TITOL1 = 200
-Y_TITOL2 = 278
-Y_BAR    = 800
+Y_ANY    = 490
+Y_NOM1   = 660
+Y_NOM2   = 730
+Y_TITOL1 = 260
+Y_TITOL2 = 338
+Y_BAR    = 860
 BAR_X    = 90
 BAR_W    = 980
 Y_OUTRO  = 1560
@@ -228,11 +228,11 @@ for track in tracks:
     bar_progress = int(BAR_W * pos / n_total)
 
     txt = []
-    txt.append(f"drawbox=x=0:y=0:w=1080:h=360:color=black@0.20:t=fill")
+    txt.append(f"drawbox=x=0:y=0:w=1080:h=420:color=black@0.20:t=fill")
     txt.append(f"drawbox=x=0:y=1580:w=1080:h=340:color=black@0.18:t=fill")
     txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol1}':fontsize=80:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
     txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{titol2}':fontsize=40:fontcolor={COLOR_ACCENT}:borderw=2:bordercolor=black@0.6:x=(w-text_w)/2:y={Y_TITOL2}")
-    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{any_canco}':fontsize=160:fontcolor={COLOR_ACCENT}@0.15:x=(w-text_w)/2:y=560")
+    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{any_canco}':fontsize=160:fontcolor={COLOR_ACCENT}@0.15:x=(w-text_w)/2:y=620")
     txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{any_canco}':fontsize=120:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=3:x={X_INFO}:y={Y_ANY}")
     txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia1}':fontsize=56:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM1}")
     if nom_linia2:
