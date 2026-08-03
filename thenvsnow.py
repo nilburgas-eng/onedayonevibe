@@ -38,15 +38,15 @@ COLOR_NOW  = "0xFF6B00"
 COVER_W  = 280
 COVER_H  = 280
 COVER_X  = 90
-COVER_Y  = 420
+COVER_Y  = 470
 X_INFO   = 410
-Y_NUM    = 420
-Y_NOM1   = 560
-Y_NOM2   = 630
-Y_TITOL1 = 260   
-Y_TITOL2 = 335   
-Y_ANY    = 740
-Y_BAR    = 790
+Y_NUM    = 470
+Y_NOM1   = 610
+Y_NOM2   = 680
+Y_TITOL1 = 260
+Y_TITOL2 = 335
+Y_ANY    = 790
+Y_BAR    = 840
 BAR_X    = 90
 BAR_W    = 980
 Y_OUTRO  = 1500
@@ -237,7 +237,7 @@ for track in tracks:
     bar_progress = int(BAR_W * pos / n_total)
 
     txt = []
-    txt.append(f"drawbox=x=0:y=0:w=1080:h=360:color=black@0.20:t=fill")
+    txt.append(f"drawbox=x=0:y=0:w=1080:h=460:color=black@0.20:t=fill")
     txt.append(f"drawbox=x=0:y=1580:w=1080:h=340:color=black@0.18:t=fill")
     txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol1}':fontsize=72:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
     txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{era}':fontsize=280:fontcolor={color_era}@0.12:x=(w-text_w)/2:y=600")
