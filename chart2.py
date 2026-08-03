@@ -43,8 +43,8 @@ X_INFO   = 410
 Y_NUM    = 500
 Y_NOM1   = 640
 Y_NOM2   = 710
-Y_TITOL1  = 260   
-Y_TITOL1B = 330   
+Y_TITOL1  = 260
+Y_TITOL1B = 330
 Y_TITOL2  = 400  
 Y_ARTISTA = 790
 Y_BAR    = 870
@@ -238,7 +238,7 @@ for track in tracks:
     bar_progress = int(BAR_W * (n_total - pos + 1) / n_total)
 
     txt = []
-    txt.append(f"drawbox=x=0:y=0:w=1080:h=400:color=black@0.24:t=fill")
+    txt.append(f"drawbox=x=0:y=0:w=1080:h=440:color=black@0.24:t=fill")
     txt.append(f"drawbox=x=0:y=1580:w=1080:h=340:color=black@0.18:t=fill")
     txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol_l1}':fontsize=68:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
     txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol_l2}':fontsize=68:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1B}")
