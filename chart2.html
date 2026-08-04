@@ -66,7 +66,7 @@
 
     <div id="tracks-card" class="card" style="display:none;">
         <h2>🎬 Pas 2 — Revisar i ajustar</h2>
-        <p style="font-size:12px;color:#666;margin-bottom:14px;">Edita nom, artista, moment o cola temes propis amb la URL de YouTube. El botó 🎬 obre el vídeo o la cerca a YouTube.</p>
+        <p style="font-size:12px;color:#666;margin-bottom:14px;">Edita nom, artista, moment o cola temes propis amb la URL de YouTube. També pots pujar un vídeo propi directament (per temes que no són a YouTube). El botó 🎬 obre el vídeo o la cerca a YouTube.</p>
         <div id="tracks-list"></div>
         <button class="btn btn-secondary" onclick="afegirTrack()">➕ Afegir cançó</button>
         <button class="btn btn-green" onclick="generarVideo()">🎬 2. Generar vídeo</button>
@@ -210,6 +210,13 @@ function renderTracks() {
                 <input type="text" placeholder="Timestamp (mm:ss)" value="${segonsAStr(t.timestamp_manual)}" onchange="actualitzar(${i}, 'ts', this.value)" />
                 <input type="text" placeholder="URL YouTube" value="${t.yt_url||''}" onchange="actualitzar(${i}, 'yt', this.value)" />
             </div>
+            <div class="track-full">
+                <label style="margin-top:6px;">🎥 O puja un vídeo propi (no cal que sigui a YouTube)</label>
+                <input type="file" accept="video/*" onchange="pujarVideoManual(${i}, this)" />
+                <div id="video-status-${i}" style="font-size:12px;color:${t.video_manual ? '#00ff88' : '#666'};margin-top:-6px;margin-bottom:10px;">
+                    ${t.video_manual ? '✅ Video manual: ' + t.video_manual.split('/').pop() + ' (té prioritat sobre YouTube)' : ''}
+                </div>
+            </div>
         `;
         cont.appendChild(div);
     });
@@ -223,6 +230,54 @@ function actualitzar(i, camp, valor) {
     else if (camp === 'yt') tracksActuals[i].yt_url = valor.trim() || null;
 }
 
+async function pujarVideoManual(i, inputEl) {
+    const file = inputEl.files[0];
+    if (!file) return;
+    if (file.size > 90 * 1024 * 1024) {
+        mostrarStatus('❌ Vídeo massa gran (màxim ~90MB). Comprimeix-lo abans de pujar-lo.', 'error');
+        inputEl.value = '';
+        return;
+    }
+    mostrarStatus(`⏳ Pujant vídeo (${(file.size/1024/1024).toFixed(1)} MB)... no tanquis la pestanya.`, 'info');
+    try {
+        const base64 = await new Promise((res, rej) => {
+            const reader = new FileReader();
+            reader.onload = () => res(reader.result.split(',')[1]);
+            reader.onerror = () => rej(new Error('Error llegint el fitxer'));
+            reader.readAsDataURL(file);
+        });
+        const extensio = (file.name.split('.').pop() || 'mp4').toLowerCase().replace(/[^a-z0-9]/g, '') || 'mp4';
+        const nomFitxer = `pos${tracksActuals[i].pos}_${Date.now()}.${extensio}`;
+        const path = `manual_videos/${nomFitxer}`;
+        const r = await fetch(
+            `https://api.github.com/repos/${GITHUB_REPO}/contents/${path}`,
+            {
+                method: 'PUT',
+                headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message: `Video manual pista #${tracksActuals[i].pos}`,
+                    content: base64,
+                    branch: 'main'
+                })
+            }
+        );
+        if (r.status === 201 || r.status === 200) {
+            tracksActuals[i].video_manual = path;
+            const statusEl = document.getElementById(`video-status-${i}`);
+            if (statusEl) {
+                statusEl.style.color = '#00ff88';
+                statusEl.innerHTML = `✅ Video manual: ${nomFitxer} (té prioritat sobre YouTube)`;
+            }
+            mostrarStatus('✅ Vídeo pujat correctament! Ja té prioritat sobre YouTube per aquesta pista.', 'ok');
+        } else {
+            const err = await r.json().catch(() => ({}));
+            mostrarStatus(`❌ Error pujant vídeo (${r.status}): ${err.message || ''}`, 'error');
+        }
+    } catch (e) {
+        mostrarStatus('❌ Error: ' + e.message, 'error');
+    }
+}
+
 function eliminarTrack(i) {
     tracksActuals.splice(i, 1);
     tracksActuals.forEach((t, idx) => t.pos = idx + 1);
@@ -233,7 +288,7 @@ function afegirTrack() {
     tracksActuals.push({
         pos: tracksActuals.length + 1,
         nom: '', artista: '', cover_url: null,
-        timestamp_manual: null, nom_manual: null, yt_url: null
+        timestamp_manual: null, nom_manual: null, yt_url: null, video_manual: null
     });
     renderTracks();
 }
@@ -254,6 +309,7 @@ function netejarTracks() {
         if (t.cover_url) o.cover_url = t.cover_url;
         if (t.timestamp_manual !== null && t.timestamp_manual !== undefined) o.timestamp_manual = t.timestamp_manual;
         if (t.yt_url) o.yt_url = t.yt_url;
+        if (t.video_manual) o.video_manual = t.video_manual;
         return o;
     });
 }
