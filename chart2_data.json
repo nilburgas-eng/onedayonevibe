@@ -1,6 +1,6 @@
 {
   "genere": "hardstyle",
-  "setmana_text": "WEEK OF JULY 27, 2026",
+  "setmana_text": "WEEK OF AUGUST 03, 2026",
   "tracks": [
     {
       "pos": 1,
@@ -31,9 +31,9 @@
     },
     {
       "pos": 4,
-      "nom": "2001",
-      "artista": "TNT",
-      "cover_url": "https://hardstyle.com/track_image/f0d61423-800b-4267-9db0-2bf2a380e6db/250x250/375",
+      "nom": "HATE",
+      "artista": "DEEZL",
+      "cover_url": "https://hardstyle.com/track_image/9ab21baf-2ca5-4b9b-b40c-4c56d136c63b/250x250/335",
       "timestamp_manual": null,
       "nom_manual": null,
       "yt_url": null
@@ -49,6 +49,24 @@
     },
     {
       "pos": 6,
+      "nom": "LIVE FOREVER",
+      "artista": "Aversion",
+      "cover_url": "https://hardstyle.com/track_image/289558c9-6b3d-4a3f-8d29-e326fac6909e/250x250/375",
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 7,
+      "nom": "Vibrate",
+      "artista": "Rejecta",
+      "cover_url": "https://hardstyle.com/track_image/f5f3f46d-9d4e-4b0b-9cdb-9080ba97aa3c/250x250/375",
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 8,
       "nom": "Built 2 Break",
       "artista": "Dual Damage",
       "cover_url": "https://hardstyle.com/track_image/06c4ddc3-9bb2-4211-a270-8bddee4d3189/250x250/375",
@@ -57,37 +75,19 @@
       "yt_url": null
     },
     {
-      "pos": 7,
-      "nom": "Dancefloor Therapy",
-      "artista": "Da Tweekaz",
-      "cover_url": "https://hardstyle.com/track_image/b34caf61-6c43-4474-9e55-746805b231cb/250x250/375",
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 8,
-      "nom": "Tomorrow Can Wait",
-      "artista": "D-Block & S-te-Fan",
-      "cover_url": "https://hardstyle.com/track_image/6517102b-5269-48a0-867b-a3541e58ed59/250x250/375",
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
       "pos": 9,
-      "nom": "HATE",
-      "artista": "DEEZL",
-      "cover_url": "https://hardstyle.com/track_image/9ab21baf-2ca5-4b9b-b40c-4c56d136c63b/250x250/335",
+      "nom": "In The Cold",
+      "artista": "Atmozfears",
+      "cover_url": "https://hardstyle.com/track_image/b92a56ab-477e-4a3a-8acb-b1dc0ef79fce/250x250/375",
       "timestamp_manual": null,
       "nom_manual": null,
       "yt_url": null
     },
     {
       "pos": 10,
-      "nom": "DREAMING",
-      "artista": "Mutilator",
-      "cover_url": "https://hardstyle.com/track_image/ac614613-a675-4ac9-a54c-dc23d1e79fad/250x250/375",
+      "nom": "2001",
+      "artista": "TNT",
+      "cover_url": "https://hardstyle.com/track_image/f0d61423-800b-4267-9db0-2bf2a380e6db/250x250/375",
       "timestamp_manual": null,
       "nom_manual": null,
       "yt_url": null
