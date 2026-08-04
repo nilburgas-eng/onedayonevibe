@@ -217,6 +217,14 @@ function renderTracks() {
                     ${t.video_manual ? '✅ Video manual: ' + t.video_manual.split('/').pop() + ' (té prioritat sobre YouTube)' : ''}
                 </div>
             </div>
+            <div class="track-full">
+                <label style="margin-top:6px;">🖼️ Portada pròpia (opcional, per exemple si canvies el tema)</label>
+                <input type="file" accept="image/*" onchange="pujarPortadaManual(${i}, this)" />
+                <div id="cover-status-${i}" style="font-size:12px;color:${(t.cover_manual || t.cover_none) ? '#00ff88' : '#666'};margin-top:-6px;margin-bottom:6px;">
+                    ${t.cover_manual ? '✅ Portada manual: ' + t.cover_manual.split('/').pop() : (t.cover_none ? '🚫 Sense portada (marcat manualment)' : '')}
+                </div>
+                <button type="button" onclick="treurePortada(${i})" style="background:#2a2a2a;color:#999;border:1px solid #444;border-radius:6px;padding:6px 10px;font-size:12px;cursor:pointer;margin-bottom:10px;">🗑️ Treure portada d'aquesta pista</button>
+            </div>
         `;
         cont.appendChild(div);
     });
@@ -278,6 +286,66 @@ async function pujarVideoManual(i, inputEl) {
     }
 }
 
+async function pujarPortadaManual(i, inputEl) {
+    const file = inputEl.files[0];
+    if (!file) return;
+    if (file.size > 15 * 1024 * 1024) {
+        mostrarStatus('❌ Imatge massa gran (màxim ~15MB)', 'error');
+        inputEl.value = '';
+        return;
+    }
+    mostrarStatus(`⏳ Pujant portada...`, 'info');
+    try {
+        const base64 = await new Promise((res, rej) => {
+            const reader = new FileReader();
+            reader.onload = () => res(reader.result.split(',')[1]);
+            reader.onerror = () => rej(new Error('Error llegint el fitxer'));
+            reader.readAsDataURL(file);
+        });
+        const extensio = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+        const nomFitxer = `pos${tracksActuals[i].pos}_${Date.now()}.${extensio}`;
+        const path = `manual_covers/${nomFitxer}`;
+        const r = await fetch(
+            `https://api.github.com/repos/${GITHUB_REPO}/contents/${path}`,
+            {
+                method: 'PUT',
+                headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message: `Portada manual pista #${tracksActuals[i].pos}`,
+                    content: base64,
+                    branch: 'main'
+                })
+            }
+        );
+        if (r.status === 201 || r.status === 200) {
+            tracksActuals[i].cover_manual = path;
+            tracksActuals[i].cover_none = false;
+            const statusEl = document.getElementById(`cover-status-${i}`);
+            if (statusEl) {
+                statusEl.style.color = '#00ff88';
+                statusEl.innerHTML = `✅ Portada manual: ${nomFitxer}`;
+            }
+            mostrarStatus('✅ Portada pujada correctament!', 'ok');
+        } else {
+            const err = await r.json().catch(() => ({}));
+            mostrarStatus(`❌ Error pujant portada (${r.status}): ${err.message || ''}`, 'error');
+        }
+    } catch (e) {
+        mostrarStatus('❌ Error: ' + e.message, 'error');
+    }
+}
+
+function treurePortada(i) {
+    tracksActuals[i].cover_manual = null;
+    tracksActuals[i].cover_none = true;
+    const statusEl = document.getElementById(`cover-status-${i}`);
+    if (statusEl) {
+        statusEl.style.color = '#00ff88';
+        statusEl.innerHTML = `🚫 Sense portada (marcat manualment)`;
+    }
+    mostrarStatus('✅ Aquesta pista sortirà sense portada superposada', 'ok');
+}
+
 function eliminarTrack(i) {
     tracksActuals.splice(i, 1);
     tracksActuals.forEach((t, idx) => t.pos = idx + 1);
@@ -288,19 +356,24 @@ function afegirTrack() {
     tracksActuals.push({
         pos: tracksActuals.length + 1,
         nom: '', artista: '', cover_url: null,
-        timestamp_manual: null, nom_manual: null, yt_url: null, video_manual: null
+        timestamp_manual: null, nom_manual: null, yt_url: null,
+        video_manual: null, cover_manual: null, cover_none: false
     });
     renderTracks();
 }
 
 function obrirYoutube(i) {
     const t = tracksActuals[i];
-    if (t.yt_url) {
-        window.open(t.yt_url, '_blank');
-    } else {
-        const q = encodeURIComponent(`${t.artista} ${t.nom} official video`);
-        window.open(`https://www.youtube.com/results?search_query=${q}`, '_blank');
-    }
+    const url = t.yt_url
+        ? t.yt_url
+        : `https://www.youtube.com/results?search_query=${encodeURIComponent(`${t.artista} ${t.nom} official video`)}`;
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
 }
 
 function netejarTracks() {
@@ -310,6 +383,8 @@ function netejarTracks() {
         if (t.timestamp_manual !== null && t.timestamp_manual !== undefined) o.timestamp_manual = t.timestamp_manual;
         if (t.yt_url) o.yt_url = t.yt_url;
         if (t.video_manual) o.video_manual = t.video_manual;
+        if (t.cover_manual) o.cover_manual = t.cover_manual;
+        if (t.cover_none) o.cover_none = true;
         return o;
     });
 }
