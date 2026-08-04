@@ -175,22 +175,31 @@ for track in tracks:
     thumb_path = os.path.expanduser(f"~/videos/{pos:02d}_thumb.jpg")
     os.makedirs(os.path.expanduser("~/videos"), exist_ok=True)
 
-    cover_url = track.get('cover_url')
-    if cover_url:
-        try:
-            cover_data = requests.get(cover_url, timeout=15).content
-            if cover_data and len(cover_data) > 1000:
+    cover_manual = track.get('cover_manual')
+    cover_none   = track.get('cover_none', False)
+
+    if cover_manual and os.path.exists(cover_manual) and os.path.getsize(cover_manual) > 1000:
+        shutil.copy(cover_manual, thumb_path)
+        print(f"   Portada manual OK ({cover_manual})")
+    elif not cover_none:
+        cover_url = track.get('cover_url')
+        if cover_url:
+            try:
+                cover_data = requests.get(cover_url, timeout=15).content
+                if cover_data and len(cover_data) > 1000:
+                    with open(thumb_path, 'wb') as f:
+                        f.write(cover_data)
+                    print(f"   Portada directa OK")
+            except:
+                pass
+        if (not os.path.exists(thumb_path) or os.path.getsize(thumb_path) < 1000) and spotify_token:
+            cover_data = get_spotify_cover(nom, artista, spotify_token)
+            if cover_data:
                 with open(thumb_path, 'wb') as f:
                     f.write(cover_data)
-                print(f"   Portada directa OK")
-        except:
-            pass
-    if (not os.path.exists(thumb_path) or os.path.getsize(thumb_path) < 1000) and spotify_token:
-        cover_data = get_spotify_cover(nom, artista, spotify_token)
-        if cover_data:
-            with open(thumb_path, 'wb') as f:
-                f.write(cover_data)
-            print(f"   Portada Spotify OK")
+                print(f"   Portada Spotify OK")
+    else:
+        print(f"   Sense portada (marcat manualment)")
 
     if video_manual:
         print(f"   Video manual (fitxer pujat al repo): {video_manual}")
