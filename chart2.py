@@ -1,4 +1,4 @@
-import os, json, re, subprocess, base64
+import os, json, re, subprocess, base64, shutil
 import librosa, numpy as np
 from scipy.signal import find_peaks, butter, filtfilt
 import requests
@@ -162,6 +162,7 @@ for track in tracks:
     nom              = track['nom']
     artista          = track.get('artista', '')
     yt_url           = track.get('yt_url')
+    video_manual     = track.get('video_manual')
     timestamp_manual = track.get('timestamp_manual')
     nom_manual       = track.get('nom_manual')
     durada           = DURADA_TOP1 if pos == 1 else DURADA_CLIP
@@ -191,14 +192,22 @@ for track in tracks:
                 f.write(cover_data)
             print(f"   Portada Spotify OK")
 
-    if yt_url:
+    if video_manual:
+        print(f"   Video manual (fitxer pujat al repo): {video_manual}")
+        if os.path.exists(video_manual) and os.path.getsize(video_manual) > 10000:
+            shutil.copy(video_manual, video_path)
+            ret = 0
+        else:
+            print(f"   ERROR: no s'ha trobat {video_manual} al checkout del repo")
+            ret = 1
+    elif yt_url:
         font = yt_url
         print(f"   URL manual: {yt_url}")
+        ret = os.system(f'yt-dlp -f "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best[ext=mp4]/best" --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{font}" --no-playlist -q')
     else:
         font = f"ytsearch1:{artista} {nom} official video"
         print(f"   Cerca: {artista} {nom}")
-
-    ret = os.system(f'yt-dlp -f "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best[ext=mp4]/best" --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{font}" --no-playlist -q')
+        ret = os.system(f'yt-dlp -f "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best[ext=mp4]/best" --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{font}" --no-playlist -q')
 
     if ret != 0 or not os.path.exists(video_path) or os.path.getsize(video_path) < 10000:
         print(f"   No s'ha trobat videoclip - usant portada")
