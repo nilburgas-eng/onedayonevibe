@@ -354,7 +354,7 @@ for track in tracks:
     if titol_l2_net:
         txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{titol_l2_net}':fontsize={mida_titol}:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1B}")
     if subtitol_net:
-        txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{subtitol_net}':fontsize={mida_subtitol}:fontcolor=white@0.85:borderw=2:bordercolor=black@0.6:x=(w-text_w)/2:y={Y_TITOL2}")
+        txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{subtitol_net}':fontsize={mida_subtitol}:fontcolor={COLOR_ACCENT}:borderw=2:bordercolor=black@0.6:x=(w-text_w)/2:y={Y_TITOL2}")
     txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='#{pos}':fontsize=130:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=3:x={X_INFO}:y={Y_NUM}")
     txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia1}':fontsize=56:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM1}")
     if nom_linia2:
