@@ -83,6 +83,19 @@ def get_spotify_cover(nom_canco, artista, token):
         pass
     return None
 
+def get_spotify_artist_image(artista, token):
+    if not artista:
+        return None
+    try:
+        headers = {"Authorization": f"Bearer {token}"}
+        r = requests.get(f"https://api.spotify.com/v1/search?q={requests.utils.quote(artista)}&type=artist&limit=1", headers=headers)
+        items = r.json().get('artists', {}).get('items', [])
+        if items and items[0].get('images'):
+            return requests.get(items[0]['images'][0]['url']).content
+    except:
+        pass
+    return None
+
 def get_youtube_thumbnail(yt_url):
     if not yt_url:
         return None
@@ -204,11 +217,9 @@ for t in tracks:
     print(f"  #{t['pos']}: {t['nom']} - {t['artista']}")
 
 print(f"\nFont de portades: {COVER_FONT}")
-spotify_token = None
-if COVER_FONT != 'youtube':
-    print("Obtenint token de Spotify...")
-    spotify_token = get_spotify_token()
-    print("Token OK" if spotify_token else "Sense token Spotify")
+print("Obtenint token de Spotify...")
+spotify_token = get_spotify_token()
+print("Token OK" if spotify_token else "Sense token Spotify")
 
 mida_titol, linies_titol = ajustar_text(TITOL_ENV, FONT_EXTRABOLD, AMPLE_MAX_TITOL, MIDES_TITOL)
 titol_l1 = linies_titol[0]
@@ -271,6 +282,13 @@ for track in tracks:
                     with open(thumb_path, 'wb') as f:
                         f.write(cover_data)
                     print(f"   Portada Spotify OK")
+
+        if (not os.path.exists(thumb_path) or os.path.getsize(thumb_path) < 1000) and spotify_token:
+            cover_data = get_spotify_artist_image(artista, spotify_token)
+            if cover_data:
+                with open(thumb_path, 'wb') as f:
+                    f.write(cover_data)
+                print(f"   Portada de l'artista a Spotify OK (fallback)")
     else:
         print(f"   Sense portada (marcat manualment)")
 
