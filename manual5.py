@@ -58,7 +58,7 @@ Y_OUTRO2 = 1618
 AMPLE_MAX_TITOL    = 900   # marge de seguretat dins dels 1080px d'ample
 AMPLE_MAX_SUBTITOL = 900
 MIDES_TITOL        = [68, 62, 56, 50, 44, 38]
-MIDES_SUBTITOL     = [32, 28, 25, 22]
+MIDES_SUBTITOL     = [26, 24, 22, 20]
 
 
 def get_spotify_token():
@@ -210,10 +210,10 @@ if COVER_FONT != 'youtube':
     spotify_token = get_spotify_token()
     print("Token OK" if spotify_token else "Sense token Spotify")
 
-mida_titol, linies_titol = ajustar_text(TITOL_ENV, FONT_BEBAS, AMPLE_MAX_TITOL, MIDES_TITOL)
+mida_titol, linies_titol = ajustar_text(TITOL_ENV, FONT_EXTRABOLD, AMPLE_MAX_TITOL, MIDES_TITOL)
 titol_l1 = linies_titol[0]
 titol_l2 = linies_titol[1] if len(linies_titol) > 1 else None
-mida_subtitol, linies_subtitol = ajustar_text(SUBTITOL_ENV, FONT_SEMIBOLD, AMPLE_MAX_SUBTITOL, MIDES_SUBTITOL) if SUBTITOL_ENV else (28, [''])
+mida_subtitol, linies_subtitol = ajustar_text(SUBTITOL_ENV.upper(), FONT_SEMIBOLD, AMPLE_MAX_SUBTITOL, MIDES_SUBTITOL) if SUBTITOL_ENV else (24, [''])
 subtitol_disp = linies_subtitol[0]
 
 print(f"Titol: '{titol_l1}'" + (f" / '{titol_l2}'" if titol_l2 else "") + f" (mida {mida_titol})")
@@ -350,11 +350,11 @@ for track in tracks:
     txt = []
     txt.append(f"drawbox=x=0:y=0:w=1080:h=440:color=black@0.24:t=fill")
     txt.append(f"drawbox=x=0:y=1580:w=1080:h=340:color=black@0.18:t=fill")
-    txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol_l1_net}':fontsize={mida_titol}:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
+    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{titol_l1_net}':fontsize={mida_titol}:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
     if titol_l2_net:
-        txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol_l2_net}':fontsize={mida_titol}:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1B}")
+        txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{titol_l2_net}':fontsize={mida_titol}:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1B}")
     if subtitol_net:
-        txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{subtitol_net}':fontsize={mida_subtitol}:fontcolor={COLOR_ACCENT}:borderw=2:bordercolor=black@0.6:x=(w-text_w)/2:y={Y_TITOL2}")
+        txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{subtitol_net}':fontsize={mida_subtitol}:fontcolor=white@0.85:borderw=2:bordercolor=black@0.6:x=(w-text_w)/2:y={Y_TITOL2}")
     txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='#{pos}':fontsize=130:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=3:x={X_INFO}:y={Y_NUM}")
     txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia1}':fontsize=56:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM1}")
     if nom_linia2:
