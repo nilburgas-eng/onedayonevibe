@@ -1,4 +1,4 @@
-import os, json, re, subprocess, base64
+import os, json, re, subprocess, base64, shutil
 import librosa, numpy as np
 from scipy.signal import find_peaks, butter, filtfilt
 import requests
@@ -23,6 +23,7 @@ for font_path in [FONT_BEBAS, FONT_SEMIBOLD, FONT_EXTRABOLD, FONT_MEDIUM]:
 ESTIL             = os.environ.get('ESTIL', 'energetic')
 FANOF             = os.environ.get('FANOF', 'HARDSTYLE')
 PART              = os.environ.get('PART', '1')
+COVER_FONT        = os.environ.get('COVER_FONT', 'spotify')   # 'spotify' o 'youtube'
 SPOTIFY_CLIENT_ID = os.environ.get('SPOTIFY_CLIENT_ID', '')
 SPOTIFY_SECRET    = os.environ.get('SPOTIFY_CLIENT_SECRET', '')
 COMPTE            = "@onedayonevibe"
@@ -87,6 +88,35 @@ def get_spotify_cover(nom_canco, artista, token):
             return requests.get(items[0]['album']['images'][0]['url']).content
     except:
         pass
+    return None
+
+def get_spotify_artist_image(artista, token):
+    if not artista:
+        return None
+    try:
+        headers = {"Authorization": f"Bearer {token}"}
+        r = requests.get(f"https://api.spotify.com/v1/search?q={requests.utils.quote(artista)}&type=artist&limit=1", headers=headers)
+        items = r.json().get('artists', {}).get('items', [])
+        if items and items[0].get('images'):
+            return requests.get(items[0]['images'][0]['url']).content
+    except:
+        pass
+    return None
+
+def get_youtube_thumbnail(yt_url):
+    if not yt_url:
+        return None
+    m = re.search(r'(?:v=|youtu\.be/|shorts/|embed/)([A-Za-z0-9_-]{11})', yt_url)
+    if not m:
+        return None
+    vid = m.group(1)
+    for qualitat in ['maxresdefault', 'hqdefault']:
+        try:
+            r = requests.get(f"https://img.youtube.com/vi/{vid}/{qualitat}.jpg", timeout=15)
+            if r.status_code == 200 and len(r.content) > 2000:
+                return r.content
+        except:
+            pass
     return None
 
 def partir_nom(nom, max_chars=22):
@@ -186,12 +216,46 @@ for track in tracks:
     thumb_path = os.path.expanduser(f"~/videos/{pos:02d}_thumb.jpg")
     os.makedirs(os.path.expanduser("~/videos"), exist_ok=True)
 
-    if spotify_token:
-        cover_data = get_spotify_cover(nom, artista, spotify_token)
-        if cover_data:
-            with open(thumb_path, 'wb') as f:
-                f.write(cover_data)
-            print(f"   Portada Spotify OK")
+    cover_manual = track.get('cover_manual')
+    cover_none   = track.get('cover_none', False)
+
+    if cover_manual and cover_manual.startswith('http'):
+        try:
+            cover_data = requests.get(cover_manual, timeout=30).content
+            if cover_data and len(cover_data) > 500:
+                with open(thumb_path, 'wb') as f:
+                    f.write(cover_data)
+                print(f"   Portada manual OK ({cover_manual})")
+        except Exception as e:
+            print(f"   ERROR descarregant portada manual: {e}")
+    elif cover_manual and os.path.exists(cover_manual) and os.path.getsize(cover_manual) > 1000:
+        shutil.copy(cover_manual, thumb_path)
+        print(f"   Portada manual OK ({cover_manual})")
+    elif not cover_none:
+        if COVER_FONT == 'youtube':
+            cover_data = get_youtube_thumbnail(yt_url)
+            if cover_data:
+                with open(thumb_path, 'wb') as f:
+                    f.write(cover_data)
+                print(f"   Portada YouTube OK")
+            else:
+                print(f"   Sense miniatura de YouTube disponible")
+        else:
+            if spotify_token:
+                cover_data = get_spotify_cover(nom, artista, spotify_token)
+                if cover_data:
+                    with open(thumb_path, 'wb') as f:
+                        f.write(cover_data)
+                    print(f"   Portada Spotify OK")
+
+        if (not os.path.exists(thumb_path) or os.path.getsize(thumb_path) < 1000) and spotify_token:
+            cover_data = get_spotify_artist_image(artista, spotify_token)
+            if cover_data:
+                with open(thumb_path, 'wb') as f:
+                    f.write(cover_data)
+                print(f"   Portada de l'artista a Spotify OK (fallback)")
+    else:
+        print(f"   Sense portada (marcat manualment)")
 
     if yt_url:
         font = yt_url
