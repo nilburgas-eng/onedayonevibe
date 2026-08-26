@@ -18,6 +18,10 @@ on:
         description: 'Estil: energetic, melodic o vocal'
         required: false
         default: 'energetic'
+      cover_font:
+        description: 'Portades: spotify o youtube'
+        required: false
+        default: 'spotify'
 
 jobs:
   generar:
@@ -85,6 +89,7 @@ jobs:
           FANOF: ${{ github.event.inputs.fanof }}
           PART: ${{ github.event.inputs.part }}
           ESTIL: ${{ github.event.inputs.estil }}
+          COVER_FONT: ${{ github.event.inputs.cover_font }}
           SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
           SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
         run: python3 iconic.py
