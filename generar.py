@@ -34,6 +34,12 @@ DURADA_CLIP      = 10
 DURADA_OUTRO     = 2.0
 FADE_DURADA      = 0.3
 VIDEO_OPTS = "-c:v libx264 -preset slow -crf 18 -pix_fmt yuv420p"
+
+LOGO_PATH    = "logo.png"
+LOGO_W       = 90
+LOGO_OPACITY = 0.6
+LOGO_MARGIN  = 30
+LOGO_ACTIU   = os.path.exists(LOGO_PATH)
 PADDING_X        = 100
 Y_TITOL1         = 260
 Y_TITOL2         = 340
@@ -471,6 +477,8 @@ for clip in clips_info:
     if FORCAR_INICI.get(numero, False):
         inici = t
 
+    inici = max(0, min(inici, DURADA_VIDEO - durada - 0.5))
+
     output_path = f"{OUTPUT}/clip_{posicio:02d}.mp4"
     titol1 = TITOL_LINIA1.upper().replace("'", "").replace('"', '')
     titol2 = TITOL_LINIA2.upper().replace("'", "").replace('"', '')
@@ -498,17 +506,48 @@ for clip in clips_info:
         filtres.append("drawtext=fontfile='" + FONT_MEDIUM + "':text='Electronic Vibes Daily':fontsize=30:fontcolor=0x00BFFF@0.75:shadowcolor=black@0.20:shadowx=0:shadowy=1:x=(w-text_w)/2:y=(h/2)+248:enable='gte(t," + str(t_aparicio) + ")'")
 
     vf = ",".join(filtres)
-    cmd = f'ffmpeg -ss {inici} -i "{INPUT}/set.mp4" -t {durada} -vf "crop=ih*9/16:ih:(iw-ih*9/16)/2:0,scale=1080:1920,setsar=1,colorchannelmixer=ra=0.85:ga=0.85:ba=0.85,{vf}" {VIDEO_OPTS} -c:a aac -b:a 192k "{output_path}" -y -loglevel error'
+    fc = f'[0:v]crop=ih*9/16:ih:(iw-ih*9/16)/2:0,scale=1080:1920,setsar=1,colorchannelmixer=ra=0.85:ga=0.85:ba=0.85,{vf}[out]'
+    inputs = f'-ss {inici} -i "{INPUT}/set.mp4"'
+    if LOGO_ACTIU:
+        fc += f";[1:v]scale={LOGO_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo];[out][logo]overlay=W-w-{LOGO_MARGIN}:{LOGO_MARGIN}[final]"
+        inputs += f' -i "{LOGO_PATH}"'
+        mapa_final = "[final]"
+    else:
+        mapa_final = "[out]"
+    cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map 0:a {VIDEO_OPTS} -c:a aac -b:a 192k "{output_path}" -y -loglevel error'
     os.system(cmd)
+
+    clip_valid = False
+    if os.path.exists(output_path) and os.path.getsize(output_path) > 1000:
+        r_check = subprocess.run(["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", output_path], capture_output=True, text=True)
+        info_check = json.loads(r_check.stdout) if r_check.stdout else {}
+        if 'format' in info_check and 'duration' in info_check['format'] and float(info_check['format']['duration']) > 0.5:
+            clip_valid = True
+
+    if not clip_valid:
+        print(f"   AVIS: clip {posicio} (#{numero}) ha sortit buit/trencat (inici={inici:.1f}s, durada={durada}s, video={DURADA_VIDEO:.1f}s) - es descarta")
+        continue
+
     clips_paths.append(output_path)
     print(f"Clip {posicio} generat")
 
 print("Muntant video final...")
+clips_valids = []
 durades = []
 for path in clips_paths:
     r = subprocess.run(["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", path], capture_output=True, text=True)
-    d = float(json.loads(r.stdout)['format']['duration'])
-    durades.append(d)
+    info_dur = json.loads(r.stdout) if r.stdout else {}
+    if 'format' not in info_dur or 'duration' not in info_dur['format']:
+        print(f"   ERROR: {path} no te durada valida, es descarta del muntatge final")
+        continue
+    clips_valids.append(path)
+    durades.append(float(info_dur['format']['duration']))
+
+clips_paths = clips_valids
+
+if len(clips_paths) < 2:
+    print("ERROR: no hi ha prou clips valids per muntar el video final")
+    exit(1)
 
 n_clips = len(clips_paths)
 inputs_str = " ".join([f"-i '{p}'" for p in clips_paths])
