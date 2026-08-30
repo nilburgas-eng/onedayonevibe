@@ -45,6 +45,12 @@ Y_NUM    = 470
 Y_NOM1   = 610
 Y_NOM2   = 680
 Y_TITOL1 = 180
+
+LOGO_PATH    = "logo.png"
+LOGO_W       = 90
+LOGO_OPACITY = 0.85
+LOGO_MARGIN  = 30
+LOGO_ACTIU   = os.path.exists(LOGO_PATH)
 Y_TITOL2 = 258
 Y_SETMANA = 318
 Y_MOV    = 800
@@ -387,7 +393,14 @@ for track in tracks:
             "[withcover]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored];"
             "[colored]{txt}[out]"
         ).format(cw=COVER_W, ch=COVER_H, cx=COVER_X, cy=COVER_Y, txt=txt_str)
-        cmd = f'ffmpeg -ss {inici} -i "{video_path}" -i "{thumb_path}" -t {durada} -filter_complex "{fc}" -map "[out]" -map 0:a -c:v libx264 -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
+        inputs = f'-ss {inici} -i "{video_path}" -i "{thumb_path}"'
+        if LOGO_ACTIU:
+            fc += f";[2:v]scale={LOGO_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo];[out][logo]overlay=W-w-{LOGO_MARGIN}:{LOGO_MARGIN}[final]"
+            inputs += f' -i "{LOGO_PATH}"'
+            mapa_final = "[final]"
+        else:
+            mapa_final = "[out]"
+        cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map 0:a -c:v libx264 -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
     else:
         fc = (
             "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
@@ -395,7 +408,14 @@ for track in tracks:
             "[bg]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored];"
             "[colored]{txt}[out]"
         ).format(txt=txt_str)
-        cmd = f'ffmpeg -ss {inici} -i "{video_path}" -t {durada} -filter_complex "{fc}" -map "[out]" -map 0:a -c:v libx264 -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
+        inputs = f'-ss {inici} -i "{video_path}"'
+        if LOGO_ACTIU:
+            fc += f";[1:v]scale={LOGO_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo];[out][logo]overlay=W-w-{LOGO_MARGIN}:{LOGO_MARGIN}[final]"
+            inputs += f' -i "{LOGO_PATH}"'
+            mapa_final = "[final]"
+        else:
+            mapa_final = "[out]"
+        cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map 0:a -c:v libx264 -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
 
     os.system(cmd)
     clips_paths.append((pos, output_path))
@@ -439,4 +459,3 @@ output_final = f"{OUTPUT}/chart_final.mp4"
 cmd = f'ffmpeg {inputs_str} -filter_complex "{filter_complex}" -map "[vfinal]" -map "[afinal]" -c:v libx264 -c:a aac -b:a 192k "{output_final}" -y -loglevel error'
 os.system(cmd)
 print("Video final generat!")
-
