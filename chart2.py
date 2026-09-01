@@ -35,12 +35,6 @@ VIDEO_OPTS = "-c:v libx264 -preset slow -crf 18 -pix_fmt yuv420p"
 
 COLOR_ACCENT = "0x00BFFF"
 
-LOGO_PATH    = "logo.png"
-LOGO_W       = 90
-LOGO_OPACITY = 0.6
-LOGO_MARGIN  = 30
-LOGO_ACTIU   = os.path.exists(LOGO_PATH)
-
 COVER_W  = 280
 COVER_H  = 280
 COVER_X  = 90
@@ -51,13 +45,14 @@ Y_NOM1   = 640
 Y_NOM2   = 710
 Y_TITOL1  = 260
 Y_TITOL1B = 330
-Y_TITOL2  = 400  
+Y_TITOL2  = 400
 Y_ARTISTA = 790
 Y_BAR    = 870
 BAR_X    = 90
 BAR_W    = 980
 Y_OUTRO  = 1560
 Y_OUTRO2 = 1618
+
 
 def get_spotify_token():
     try:
@@ -68,6 +63,7 @@ def get_spotify_token():
         return r.json().get('access_token')
     except:
         return None
+
 
 def get_spotify_cover(nom_canco, artista, token):
     try:
@@ -81,6 +77,24 @@ def get_spotify_cover(nom_canco, artista, token):
         pass
     return None
 
+
+def get_youtube_thumbnail(yt_url):
+    if not yt_url:
+        return None
+    m = re.search(r'(?:v=|youtu\.be/|shorts/|embed/)([A-Za-z0-9_-]{11})', yt_url)
+    if not m:
+        return None
+    vid = m.group(1)
+    for qualitat in ['maxresdefault', 'hqdefault']:
+        try:
+            r = requests.get(f"https://img.youtube.com/vi/{vid}/{qualitat}.jpg", timeout=15)
+            if r.status_code == 200 and len(r.content) > 2000:
+                return r.content
+        except:
+            pass
+    return None
+
+
 def partir_nom(nom, max_chars=22):
     if len(nom) <= max_chars:
         return nom, ""
@@ -88,6 +102,7 @@ def partir_nom(nom, max_chars=22):
     if idx == -1:
         idx = max_chars
     return nom[:idx].strip(), nom[idx:].strip()
+
 
 def trobar_moment_impactant(audio_path, duracio_total, estil='energetic'):
     try:
@@ -131,6 +146,7 @@ def trobar_moment_impactant(audio_path, duracio_total, estil='energetic'):
     except Exception as e:
         print(f"   Error deteccio: {e}")
         return 30.0
+
 
 TRACKS_RAW = os.environ.get('TRACKS', '')
 print("Carregant tracks rebuts...")
@@ -181,10 +197,20 @@ for track in tracks:
     thumb_path = os.path.expanduser(f"~/videos/{pos:02d}_thumb.jpg")
     os.makedirs(os.path.expanduser("~/videos"), exist_ok=True)
 
+    # ---------- PORTADA ----------
     cover_manual = track.get('cover_manual')
     cover_none   = track.get('cover_none', False)
 
-    if cover_manual and os.path.exists(cover_manual) and os.path.getsize(cover_manual) > 1000:
+    if cover_manual and cover_manual.startswith('http'):
+        try:
+            cover_data = requests.get(cover_manual, timeout=30).content
+            if cover_data and len(cover_data) > 500:
+                with open(thumb_path, 'wb') as f:
+                    f.write(cover_data)
+                print(f"   Portada manual OK ({cover_manual})")
+        except Exception as e:
+            print(f"   ERROR descarregant portada manual: {e}")
+    elif cover_manual and os.path.exists(cover_manual) and os.path.getsize(cover_manual) > 1000:
         shutil.copy(cover_manual, thumb_path)
         print(f"   Portada manual OK ({cover_manual})")
     elif not cover_none:
@@ -204,16 +230,42 @@ for track in tracks:
                 with open(thumb_path, 'wb') as f:
                     f.write(cover_data)
                 print(f"   Portada Spotify OK")
+        if not os.path.exists(thumb_path) or os.path.getsize(thumb_path) < 1000:
+            cover_data = get_youtube_thumbnail(yt_url)
+            if cover_data:
+                with open(thumb_path, 'wb') as f:
+                    f.write(cover_data)
+                print(f"   Portada YouTube OK (fallback)")
+            else:
+                print(f"   AVIS: cap portada trobada per aquest track")
     else:
         print(f"   Sense portada (marcat manualment)")
 
+    # ---------- VIDEO ----------
     if video_manual:
-        print(f"   Video manual (fitxer pujat al repo): {video_manual}")
-        if os.path.exists(video_manual) and os.path.getsize(video_manual) > 10000:
+        print(f"   Video manual: {video_manual}")
+        if video_manual.startswith('http'):
+            ret = 1
+            try:
+                r = requests.get(video_manual, timeout=180, stream=True)
+                if r.status_code == 200:
+                    with open(video_path, 'wb') as f:
+                        for chunk in r.iter_content(chunk_size=1024 * 1024):
+                            if chunk:
+                                f.write(chunk)
+                    if os.path.getsize(video_path) > 10000:
+                        ret = 0
+                    else:
+                        print(f"   ERROR: video manual descarregat buit")
+                else:
+                    print(f"   ERROR descarregant video manual: HTTP {r.status_code}")
+            except Exception as e:
+                print(f"   ERROR descarregant video manual: {e}")
+        elif os.path.exists(video_manual) and os.path.getsize(video_manual) > 10000:
             shutil.copy(video_manual, video_path)
             ret = 0
         else:
-            print(f"   ERROR: no s'ha trobat {video_manual} al checkout del repo")
+            print(f"   ERROR: no s'ha trobat {video_manual}")
             ret = 1
     elif yt_url:
         font = yt_url
@@ -231,6 +283,11 @@ for track in tracks:
             os.system(f'ffmpeg -loop 1 -i "{thumb_path}" -f lavfi -i anullsrc=r=44100:cl=stereo -t {durada} -vf "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,fps=30" {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 -shortest "{output_path}" -y -loglevel error')
         else:
             os.system(f'ffmpeg -f lavfi -i color=c=black:s=1080x1920:d={durada} -f lavfi -i anullsrc=r=44100:cl=stereo -t {durada} -r 30 {VIDEO_OPTS} -c:a aac -b:a 192k -ar 44100 -shortest "{output_path}" -y -loglevel error')
+        mida = os.path.getsize(output_path) if os.path.exists(output_path) else 0
+        if mida > 1000:
+            print(f"   OK clip generat (fallback portada, {mida//1024} KB)")
+        else:
+            print(f"   ERROR: clip #{pos} no generat correctament (mida={mida})")
         clips_paths.append((pos, output_path))
         continue
 
@@ -294,15 +351,7 @@ for track in tracks:
             "[withcover]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored];"
             "[colored]{txt}[out]"
         ).format(cw=COVER_W, ch=COVER_H, cx=COVER_X, cy=COVER_Y, txt=txt_str)
-        inputs = f'-ss {inici} -i "{video_path}" -i "{thumb_path}"'
-        logo_idx = 2
-        if LOGO_ACTIU:
-            fc += f";[{logo_idx}:v]scale={LOGO_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo];[out][logo]overlay=W-w-{LOGO_MARGIN}:{LOGO_MARGIN}[final]"
-            inputs += f' -i "{LOGO_PATH}"'
-            mapa_final = "[final]"
-        else:
-            mapa_final = "[out]"
-        cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map 0:a {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
+        cmd = f'ffmpeg -ss {inici} -i "{video_path}" -i "{thumb_path}" -t {durada} -filter_complex "{fc}" -map "[out]" -map 0:a {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
     else:
         fc = (
             "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
@@ -310,25 +359,24 @@ for track in tracks:
             "[bg]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored];"
             "[colored]{txt}[out]"
         ).format(txt=txt_str)
-        inputs = f'-ss {inici} -i "{video_path}"'
-        logo_idx = 1
-        if LOGO_ACTIU:
-            fc += f";[{logo_idx}:v]scale={LOGO_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo];[out][logo]overlay=W-w-{LOGO_MARGIN}:{LOGO_MARGIN}[final]"
-            inputs += f' -i "{LOGO_PATH}"'
-            mapa_final = "[final]"
-        else:
-            mapa_final = "[out]"
-        cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map 0:a {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
+        cmd = f'ffmpeg -ss {inici} -i "{video_path}" -t {durada} -filter_complex "{fc}" -map "[out]" -map 0:a {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
 
     os.system(cmd)
+    mida = os.path.getsize(output_path) if os.path.exists(output_path) else 0
+    if mida > 1000:
+        print(f"   OK clip generat ({mida//1024} KB)")
+    else:
+        print(f"   ERROR: clip #{pos} no generat correctament (mida={mida})")
     clips_paths.append((pos, output_path))
-    print(f"   OK clip generat")
 
+# ---------- MUNTATGE FINAL ----------
 clips_paths.sort(key=lambda x: x[0], reverse=True)
 clips_valids = []
 for pos, path in clips_paths:
     if os.path.exists(path) and os.path.getsize(path) > 1000:
         clips_valids.append(path)
+    else:
+        print(f"   Clip #{pos} descartat: {path}")
 
 if len(clips_valids) < 2:
     print("ERROR: No hi ha prou clips valids")
@@ -359,5 +407,10 @@ for i in range(2, n_clips):
 filter_complex = ";".join(video_filters + audio_filters)
 output_final = f"{OUTPUT}/chart_final.mp4"
 cmd = f'ffmpeg {inputs_str} -filter_complex "{filter_complex}" -map "[vfinal]" -map "[afinal]" {VIDEO_OPTS} -c:a aac -b:a 192k "{output_final}" -y -loglevel error'
-os.system(cmd)
-print("Video final generat!")
+ret_final = os.system(cmd)
+if ret_final != 0 or not os.path.exists(output_final) or os.path.getsize(output_final) < 10000:
+    print(f"ERROR: muntatge final ha fallat (codi {ret_final})")
+else:
+    r = subprocess.run(["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", output_final], capture_output=True, text=True)
+    durada_total = float(json.loads(r.stdout)['format']['duration'])
+    print(f"Video final generat! Durada: {durada_total:.1f}s amb {n_clips} clips")
