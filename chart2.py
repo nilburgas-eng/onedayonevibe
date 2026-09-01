@@ -361,7 +361,7 @@ for track in tracks:
         ).format(txt=txt_str)
         cmd = f'ffmpeg -ss {inici} -i "{video_path}" -t {durada} -filter_complex "{fc}" -map "[out]" -map 0:a {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
 
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+    result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
     mida = os.path.getsize(output_path) if os.path.exists(output_path) else 0
     if mida > 1000:
         print(f"   OK clip generat ({mida//1024} KB)")
