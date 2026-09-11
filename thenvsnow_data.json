@@ -1,11 +1,11 @@
 {
-  "artista": "Afrojack",
-  "any_tall": 2018,
+  "artista": "Hardwell",
+  "any_tall": 2022,
   "tracks": [
     {
       "pos": 1,
-      "nom": "Ten Feet Tall",
-      "any": 2014,
+      "nom": "Spaceman",
+      "any": 2012,
       "era": "THEN",
       "cover_url": null,
       "timestamp_manual": null,
@@ -14,8 +14,8 @@
     },
     {
       "pos": 2,
-      "nom": "Hero",
-      "any": 2021,
+      "nom": "ACID",
+      "any": 2023,
       "era": "NOW",
       "cover_url": null,
       "timestamp_manual": null,
@@ -24,8 +24,8 @@
     },
     {
       "pos": 3,
-      "nom": "The Spark",
-      "any": 2014,
+      "nom": "Call Me A Spaceman - Radio Edit",
+      "any": 2008,
       "era": "THEN",
       "cover_url": null,
       "timestamp_manual": null,
@@ -34,8 +34,8 @@
     },
     {
       "pos": 4,
-      "nom": "Anywhere With You",
-      "any": 2021,
+      "nom": "Nothing Else Matters vs F*CKING SOCIETY - Hardwell Mashup",
+      "any": 2022,
       "era": "NOW",
       "cover_url": null,
       "timestamp_manual": null,
@@ -44,8 +44,8 @@
     },
     {
       "pos": 5,
-      "nom": "SummerThing!",
-      "any": 2015,
+      "nom": "Power",
+      "any": 2017,
       "era": "THEN",
       "cover_url": null,
       "timestamp_manual": null,
@@ -54,8 +54,8 @@
     },
     {
       "pos": 6,
-      "nom": "Our Time",
-      "any": 2025,
+      "nom": "I FEEL LIKE DANCING",
+      "any": 2022,
       "era": "NOW",
       "cover_url": null,
       "timestamp_manual": null,
@@ -64,8 +64,8 @@
     },
     {
       "pos": 7,
-      "nom": "Take Over Control (feat. Eva Simons)",
-      "any": 2011,
+      "nom": "Apollo - Radio Edit",
+      "any": 2015,
       "era": "THEN",
       "cover_url": null,
       "timestamp_manual": null,
@@ -74,28 +74,8 @@
     },
     {
       "pos": 8,
-      "nom": "All Night (feat. Ally Brooke)",
-      "any": 2020,
-      "era": "NOW",
-      "cover_url": null,
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 9,
-      "nom": "Do Or Die - Afrojack vs. THIRTY SECONDS TO MARS Remix",
-      "any": 2014,
-      "era": "THEN",
-      "cover_url": null,
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 10,
-      "nom": "Worlds On Fire (with R3HAB & Au/Ra)",
-      "any": 2022,
+      "nom": "Revolution",
+      "any": 2023,
       "era": "NOW",
       "cover_url": null,
       "timestamp_manual": null,
