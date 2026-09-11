@@ -1,6 +1,6 @@
 {
   "artista": "Hardwell",
-  "any_tall": 2022,
+  "any_tall": 2023,
   "tracks": [
     {
       "pos": 1,
@@ -34,46 +34,6 @@
     },
     {
       "pos": 4,
-      "nom": "Nothing Else Matters vs F*CKING SOCIETY - Hardwell Mashup",
-      "any": 2022,
-      "era": "NOW",
-      "cover_url": null,
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 5,
-      "nom": "Power",
-      "any": 2017,
-      "era": "THEN",
-      "cover_url": null,
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 6,
-      "nom": "I FEEL LIKE DANCING",
-      "any": 2022,
-      "era": "NOW",
-      "cover_url": null,
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 7,
-      "nom": "Apollo - Radio Edit",
-      "any": 2015,
-      "era": "THEN",
-      "cover_url": null,
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 8,
       "nom": "Revolution",
       "any": 2023,
       "era": "NOW",
