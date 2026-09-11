@@ -1,6 +1,6 @@
 {
   "artista": "Hardwell",
-  "any_tall": 2023,
+  "any_tall": 2024,
   "tracks": [
     {
       "pos": 1,
@@ -14,16 +14,6 @@
     },
     {
       "pos": 2,
-      "nom": "ACID",
-      "any": 2023,
-      "era": "NOW",
-      "cover_url": null,
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 3,
       "nom": "Call Me A Spaceman - Radio Edit",
       "any": 2008,
       "era": "THEN",
@@ -33,10 +23,30 @@
       "yt_url": null
     },
     {
+      "pos": 3,
+      "nom": "Power",
+      "any": 2017,
+      "era": "THEN",
+      "cover_url": null,
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
       "pos": 4,
-      "nom": "Revolution",
+      "nom": "Apollo - Radio Edit",
+      "any": 2015,
+      "era": "THEN",
+      "cover_url": null,
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 5,
+      "nom": "ACID",
       "any": 2023,
-      "era": "NOW",
+      "era": "THEN",
       "cover_url": null,
       "timestamp_manual": null,
       "nom_manual": null,
