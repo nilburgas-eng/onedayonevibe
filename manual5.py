@@ -35,13 +35,9 @@ FADE_DURADA       = 0.3
 
 VIDEO_OPTS = "-c:v libx264 -preset slow -crf 18 -pix_fmt yuv420p"
 
-COLOR_ACCENT = "0x00BFFF"
+SPEED_FACTOR = 1.03   # acceleracio subtil audio+video. 1.0 = desactivat
 
-LOGO_PATH    = "logo.png"
-LOGO_W       = 90
-LOGO_OPACITY = 0.6
-LOGO_MARGIN  = 30
-LOGO_ACTIU   = os.path.exists(LOGO_PATH)
+COLOR_ACCENT = "0x00BFFF"
 
 COVER_W  = 280
 COVER_H  = 280
@@ -64,7 +60,7 @@ Y_OUTRO2 = 1618
 AMPLE_MAX_TITOL    = 900   # marge de seguretat dins dels 1080px d'ample
 AMPLE_MAX_SUBTITOL = 900
 MIDES_TITOL        = [68, 62, 56, 50, 44, 38]
-MIDES_SUBTITOL     = [26, 24, 22, 20]
+MIDES_SUBTITOL     = [32, 28, 25, 22]
 
 
 def get_spotify_token():
@@ -85,19 +81,6 @@ def get_spotify_cover(nom_canco, artista, token):
         items = r.json().get('tracks', {}).get('items', [])
         if items:
             return requests.get(items[0]['album']['images'][0]['url']).content
-    except:
-        pass
-    return None
-
-def get_spotify_artist_image(artista, token):
-    if not artista:
-        return None
-    try:
-        headers = {"Authorization": f"Bearer {token}"}
-        r = requests.get(f"https://api.spotify.com/v1/search?q={requests.utils.quote(artista)}&type=artist&limit=1", headers=headers)
-        items = r.json().get('artists', {}).get('items', [])
-        if items and items[0].get('images'):
-            return requests.get(items[0]['images'][0]['url']).content
     except:
         pass
     return None
@@ -223,14 +206,16 @@ for t in tracks:
     print(f"  #{t['pos']}: {t['nom']} - {t['artista']}")
 
 print(f"\nFont de portades: {COVER_FONT}")
-print("Obtenint token de Spotify...")
-spotify_token = get_spotify_token()
-print("Token OK" if spotify_token else "Sense token Spotify")
+spotify_token = None
+if COVER_FONT != 'youtube':
+    print("Obtenint token de Spotify...")
+    spotify_token = get_spotify_token()
+    print("Token OK" if spotify_token else "Sense token Spotify")
 
-mida_titol, linies_titol = ajustar_text(TITOL_ENV, FONT_EXTRABOLD, AMPLE_MAX_TITOL, MIDES_TITOL)
+mida_titol, linies_titol = ajustar_text(TITOL_ENV, FONT_BEBAS, AMPLE_MAX_TITOL, MIDES_TITOL)
 titol_l1 = linies_titol[0]
 titol_l2 = linies_titol[1] if len(linies_titol) > 1 else None
-mida_subtitol, linies_subtitol = ajustar_text(SUBTITOL_ENV.upper(), FONT_SEMIBOLD, AMPLE_MAX_SUBTITOL, MIDES_SUBTITOL) if SUBTITOL_ENV else (24, [''])
+mida_subtitol, linies_subtitol = ajustar_text(SUBTITOL_ENV, FONT_SEMIBOLD, AMPLE_MAX_SUBTITOL, MIDES_SUBTITOL) if SUBTITOL_ENV else (28, [''])
 subtitol_disp = linies_subtitol[0]
 
 print(f"Titol: '{titol_l1}'" + (f" / '{titol_l2}'" if titol_l2 else "") + f" (mida {mida_titol})")
@@ -288,13 +273,6 @@ for track in tracks:
                     with open(thumb_path, 'wb') as f:
                         f.write(cover_data)
                     print(f"   Portada Spotify OK")
-
-        if (not os.path.exists(thumb_path) or os.path.getsize(thumb_path) < 1000) and spotify_token:
-            cover_data = get_spotify_artist_image(artista, spotify_token)
-            if cover_data:
-                with open(thumb_path, 'wb') as f:
-                    f.write(cover_data)
-                print(f"   Portada de l'artista a Spotify OK (fallback)")
     else:
         print(f"   Sense portada (marcat manualment)")
 
@@ -374,9 +352,9 @@ for track in tracks:
     txt = []
     txt.append(f"drawbox=x=0:y=0:w=1080:h=440:color=black@0.24:t=fill")
     txt.append(f"drawbox=x=0:y=1580:w=1080:h=340:color=black@0.18:t=fill")
-    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{titol_l1_net}':fontsize={mida_titol}:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
+    txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol_l1_net}':fontsize={mida_titol}:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
     if titol_l2_net:
-        txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{titol_l2_net}':fontsize={mida_titol}:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1B}")
+        txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol_l2_net}':fontsize={mida_titol}:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1B}")
     if subtitol_net:
         txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{subtitol_net}':fontsize={mida_subtitol}:fontcolor={COLOR_ACCENT}:borderw=2:bordercolor=black@0.6:x=(w-text_w)/2:y={Y_TITOL2}")
     txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='#{pos}':fontsize=130:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=3:x={X_INFO}:y={Y_NUM}")
@@ -404,31 +382,19 @@ for track in tracks:
             "pad={cw}:{ch}:(ow-iw)/2:(oh-ih)/2:color=black@0,setsar=1[cover];"
             "[bg][cover]overlay={cx}:{cy}[withcover];"
             "[withcover]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored];"
-            "[colored]{txt}[out]"
-        ).format(cw=COVER_W, ch=COVER_H, cx=COVER_X, cy=COVER_Y, txt=txt_str)
-        inputs = f'-ss {inici} -i "{video_path}" -i "{thumb_path}"'
-        if LOGO_ACTIU:
-            fc += f";[2:v]scale={LOGO_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo];[out][logo]overlay=W-w-{LOGO_MARGIN}:{LOGO_MARGIN}[final]"
-            inputs += f' -i "{LOGO_PATH}"'
-            mapa_final = "[final]"
-        else:
-            mapa_final = "[out]"
-        cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map 0:a {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
+            "[colored]{txt},setpts=PTS/{sp}[out];"
+            "[0:a]atempo={sp}[aout]"
+        ).format(cw=COVER_W, ch=COVER_H, cx=COVER_X, cy=COVER_Y, txt=txt_str, sp=SPEED_FACTOR)
+        cmd = f'ffmpeg -ss {inici} -i "{video_path}" -i "{thumb_path}" -t {durada} -filter_complex "{fc}" -map "[out]" -map "[aout]" {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
     else:
         fc = (
             "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
             "crop=1080:1920:(iw-1080)/2:(ih-1920)/2[bg];"
             "[bg]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored];"
-            "[colored]{txt}[out]"
-        ).format(txt=txt_str)
-        inputs = f'-ss {inici} -i "{video_path}"'
-        if LOGO_ACTIU:
-            fc += f";[1:v]scale={LOGO_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo];[out][logo]overlay=W-w-{LOGO_MARGIN}:{LOGO_MARGIN}[final]"
-            inputs += f' -i "{LOGO_PATH}"'
-            mapa_final = "[final]"
-        else:
-            mapa_final = "[out]"
-        cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map 0:a {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
+            "[colored]{txt},setpts=PTS/{sp}[out];"
+            "[0:a]atempo={sp}[aout]"
+        ).format(txt=txt_str, sp=SPEED_FACTOR)
+        cmd = f'ffmpeg -ss {inici} -i "{video_path}" -t {durada} -filter_complex "{fc}" -map "[out]" -map "[aout]" {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
 
     os.system(cmd)
     clips_paths.append((pos, output_path))
