@@ -22,6 +22,10 @@ on:
         description: 'Portades: spotify o youtube'
         required: false
         default: 'spotify'
+      fons_url:
+        description: 'URL video de fons compartit (opcional, aftermovie/drops)'
+        required: false
+        default: ''
 
 jobs:
   generar:
@@ -90,6 +94,7 @@ jobs:
           PART: ${{ github.event.inputs.part }}
           ESTIL: ${{ github.event.inputs.estil }}
           COVER_FONT: ${{ github.event.inputs.cover_font }}
+          FONS_URL: ${{ github.event.inputs.fons_url }}
           SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
           SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
         run: python3 top10drops.py
