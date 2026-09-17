@@ -58,6 +58,9 @@
             <option value="spotify">🎧 Spotify (per defecte)</option>
             <option value="youtube">🎬 Miniatura de YouTube</option>
         </select>
+        <label>🎞️ Vídeo de fons compartit (opcional — aftermovie/drops de festival)</label>
+        <input type="text" id="fons_url" placeholder="https://youtu.be/... (deixa buit per fer servir el videoclip de cada tema)" />
+        <p style="font-size:11px;color:#666;margin-top:-10px;margin-bottom:14px;">Si l'omples, tots els clips (excepte els que tinguin vídeo manual propi) agafaran un tram aleatori d'aquest vídeo en lloc del videoclip oficial de cada cançó.</p>
     </div>
 
     <div id="status" class="status">
@@ -422,12 +425,14 @@ async function generarVideo() {
     const part = document.getElementById('part').value.trim();
     const estil = document.getElementById('estil').value;
     const coverFont = document.getElementById('cover_font').value;
+    const fonsUrl = document.getElementById('fons_url').value.trim();
     mostrarStatus('⏳ Generant vídeo...', 'info');
     const res = await dispararWorkflow('top10drops.yml', {
         tema,
         part,
         estil,
         cover_font: coverFont,
+        fons_url: fonsUrl,
         tracks: JSON.stringify(netejarTracks())
     });
     if (res.status === 204) {
