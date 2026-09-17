@@ -1,4 +1,4 @@
-import os, json, re, subprocess, base64, shutil
+import os, json, re, subprocess, base64, shutil, random
 import librosa, numpy as np
 from scipy.signal import find_peaks, butter, filtfilt
 from PIL import ImageFont
@@ -25,6 +25,9 @@ ESTIL             = os.environ.get('ESTIL', 'energetic')
 TEMA_ENV          = os.environ.get('TEMA', '')
 PART_ENV          = os.environ.get('PART', '')
 COVER_FONT        = os.environ.get('COVER_FONT', 'spotify')   # 'spotify' o 'youtube'
+FONS_URL          = os.environ.get('FONS_URL', '').strip()
+MARGE_FONS        = 15.0   # segons a evitar al principi/final del video de fons
+PADDING_FONS      = 1.0    # marge extra de seguretat al baixar cada tros
 SPOTIFY_CLIENT_ID = os.environ.get('SPOTIFY_CLIENT_ID', '')
 SPOTIFY_SECRET    = os.environ.get('SPOTIFY_CLIENT_SECRET', '')
 COMPTE            = "@onedayonevibe"
@@ -118,6 +121,35 @@ def get_youtube_thumbnail(yt_url):
         except:
             pass
     return None
+
+def get_durada_video_remot(url):
+    """Consulta nomes metadades (sense descarregar) i retorna la durada en segons, o None."""
+    try:
+        r = subprocess.run(
+            ['yt-dlp', '--dump-json', '--no-download', '--cookies', 'cookies.txt',
+             '--js-runtime', 'node', '--remote-components', 'ejs:github', url],
+            capture_output=True, text=True, timeout=60
+        )
+        if r.returncode != 0 or not r.stdout:
+            return None
+        info = json.loads(r.stdout.splitlines()[0])
+        durada = info.get('duration')
+        return float(durada) if durada else None
+    except Exception as e:
+        print(f"   ERROR consultant durada del video de fons: {e}")
+        return None
+
+def baixar_tros_fons(url, inici, durada_tros, output_path):
+    """Baixa nomes el tram [inici, inici+durada_tros] del video, sense baixar-lo sencer."""
+    fi = inici + durada_tros
+    cmd = (
+        f'yt-dlp -f "bestvideo[height<=1080][ext=mp4]/best[ext=mp4]/best" '
+        f'--download-sections "*{inici:.2f}-{fi:.2f}" --force-keyframes-at-cuts '
+        f'--merge-output-format mp4 --cookies cookies.txt --js-runtime node '
+        f'--remote-components ejs:github -o "{output_path}" "{url}" -q'
+    )
+    ret = os.system(cmd)
+    return ret == 0 and os.path.exists(output_path) and os.path.getsize(output_path) > 10000
 
 def partir_nom(nom, max_chars=22):
     if len(nom) <= max_chars:
@@ -239,6 +271,31 @@ subtitol_disp = linies_subtitol[0]
 
 print(f"Titol: '{titol_l1}'" + (f" / '{titol_l2}'" if titol_l2 else "") + f" (mida {mida_titol})")
 print(f"Subtitol: '{subtitol_disp}' (mida {mida_subtitol})")
+
+offsets_fons = {}
+if FONS_URL:
+    print(f"\nVideo de fons compartit: {FONS_URL}")
+    durada_fons_total = get_durada_video_remot(FONS_URL)
+    if durada_fons_total:
+        print(f"   Durada total: {int(durada_fons_total//60):02d}:{int(durada_fons_total%60):02d}")
+        n = len(tracks)
+        usable_inici = MARGE_FONS
+        usable_fi = max(MARGE_FONS, durada_fons_total - MARGE_FONS)
+        usable = max(0, usable_fi - usable_inici)
+        if usable <= 0:
+            usable_inici = 0
+            usable = durada_fons_total
+        bucket = usable / n
+        for i, track in enumerate(sorted(tracks, key=lambda t: t['pos'])):
+            durada_track = DURADA_TOP1 if track['pos'] == 1 else DURADA_CLIP
+            marge_bucket = max(0, bucket - durada_track)
+            inici_bucket = usable_inici + i * bucket
+            offset = inici_bucket + random.uniform(0, marge_bucket)
+            offsets_fons[track['pos']] = max(0, min(offset, durada_fons_total - durada_track - 0.5))
+        print(f"   Trams assignats a {n} clips (~{bucket:.0f}s per clip disponibles)")
+    else:
+        print(f"   AVIS: no s'ha pogut consultar la durada, es descarta el video de fons")
+        FONS_URL = ''
 
 clips_paths = []
 
@@ -413,41 +470,71 @@ for track in tracks:
     txt_str = ",".join(txt)
     has_thumb = os.path.exists(thumb_path) and os.path.getsize(thumb_path) > 1000
 
+    usar_fons = bool(FONS_URL) and not video_manual and pos in offsets_fons
+    fons_path = None
+    if usar_fons:
+        fons_path = os.path.expanduser(f"~/videos/{pos:02d}_fons.mp4")
+        offset_fons = offsets_fons[pos]
+        inici_baixada = max(0, offset_fons - PADDING_FONS)
+        durada_baixada = durada + 2 * PADDING_FONS
+        ok_fons = baixar_tros_fons(FONS_URL, inici_baixada, durada_baixada, fons_path)
+        if ok_fons:
+            print(f"   Tram de fons OK ({int(offset_fons//60):02d}:{int(offset_fons%60):02d})")
+        else:
+            print(f"   AVIS: no s'ha pogut baixar el tram de fons, s'usa el video de la canco")
+            usar_fons = False
+            fons_path = None
+
+    input_parts = [f'-ss {inici} -i "{video_path}"']
+    audio_idx = 0
+    visual_idx = 0
+    seguent_idx = 1
+
+    if usar_fons and fons_path:
+        offset_dins_tros = min(PADDING_FONS, offset_fons)
+        input_parts.append(f'-ss {offset_dins_tros:.2f} -i "{fons_path}"')
+        visual_idx = seguent_idx
+        seguent_idx += 1
+
+    thumb_idx = None
     if has_thumb:
-        fc = (
-            "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
-            "crop=1080:1920:(iw-1080)/2:(ih-1920)/2[bg];"
-            "[1:v]scale={cw}:{ch}:force_original_aspect_ratio=decrease,"
-            "pad={cw}:{ch}:(ow-iw)/2:(oh-ih)/2:color=black@0,setsar=1[cover];"
-            "[bg][cover]overlay={cx}:{cy}[withcover];"
-            "[withcover]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored];"
-            "[colored]{txt},setpts=PTS/{sp}[out];"
-            "[0:a]atempo={sp}[aout]"
-        ).format(cw=COVER_W, ch=COVER_H, cx=COVER_X, cy=COVER_Y, txt=txt_str, sp=SPEED_FACTOR)
-        inputs = f'-ss {inici} -i "{video_path}" -i "{thumb_path}"'
-        if LOGO_ACTIU:
-            fc += f";[2:v]scale={LOGO_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo];[out][logo]overlay=W-w-{LOGO_MARGIN}:{LOGO_MARGIN}[final]"
-            inputs += f' -i "{LOGO_PATH}"'
-            mapa_final = "[final]"
-        else:
-            mapa_final = "[out]"
-        cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map "[aout]" {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
+        input_parts.append(f'-i "{thumb_path}"')
+        thumb_idx = seguent_idx
+        seguent_idx += 1
+
+    logo_idx = None
+    if LOGO_ACTIU:
+        input_parts.append(f'-i "{LOGO_PATH}"')
+        logo_idx = seguent_idx
+        seguent_idx += 1
+
+    inputs = " ".join(input_parts)
+
+    fc_parts = [
+        f"[{visual_idx}:v]scale=1080:1920:force_original_aspect_ratio=increase,"
+        f"crop=1080:1920:(iw-1080)/2:(ih-1920)/2[bg]"
+    ]
+    if has_thumb:
+        fc_parts.append(
+            f"[{thumb_idx}:v]scale={COVER_W}:{COVER_H}:force_original_aspect_ratio=decrease,"
+            f"pad={COVER_W}:{COVER_H}:(ow-iw)/2:(oh-ih)/2:color=black@0,setsar=1[cover]"
+        )
+        fc_parts.append(f"[bg][cover]overlay={COVER_X}:{COVER_Y}[withcover]")
+        fc_parts.append("[withcover]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored]")
     else:
-        fc = (
-            "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
-            "crop=1080:1920:(iw-1080)/2:(ih-1920)/2[bg];"
-            "[bg]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored];"
-            "[colored]{txt},setpts=PTS/{sp}[out];"
-            "[0:a]atempo={sp}[aout]"
-        ).format(txt=txt_str, sp=SPEED_FACTOR)
-        inputs = f'-ss {inici} -i "{video_path}"'
-        if LOGO_ACTIU:
-            fc += f";[1:v]scale={LOGO_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo];[out][logo]overlay=W-w-{LOGO_MARGIN}:{LOGO_MARGIN}[final]"
-            inputs += f' -i "{LOGO_PATH}"'
-            mapa_final = "[final]"
-        else:
-            mapa_final = "[out]"
-        cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map "[aout]" {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
+        fc_parts.append("[bg]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored]")
+    fc_parts.append(f"[colored]{txt_str},setpts=PTS/{SPEED_FACTOR}[out]")
+    fc_parts.append(f"[{audio_idx}:a]atempo={SPEED_FACTOR}[aout]")
+
+    if LOGO_ACTIU:
+        fc_parts.append(f"[{logo_idx}:v]scale={LOGO_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo]")
+        fc_parts.append(f"[out][logo]overlay=W-w-{LOGO_MARGIN}:{LOGO_MARGIN}[final]")
+        mapa_final = "[final]"
+    else:
+        mapa_final = "[out]"
+
+    fc = ";".join(fc_parts)
+    cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map "[aout]" {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
 
     os.system(cmd)
     clips_paths.append((pos, output_path))
