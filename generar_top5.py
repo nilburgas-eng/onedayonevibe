@@ -50,10 +50,14 @@ def baixar_tram(url, inici, durada_tram, output_path):
         f'yt-dlp -f "bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[ext=mp4]/best" '
         f'--download-sections "*{inici:.2f}-{fi:.2f}" --force-keyframes-at-cuts '
         f'--merge-output-format mp4 --cookies cookies.txt --js-runtime node '
-        f'--remote-components ejs:github -o "{output_path}" "{url}" -q'
+        f'--remote-components ejs:github -o "{output_path}" "{url}"'
     )
-    ret = os.system(cmd)
-    return ret == 0 and os.path.exists(output_path) and os.path.getsize(output_path) > 10000
+    r = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+    ok = r.returncode == 0 and os.path.exists(output_path) and os.path.getsize(output_path) > 10000
+    if not ok:
+        print(f"   YT-DLP STDERR: {r.stderr[-1500:]}")
+        print(f"   YT-DLP STDOUT: {r.stdout[-500:]}")
+    return ok
 
 
 if not SET_URL:
