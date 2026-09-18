@@ -32,7 +32,9 @@ DURADA_OUTRO      = 2.0
 FADE_DURADA       = 0.3
 
 VIDEO_OPTS = "-c:v libx264 -preset slow -crf 18 -pix_fmt yuv420p"
-YTDLP_FORMAT = 'bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best[ext=mp4]/best'
+YTDLP_FORMAT = 'bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[ext=mp4]/best'
+
+SPEED_FACTOR = 1.03   # acceleracio subtil audio+video. 1.0 = desactivat
 
 LOGO_PATH    = "logo.png"
 LOGO_W       = 90
@@ -269,8 +271,9 @@ for track in tracks:
             "pad={cw}:{ch}:(ow-iw)/2:(oh-ih)/2:color=black@0,setsar=1[cover];"
             "[bg][cover]overlay={cx}:{cy}[withcover];"
             "[withcover]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored];"
-            "[colored]{txt}[out]"
-        ).format(cw=COVER_W, ch=COVER_H, cx=COVER_X, cy=COVER_Y, txt=txt_str)
+            "[colored]{txt},setpts=PTS/{sp}[out];"
+            "[0:a]atempo={sp}[aout]"
+        ).format(cw=COVER_W, ch=COVER_H, cx=COVER_X, cy=COVER_Y, txt=txt_str, sp=SPEED_FACTOR)
         inputs = f'-ss {inici} -i "{video_path}" -i "{thumb_path}"'
         if LOGO_ACTIU:
             fc += f";[2:v]scale={LOGO_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo];[out][logo]overlay=W-w-{LOGO_MARGIN}:{LOGO_MARGIN}[final]"
@@ -278,14 +281,15 @@ for track in tracks:
             mapa_final = "[final]"
         else:
             mapa_final = "[out]"
-        cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map 0:a {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
+        cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map "[aout]" {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
     else:
         fc = (
             "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
             "crop=1080:1920:(iw-1080)/2:(ih-1920)/2[bg];"
             "[bg]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored];"
-            "[colored]{txt}[out]"
-        ).format(txt=txt_str)
+            "[colored]{txt},setpts=PTS/{sp}[out];"
+            "[0:a]atempo={sp}[aout]"
+        ).format(txt=txt_str, sp=SPEED_FACTOR)
         inputs = f'-ss {inici} -i "{video_path}"'
         if LOGO_ACTIU:
             fc += f";[1:v]scale={LOGO_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo];[out][logo]overlay=W-w-{LOGO_MARGIN}:{LOGO_MARGIN}[final]"
@@ -293,7 +297,7 @@ for track in tracks:
             mapa_final = "[final]"
         else:
             mapa_final = "[out]"
-        cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map 0:a {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
+        cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map "[aout]" {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
 
     os.system(cmd)
     clips_paths.append((pos, output_path))
