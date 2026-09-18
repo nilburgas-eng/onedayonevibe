@@ -33,7 +33,15 @@ FADE_DURADA       = 0.3
 
 VIDEO_OPTS = "-c:v libx264 -preset slow -crf 18 -pix_fmt yuv420p"
 
+SPEED_FACTOR = 1.03   # acceleracio subtil audio+video. 1.0 = desactivat
+
 COLOR_ACCENT = "0x00BFFF"
+
+LOGO_PATH    = "logo.png"
+LOGO_W       = 90
+LOGO_OPACITY = 0.85
+LOGO_MARGIN  = 30
+LOGO_ACTIU   = os.path.exists(LOGO_PATH)
 
 COVER_W  = 280
 COVER_H  = 280
@@ -270,11 +278,11 @@ for track in tracks:
     elif yt_url:
         font = yt_url
         print(f"   URL manual: {yt_url}")
-        ret = os.system(f'yt-dlp -f "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best[ext=mp4]/best" --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{font}" --no-playlist -q')
+        ret = os.system(f'yt-dlp -f "bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[ext=mp4]/best" --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{font}" --no-playlist -q')
     else:
         font = f"ytsearch1:{artista} {nom} official video"
         print(f"   Cerca: {artista} {nom}")
-        ret = os.system(f'yt-dlp -f "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best[ext=mp4]/best" --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{font}" --no-playlist -q')
+        ret = os.system(f'yt-dlp -f "bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[ext=mp4]/best" --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{font}" --no-playlist -q')
 
     if ret != 0 or not os.path.exists(video_path) or os.path.getsize(video_path) < 10000:
         print(f"   No s'ha trobat videoclip - usant portada")
@@ -306,6 +314,11 @@ for track in tracks:
         print(f"   Timestamp manual: {int(inici//60):02d}:{int(inici%60):02d}")
     else:
         inici = trobar_moment_impactant(audio_path, duracio_total, ESTIL) if os.path.exists(audio_path) else 30.0
+
+    if inici + durada > duracio_total:
+        inici_original = inici
+        inici = max(0, duracio_total - durada - 0.5)
+        print(f"   AVIS: timestamp {int(inici_original//60):02d}:{int(inici_original%60):02d} + {durada}s superava la durada del video ({duracio_total:.1f}s). Ajustat a {int(inici//60):02d}:{int(inici%60):02d}")
 
     output_path = f"{OUTPUT}/clip_{pos:02d}.mp4"
     setmana_disp = setmana_text if setmana_text else "TOP 10 OF THE WEEK"
@@ -349,17 +362,33 @@ for track in tracks:
             "pad={cw}:{ch}:(ow-iw)/2:(oh-ih)/2:color=black@0,setsar=1[cover];"
             "[bg][cover]overlay={cx}:{cy}[withcover];"
             "[withcover]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored];"
-            "[colored]{txt}[out]"
-        ).format(cw=COVER_W, ch=COVER_H, cx=COVER_X, cy=COVER_Y, txt=txt_str)
-        cmd = f'ffmpeg -ss {inici} -i "{video_path}" -i "{thumb_path}" -t {durada} -filter_complex "{fc}" -map "[out]" -map 0:a {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
+            "[colored]{txt},setpts=PTS/{sp}[out];"
+            "[0:a]atempo={sp}[aout]"
+        ).format(cw=COVER_W, ch=COVER_H, cx=COVER_X, cy=COVER_Y, txt=txt_str, sp=SPEED_FACTOR)
+        inputs = f'-ss {inici} -i "{video_path}" -i "{thumb_path}"'
+        if LOGO_ACTIU:
+            fc += f";[2:v]scale={LOGO_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo];[out][logo]overlay=W-w-{LOGO_MARGIN}:{LOGO_MARGIN}[final]"
+            inputs += f' -i "{LOGO_PATH}"'
+            mapa_final = "[final]"
+        else:
+            mapa_final = "[out]"
+        cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map "[aout]" {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
     else:
         fc = (
             "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
             "crop=1080:1920:(iw-1080)/2:(ih-1920)/2[bg];"
             "[bg]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored];"
-            "[colored]{txt}[out]"
-        ).format(txt=txt_str)
-        cmd = f'ffmpeg -ss {inici} -i "{video_path}" -t {durada} -filter_complex "{fc}" -map "[out]" -map 0:a {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
+            "[colored]{txt},setpts=PTS/{sp}[out];"
+            "[0:a]atempo={sp}[aout]"
+        ).format(txt=txt_str, sp=SPEED_FACTOR)
+        inputs = f'-ss {inici} -i "{video_path}"'
+        if LOGO_ACTIU:
+            fc += f";[1:v]scale={LOGO_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo];[out][logo]overlay=W-w-{LOGO_MARGIN}:{LOGO_MARGIN}[final]"
+            inputs += f' -i "{LOGO_PATH}"'
+            mapa_final = "[final]"
+        else:
+            mapa_final = "[out]"
+        cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map "[aout]" {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
 
     result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
     mida = os.path.getsize(output_path) if os.path.exists(output_path) else 0
