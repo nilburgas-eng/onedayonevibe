@@ -143,7 +143,7 @@ def baixar_tros_fons(url, inici, durada_tros, output_path):
     """Baixa nomes el tram [inici, inici+durada_tros] del video, sense baixar-lo sencer."""
     fi = inici + durada_tros
     cmd = (
-        f'yt-dlp -f "bestvideo[height<=1080][ext=mp4]/best[ext=mp4]/best" '
+        f'yt-dlp -f "bestvideo[height<=1440][ext=mp4]/best[ext=mp4]/best" '
         f'--download-sections "*{inici:.2f}-{fi:.2f}" --force-keyframes-at-cuts '
         f'--merge-output-format mp4 --cookies cookies.txt --js-runtime node '
         f'--remote-components ejs:github -o "{output_path}" "{url}" -q'
@@ -400,11 +400,11 @@ for track in tracks:
     elif yt_url:
         font = yt_url
         print(f"   URL manual: {yt_url}")
-        ret = os.system(f'yt-dlp -f "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best[ext=mp4]/best" --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{font}" --no-playlist -q')
+        ret = os.system(f'yt-dlp -f "bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[ext=mp4]/best" --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{font}" --no-playlist -q')
     else:
         font = f"ytsearch1:{artista} {nom} official video"
         print(f"   Cerca: {artista} {nom}")
-        ret = os.system(f'yt-dlp -f "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best[ext=mp4]/best" --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{font}" --no-playlist -q')
+        ret = os.system(f'yt-dlp -f "bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[ext=mp4]/best" --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{font}" --no-playlist -q')
 
     if ret != 0 or not os.path.exists(video_path) or os.path.getsize(video_path) < 10000:
         print(f"   No s'ha trobat videoclip - usant portada")
