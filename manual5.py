@@ -39,6 +39,12 @@ SPEED_FACTOR = 1.03   # acceleracio subtil audio+video. 1.0 = desactivat
 
 COLOR_ACCENT = "0x00BFFF"
 
+LOGO_PATH    = "logo.png"
+LOGO_W       = 90
+LOGO_OPACITY = 0.85
+LOGO_MARGIN  = 30
+LOGO_ACTIU   = os.path.exists(LOGO_PATH)
+
 COVER_W  = 280
 COVER_H  = 280
 COVER_X  = 90
@@ -334,11 +340,11 @@ for track in tracks:
     elif yt_url:
         font = yt_url
         print(f"   URL manual: {yt_url}")
-        ret = os.system(f'yt-dlp -f "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best[ext=mp4]/best" --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{font}" --no-playlist -q')
+        ret = os.system(f'yt-dlp -f "bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[ext=mp4]/best" --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{font}" --no-playlist -q')
     else:
         font = f"ytsearch1:{artista} {nom} official video"
         print(f"   Cerca: {artista} {nom}")
-        ret = os.system(f'yt-dlp -f "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best[ext=mp4]/best" --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{font}" --no-playlist -q')
+        ret = os.system(f'yt-dlp -f "bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[ext=mp4]/best" --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{font}" --no-playlist -q')
 
     if ret != 0 or not os.path.exists(video_path) or os.path.getsize(video_path) < 10000:
         print(f"   No s'ha trobat videoclip - usant portada")
@@ -415,7 +421,14 @@ for track in tracks:
             "[colored]{txt},setpts=PTS/{sp}[out];"
             "[0:a]atempo={sp}[aout]"
         ).format(cw=COVER_W, ch=COVER_H, cx=COVER_X, cy=COVER_Y, txt=txt_str, sp=SPEED_FACTOR)
-        cmd = f'ffmpeg -ss {inici} -i "{video_path}" -i "{thumb_path}" -t {durada} -filter_complex "{fc}" -map "[out]" -map "[aout]" {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
+        inputs = f'-ss {inici} -i "{video_path}" -i "{thumb_path}"'
+        if LOGO_ACTIU:
+            fc += f";[2:v]scale={LOGO_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo];[out][logo]overlay=W-w-{LOGO_MARGIN}:{LOGO_MARGIN}[final]"
+            inputs += f' -i "{LOGO_PATH}"'
+            mapa_final = "[final]"
+        else:
+            mapa_final = "[out]"
+        cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map "[aout]" {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
     else:
         fc = (
             "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
@@ -424,7 +437,14 @@ for track in tracks:
             "[colored]{txt},setpts=PTS/{sp}[out];"
             "[0:a]atempo={sp}[aout]"
         ).format(txt=txt_str, sp=SPEED_FACTOR)
-        cmd = f'ffmpeg -ss {inici} -i "{video_path}" -t {durada} -filter_complex "{fc}" -map "[out]" -map "[aout]" {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
+        inputs = f'-ss {inici} -i "{video_path}"'
+        if LOGO_ACTIU:
+            fc += f";[1:v]scale={LOGO_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo];[out][logo]overlay=W-w-{LOGO_MARGIN}:{LOGO_MARGIN}[final]"
+            inputs += f' -i "{LOGO_PATH}"'
+            mapa_final = "[final]"
+        else:
+            mapa_final = "[out]"
+        cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map "[aout]" {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
 
     os.system(cmd)
     clips_paths.append((pos, output_path))
