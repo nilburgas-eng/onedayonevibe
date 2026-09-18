@@ -3,28 +3,15 @@ name: Generar Top 5
 on:
   workflow_dispatch:
     inputs:
-      nom:
-        description: 'Nom del release'
+      set_url:
+        description: 'URL del video del set/festival'
         required: true
       dj:
         description: 'Nom del DJ / Festival'
         required: true
-      timestamps_manuals:
-        description: 'Timestamps manuals JSON'
-        required: false
-        default: '{}'
-      noms_manuals:
-        description: 'Noms manuals JSON'
-        required: false
-        default: '{}'
-      forcar_inici:
-        description: 'Forcar inici JSON'
-        required: false
-        default: '{}'
-      durades_manuals:
-        description: 'Durades extra JSON'
-        required: false
-        default: '{}'
+      tracks:
+        description: 'Tracks JSON'
+        required: true
 
 jobs:
   generar:
@@ -35,14 +22,11 @@ jobs:
       - name: Checkout codi
         uses: actions/checkout@v4
 
-      - name: Instal·lar dependències
+      - name: Instal·lar dependencies
         run: |
-          pip install librosa numpy scipy anthropic requests google-auth google-auth-oauthlib google-api-python-client
+          pip install yt-dlp requests google-auth google-auth-oauthlib google-api-python-client
           sudo apt-get update
-          sudo apt-get install -y --fix-missing ffmpeg curl
-          which ffmpeg || echo "ffmpeg no trobat"
-          which ffprobe || echo "ffprobe no trobat"
-          ffprobe -version || echo "ffprobe no funciona"
+          sudo apt-get install -y --fix-missing ffmpeg curl wget
 
       - name: Descarregar fonts
         run: |
@@ -66,98 +50,74 @@ jobs:
           print(f"Credencials: {len(r.content)} bytes")
           PYEOF
 
-      - name: Descarregar video i comentaris des del Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+      - name: Descarregar cookies des del Drive
         run: |
           python3 << 'PYEOF'
-          import os, glob, shutil, requests
-          nom = "${{ github.event.inputs.nom }}"
-          repo = "${{ github.repository }}"
-          token = os.environ['GITHUB_TOKEN']
-          headers = {"Authorization": f"token {token}"}
-          input_dir = os.path.expanduser("~/input")
-          os.makedirs(input_dir, exist_ok=True)
-          r = requests.get(
-              f"https://api.github.com/repos/{repo}/releases/tags/{nom}",
-              headers=headers
-          )
-          if r.status_code != 200:
-              raise Exception(f"Release no trobat: {nom}")
-          for asset in r.json()['assets']:
-              nom_fitxer = asset['name']
-              asset_id = asset['id']
-              if 'top5_final' in nom_fitxer:
-                  continue
-              print(f"Descarregant {nom_fitxer}...")
-              r2 = requests.get(
-                  f"https://api.github.com/repos/{repo}/releases/assets/{asset_id}",
-                  headers={**headers, "Accept": "application/octet-stream"},
-                  stream=True, allow_redirects=True
-              )
-              with open(f"{input_dir}/{nom_fitxer}", 'wb') as f:
-                  for chunk in r2.iter_content(chunk_size=8192):
-                      if chunk:
-                          f.write(chunk)
-              mida = os.path.getsize(f"{input_dir}/{nom_fitxer}")
-              print(f"OK: {nom_fitxer} — {mida/1024/1024:.1f} MB")
-          fitxers_mp4 = [(f, os.path.getsize(f)) for f in glob.glob(f"{input_dir}/*.mp4")]
-          fitxers_mp4.sort(key=lambda x: x[1], reverse=True)
-          if fitxers_mp4:
-              shutil.move(fitxers_mp4[0][0], f"{input_dir}/set.mp4")
-              print(f"Video llest: {fitxers_mp4[0][1]/1024/1024:.1f} MB")
+          from google.oauth2.service_account import Credentials
+          from googleapiclient.discovery import build
+          from googleapiclient.http import MediaIoBaseDownload
+          import io
+          creds = Credentials.from_service_account_file('credentials.json', scopes=['https://www.googleapis.com/auth/drive'])
+          service = build('drive', 'v3', credentials=creds)
+          results = service.files().list(q="name='cookies.txt'", fields="files(id, name)").execute()
+          files = results.get('files', [])
+          if not files:
+              raise Exception("No s'ha trobat cookies.txt")
+          file_id = files[0]['id']
+          request = service.files().get_media(fileId=file_id)
+          with open('cookies.txt', 'wb') as f:
+              downloader = MediaIoBaseDownload(f, request)
+              done = False
+              while not done:
+                  _, done = downloader.next_chunk()
+          print("Cookies OK")
           PYEOF
 
       - name: Generar Top 5
         env:
-          ANTHROPIC_KEY: ${{ secrets.ANTHROPIC_KEY }}
-          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+          SET_URL: ${{ github.event.inputs.set_url }}
           DJ: ${{ github.event.inputs.dj }}
-          TIMESTAMPS_MANUALS: ${{ github.event.inputs.timestamps_manuals }}
-          NOMS_MANUALS: ${{ github.event.inputs.noms_manuals }}
-          FORCAR_INICI: ${{ github.event.inputs.forcar_inici }}
-          DURADES_MANUALS: ${{ github.event.inputs.durades_manuals }}
+          TRACKS: ${{ github.event.inputs.tracks }}
         run: python3 generar.py
-      - name: Verificar video final
-        run: |
-          ls -la ~/output/ || echo "Carpeta output buida"
-          du -m ~/output/top5_final.mp4 || echo "Video no trobat"
+
       - name: Pujar video final a GitHub Releases
         env:
           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
         run: |
-          nom="${{ github.event.inputs.nom }}"
-          repo="${{ github.repository }}"
-          
-          # Obtenir info del release
-          release=$(curl -s \
-            -H "Authorization: token $GITHUB_TOKEN" \
-            "https://api.github.com/repos/${repo}/releases/tags/${nom}")
-          
-          upload_url=$(echo $release | python3 -c "import sys,json; print(json.load(sys.stdin)['upload_url'].split('{')[0])")
-          
-          # Esborrar top5_final.mp4 si ja existeix
-          asset_id=$(echo $release | python3 -c "
-          import sys,json
-          assets = json.load(sys.stdin).get('assets', [])
-          for a in assets:
-              if a['name'] == 'top5_final.mp4':
-                  print(a['id'])
-                  break
-          ")
-          
-          if [ ! -z "$asset_id" ]; then
-            echo "Esborrant asset existent: $asset_id"
-            curl -s -X DELETE \
-              -H "Authorization: token $GITHUB_TOKEN" \
-              "https://api.github.com/repos/${repo}/releases/assets/${asset_id}"
-          fi
-          
-          # Pujar nou video
-          curl -s -X POST \
-            -H "Authorization: token $GITHUB_TOKEN" \
-            -H "Content-Type: video/mp4" \
-            --data-binary @"$HOME/output/top5_final.mp4" \
-            "${upload_url}?name=top5_final.mp4"
-          
-          echo "Pujat!"
+          python3 << 'PYEOF'
+          import os, requests
+          repo = "${{ github.repository }}"
+          tag = "top5_generat"
+          token = os.environ['GITHUB_TOKEN']
+          headers = {"Authorization": f"token {token}"}
+
+          r = requests.get(f"https://api.github.com/repos/{repo}/releases/tags/{tag}", headers=headers)
+          if r.status_code == 200:
+              release = r.json()
+              upload_url = release['upload_url'].split('{')[0]
+              print("Release existent trobat")
+              for a in release.get('assets', []):
+                  if a['name'] == 'top5_final.mp4':
+                      requests.delete(f"https://api.github.com/repos/{repo}/releases/assets/{a['id']}", headers=headers)
+                      print("Asset anterior esborrat")
+          else:
+              print("Creant release nou...")
+              r = requests.post(f"https://api.github.com/repos/{repo}/releases", headers=headers,
+                  json={"tag_name": tag, "name": tag, "draft": False})
+              if r.status_code not in (200, 201):
+                  print(f"ERROR creant release: {r.status_code}")
+                  print(r.text)
+                  exit(1)
+              upload_url = r.json()['upload_url'].split('{')[0]
+
+          video = os.path.expanduser("~/output/top5_final.mp4")
+          if not os.path.exists(video):
+              print("ERROR: no existeix el video final")
+              exit(1)
+          mida = os.path.getsize(video)
+          print(f"Pujant top5_final.mp4: {mida/1024/1024:.1f} MB")
+          with open(video, 'rb') as f:
+              r2 = requests.post(f"{upload_url}?name=top5_final.mp4",
+                  headers={**headers, "Content-Type": "video/mp4"}, data=f)
+          print(f"Pujat: {r2.status_code}")
+          PYEOF
