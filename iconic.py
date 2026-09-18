@@ -1,7 +1,6 @@
 import os, json, re, subprocess, base64, shutil
 import librosa, numpy as np
 from scipy.signal import find_peaks, butter, filtfilt
-from PIL import ImageFont
 import requests
 
 OUTPUT = os.path.expanduser("~/output")
@@ -22,8 +21,8 @@ for font_path in [FONT_BEBAS, FONT_SEMIBOLD, FONT_EXTRABOLD, FONT_MEDIUM]:
         elif font_path == FONT_MEDIUM: FONT_MEDIUM = FONT_FALLBACK
 
 ESTIL             = os.environ.get('ESTIL', 'energetic')
-TITOL_ENV         = os.environ.get('TITOL', '5 Tracks You Need to Know')
-SUBTITOL_ENV      = os.environ.get('SUBTITOL', '')
+FANOF             = os.environ.get('FANOF', 'HARDSTYLE')
+PART              = os.environ.get('PART', '1')
 COVER_FONT        = os.environ.get('COVER_FONT', 'spotify')   # 'spotify' o 'youtube'
 SPOTIFY_CLIENT_ID = os.environ.get('SPOTIFY_CLIENT_ID', '')
 SPOTIFY_SECRET    = os.environ.get('SPOTIFY_CLIENT_SECRET', '')
@@ -34,6 +33,7 @@ DURADA_OUTRO      = 2.0
 FADE_DURADA       = 0.3
 
 VIDEO_OPTS = "-c:v libx264 -preset slow -crf 18 -pix_fmt yuv420p"
+YTDLP_FORMAT = 'bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[ext=mp4]/best'
 
 SPEED_FACTOR = 1.03   # acceleracio subtil audio+video. 1.0 = desactivat
 
@@ -45,29 +45,36 @@ LOGO_OPACITY = 0.85
 LOGO_MARGIN  = 30
 LOGO_ACTIU   = os.path.exists(LOGO_PATH)
 
+NIVELLS = {
+    'SUPER EASY': "0x1DB954",
+    'EASY':       "0xA3E635",
+    'MEDIUM':     "0xFFD700",
+    'HARD':       "0xFF8C00",
+    'VERY HARD':  "0xFF6B00",
+    'EXPERT':     "0xFF4444",
+    'LEGEND':     "0xFFD700",
+}
+NIVELL_DEFAULT = {7: 'SUPER EASY', 6: 'EASY', 5: 'MEDIUM', 4: 'HARD', 3: 'VERY HARD', 2: 'EXPERT', 1: 'LEGEND'}
+NIVELL_DEFAULT = {5: 'VERY EASY', 4: 'EASY', 3: 'MEDIUM', 2: 'HARD', 1: 'EXTREME'}
+
 COVER_W  = 280
 COVER_H  = 280
 COVER_X  = 90
-COVER_Y  = 500
+COVER_Y  = 620
 X_INFO   = 410
-Y_NUM    = 500
-Y_NOM1   = 640
-Y_NOM2   = 710
-Y_TITOL1  = 260
-Y_TITOL1B = 330
-Y_TITOL2  = 400
-Y_ARTISTA = 790
-Y_BAR    = 870
+Y_NUM    = 620
+Y_NOM1   = 760
+Y_NOM2   = 830
+Y_TITOL1 = 260
+Y_TITOL1B = 325
+Y_TITOL2 = 402
+Y_NIVELL = 910
+Y_ARTISTA = 980
+Y_BAR    = 1060
 BAR_X    = 90
 BAR_W    = 980
 Y_OUTRO  = 1560
 Y_OUTRO2 = 1618
-
-AMPLE_MAX_TITOL    = 900   # marge de seguretat dins dels 1080px d'ample
-AMPLE_MAX_SUBTITOL = 900
-MIDES_TITOL        = [68, 62, 56, 50, 44, 38]
-MIDES_SUBTITOL     = [32, 28, 25, 22]
-
 
 def get_spotify_token():
     try:
@@ -92,10 +99,11 @@ def get_spotify_cover(nom_canco, artista, token):
     return None
 
 def get_spotify_artist_image(artista, token):
+    if not artista:
+        return None
     try:
         headers = {"Authorization": f"Bearer {token}"}
-        query = f"artist:{artista}"
-        r = requests.get(f"https://api.spotify.com/v1/search?q={requests.utils.quote(query)}&type=artist&limit=1", headers=headers)
+        r = requests.get(f"https://api.spotify.com/v1/search?q={requests.utils.quote(artista)}&type=artist&limit=1", headers=headers)
         items = r.json().get('artists', {}).get('items', [])
         if items and items[0].get('images'):
             return requests.get(items[0]['images'][0]['url']).content
@@ -126,42 +134,6 @@ def partir_nom(nom, max_chars=22):
     if idx == -1:
         idx = max_chars
     return nom[:idx].strip(), nom[idx:].strip()
-
-def amplada_text(text, font_path, mida):
-    try:
-        font = ImageFont.truetype(font_path, mida)
-        bbox = font.getbbox(text)
-        return bbox[2] - bbox[0]
-    except Exception:
-        return len(text) * mida * 0.55
-
-def ajustar_text(text, font_path, ample_max, mides):
-    """Retorna (mida_font, [linies]) ajustant la mida i partint en 2 linies si cal."""
-    text = text.strip()
-    for mida in mides:
-        if amplada_text(text, font_path, mida) <= ample_max:
-            return mida, [text]
-
-    mida_min = mides[-1]
-    paraules = text.split(' ')
-    if len(paraules) < 2:
-        return mida_min, [text]
-
-    millor = None
-    for idx in range(1, len(paraules)):
-        l1 = ' '.join(paraules[:idx])
-        l2 = ' '.join(paraules[idx:])
-        ample1 = amplada_text(l1, font_path, mida_min)
-        ample2 = amplada_text(l2, font_path, mida_min)
-        diferencia = abs(ample1 - ample2)
-        if millor is None or diferencia < millor[0]:
-            millor = (diferencia, l1, l2, max(ample1, ample2))
-    _, l1, l2, ample_pitjor = millor
-
-    for mida in mides:
-        if amplada_text(l1, font_path, mida) <= ample_max and amplada_text(l2, font_path, mida) <= ample_max:
-            return mida, [l1, l2]
-    return mida_min, [l1, l2]
 
 def trobar_moment_impactant(audio_path, duracio_total, estil='energetic'):
     try:
@@ -223,19 +195,13 @@ print(f"\nTracks ({len(tracks)}):")
 for t in tracks:
     print(f"  #{t['pos']}: {t['nom']} - {t['artista']}")
 
-print(f"\nFont de portades: {COVER_FONT}")
-print("Obtenint token de Spotify...")
+print("\nObtenint token de Spotify...")
 spotify_token = get_spotify_token()
 print("Token OK" if spotify_token else "Sense token Spotify")
 
-mida_titol, linies_titol = ajustar_text(TITOL_ENV, FONT_BEBAS, AMPLE_MAX_TITOL, MIDES_TITOL)
-titol_l1 = linies_titol[0]
-titol_l2 = linies_titol[1] if len(linies_titol) > 1 else None
-mida_subtitol, linies_subtitol = ajustar_text(SUBTITOL_ENV, FONT_SEMIBOLD, AMPLE_MAX_SUBTITOL, MIDES_SUBTITOL) if SUBTITOL_ENV else (28, [''])
-subtitol_disp = linies_subtitol[0]
-
-print(f"Titol: '{titol_l1}'" + (f" / '{titol_l2}'" if titol_l2 else "") + f" (mida {mida_titol})")
-print(f"Subtitol: '{subtitol_disp}' (mida {mida_subtitol})")
+titol_l1 = f"IF YOU KNOW ALL {len(tracks)}"
+titol_l2 = f"YOU\u2019RE A REAL {FANOF.upper()} FAN"
+subtitol = f"PART {PART}"
 
 clips_paths = []
 
@@ -244,19 +210,19 @@ for track in tracks:
     nom              = track['nom']
     artista          = track.get('artista', '')
     yt_url           = track.get('yt_url')
-    video_manual     = track.get('video_manual')
     timestamp_manual = track.get('timestamp_manual')
+    nom_manual       = track.get('nom_manual')
+    nivell           = track.get('nivell') or NIVELL_DEFAULT.get(pos, 'MEDIUM')
+    nivell_color     = NIVELLS.get(nivell, COLOR_ACCENT)
+    durada           = DURADA_TOP1 if pos == 1 else DURADA_CLIP
+    es_ultim         = (pos == 1)
 
-    es_ultim = (pos == 1)
-    durada = DURADA_TOP1 if es_ultim else DURADA_CLIP
-    if es_ultim:
-        durada += DURADA_OUTRO
+    print(f"\nClip #{pos}: {nom} - {artista} [{nivell}]")
 
-    video_path = os.path.expanduser(f"~/video_{pos:02d}.mp4")
-    audio_path = os.path.expanduser(f"~/audio_{pos:02d}.wav")
-    thumb_path = os.path.expanduser(f"~/thumb_{pos:02d}.jpg")
-
-    print(f"\n--- #{pos}: {nom} - {artista} ---")
+    video_path = os.path.expanduser(f"~/videos/{pos:02d}.mp4")
+    audio_path = os.path.expanduser(f"~/videos/{pos:02d}.wav")
+    thumb_path = os.path.expanduser(f"~/videos/{pos:02d}_thumb.jpg")
+    os.makedirs(os.path.expanduser("~/videos"), exist_ok=True)
 
     cover_manual = track.get('cover_manual')
     cover_none   = track.get('cover_none', False)
@@ -280,71 +246,32 @@ for track in tracks:
                 with open(thumb_path, 'wb') as f:
                     f.write(cover_data)
                 print(f"   Portada YouTube OK")
-            elif spotify_token:
+            else:
+                print(f"   Sense miniatura de YouTube disponible")
+        else:
+            if spotify_token:
                 cover_data = get_spotify_cover(nom, artista, spotify_token)
                 if cover_data:
                     with open(thumb_path, 'wb') as f:
                         f.write(cover_data)
-                    print(f"   Portada Spotify OK (fallback)")
-        else:
-            cover_data = get_spotify_cover(nom, artista, spotify_token) if spotify_token else None
+                    print(f"   Portada Spotify OK")
+
+        if (not os.path.exists(thumb_path) or os.path.getsize(thumb_path) < 1000) and spotify_token:
+            cover_data = get_spotify_artist_image(artista, spotify_token)
             if cover_data:
                 with open(thumb_path, 'wb') as f:
                     f.write(cover_data)
-                print(f"   Portada Spotify OK")
-            else:
-                cover_data = get_youtube_thumbnail(yt_url)
-                if cover_data:
-                    with open(thumb_path, 'wb') as f:
-                        f.write(cover_data)
-                    print(f"   Portada YouTube OK (fallback)")
-
-        if not os.path.exists(thumb_path) or os.path.getsize(thumb_path) < 1000:
-            if spotify_token:
-                cover_data = get_spotify_artist_image(artista, spotify_token)
-                if cover_data:
-                    with open(thumb_path, 'wb') as f:
-                        f.write(cover_data)
-                    print(f"   Portada Spotify artista OK (fallback)")
-
-        if not os.path.exists(thumb_path) or os.path.getsize(thumb_path) < 1000:
-            print(f"   AVIS: cap portada trobada per aquest track")
+                print(f"   Portada de l'artista a Spotify OK (fallback)")
     else:
         print(f"   Sense portada (marcat manualment)")
 
-    if video_manual:
-        print(f"   Video manual: {video_manual}")
-        if video_manual.startswith('http'):
-            ret = 1
-            try:
-                r = requests.get(video_manual, timeout=180, stream=True)
-                if r.status_code == 200:
-                    with open(video_path, 'wb') as f:
-                        for chunk in r.iter_content(chunk_size=1024 * 1024):
-                            if chunk:
-                                f.write(chunk)
-                    if os.path.getsize(video_path) > 10000:
-                        ret = 0
-                    else:
-                        print(f"   ERROR: video manual descarregat buit")
-                else:
-                    print(f"   ERROR descarregant video manual: HTTP {r.status_code}")
-            except Exception as e:
-                print(f"   ERROR descarregant video manual: {e}")
-        elif os.path.exists(video_manual) and os.path.getsize(video_manual) > 10000:
-            shutil.copy(video_manual, video_path)
-            ret = 0
-        else:
-            print(f"   ERROR: no s'ha trobat {video_manual}")
-            ret = 1
-    elif yt_url:
+    if yt_url:
         font = yt_url
         print(f"   URL manual: {yt_url}")
-        ret = os.system(f'yt-dlp -f "bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[ext=mp4]/best" --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{font}" --no-playlist -q')
     else:
         font = f"ytsearch1:{artista} {nom} official video"
         print(f"   Cerca: {artista} {nom}")
-        ret = os.system(f'yt-dlp -f "bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[ext=mp4]/best" --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{font}" --no-playlist -q')
+    ret = os.system(f'yt-dlp -f "{YTDLP_FORMAT}" --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{font}" --no-playlist -q')
 
     if ret != 0 or not os.path.exists(video_path) or os.path.getsize(video_path) < 10000:
         print(f"   No s'ha trobat videoclip - usant portada")
@@ -361,7 +288,7 @@ for track in tracks:
     duracio_total = float(info['format']['duration'])
     for s in info.get('streams', []):
         if s.get('codec_type') == 'video':
-            print(f"   RESOLUCIO BAIXADA: {s.get('width')}x{s.get('height')}")
+            print(f"   Resolucio: {s.get('width')}x{s.get('height')}")
             break
 
     os.system(f'ffmpeg -i "{video_path}" -vn -acodec pcm_s16le -ar 22050 -ac 1 "{audio_path}" -y -loglevel error')
@@ -374,6 +301,7 @@ for track in tracks:
 
     output_path = f"{OUTPUT}/clip_{pos:02d}.mp4"
 
+    nom = nom_manual if nom_manual else nom
     nom_net = nom.replace("'", "").replace('"', '').replace(':', '-')
     nom_linia1, nom_linia2 = partir_nom(nom_net, max_chars=22)
     artista_net = artista.replace("'", "").replace('"', '').replace(':', '-')[:34]
@@ -381,25 +309,21 @@ for track in tracks:
     n_total = len(tracks)
     bar_progress = int(BAR_W * (n_total - pos + 1) / n_total)
 
-    titol_l1_net = titol_l1.replace("'", "").replace('"', '')
-    titol_l2_net = titol_l2.replace("'", "").replace('"', '') if titol_l2 else None
-    subtitol_net = subtitol_disp.replace("'", "").replace('"', '')
-
     txt = []
     txt.append(f"drawbox=x=0:y=0:w=1080:h=440:color=black@0.24:t=fill")
     txt.append(f"drawbox=x=0:y=1580:w=1080:h=340:color=black@0.18:t=fill")
-    txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol_l1_net}':fontsize={mida_titol}:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
-    if titol_l2_net:
-        txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol_l2_net}':fontsize={mida_titol}:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1B}")
-    if subtitol_net:
-        txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{subtitol_net}':fontsize={mida_subtitol}:fontcolor={COLOR_ACCENT}:borderw=2:bordercolor=black@0.6:x=(w-text_w)/2:y={Y_TITOL2}")
+    txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol_l1}':fontsize=64:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
+    txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol_l2}':fontsize=52:fontcolor={COLOR_ACCENT}:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1B}")
+    txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{subtitol}':fontsize=32:fontcolor=white@0.85:borderw=2:bordercolor=black@0.6:x=(w-text_w)/2:y={Y_TITOL2}")
     txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='#{pos}':fontsize=130:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=3:x={X_INFO}:y={Y_NUM}")
     txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia1}':fontsize=56:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM1}")
     if nom_linia2:
         txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia2}':fontsize=56:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM2}")
-    txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='{artista_net}':fontsize=40:fontcolor=white@0.85:borderw=2:bordercolor=black@0.8:shadowx=0:shadowy=2:x={BAR_X}:y={Y_ARTISTA}")
+    # Etiqueta de nivell amb color
+    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='LEVEL\\: {nivell}':fontsize=48:fontcolor={nivell_color}:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=2:x={BAR_X}:y={Y_NIVELL}")
+    txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='{artista_net}':fontsize=38:fontcolor=white@0.85:borderw=2:bordercolor=black@0.8:shadowx=0:shadowy=2:x={BAR_X}:y={Y_ARTISTA}")
     txt.append(f"drawbox=x={BAR_X}:y={Y_BAR}:w={BAR_W}:h=5:color=white@0.15:t=fill")
-    txt.append(f"drawbox=x={BAR_X}:y={Y_BAR}:w={bar_progress}:h=5:color={COLOR_ACCENT}@0.9:t=fill")
+    txt.append(f"drawbox=x={BAR_X}:y={Y_BAR}:w={bar_progress}:h=5:color={nivell_color}@0.9:t=fill")
 
     if es_ultim:
         compte_text = COMPTE.replace("'", "")
@@ -483,7 +407,7 @@ for i in range(2, n_clips):
     audio_filters.append(f"[{prev_a}][{i}:a]acrossfade=d={FADE_DURADA}[{out_a}]")
 
 filter_complex = ";".join(video_filters + audio_filters)
-output_final = f"{OUTPUT}/manual5_final.mp4"
+output_final = f"{OUTPUT}/iconic_final.mp4"
 cmd = f'ffmpeg {inputs_str} -filter_complex "{filter_complex}" -map "[vfinal]" -map "[afinal]" {VIDEO_OPTS} -c:a aac -b:a 192k "{output_final}" -y -loglevel error'
 os.system(cmd)
 print("Video final generat!")
