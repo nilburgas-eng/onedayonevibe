@@ -66,8 +66,16 @@ LOGO_OPACITY = 0.95
 LOGO_MARGIN  = 30
 LOGO_ACTIU   = os.path.exists(LOGO_PATH)
 
-STICKER_FOLLOW_PATH = "sticker_follow.png"
-STICKER_THANKS_PATH = "sticker_thanks.png"
+def trobar_fitxer_sense_distingir_majuscules(nom_base):
+    """Busca un fitxer al directori actual ignorant majuscules/minuscules (per si el mobil
+    ha canviat l'extensio en pujar-lo)."""
+    for f in os.listdir('.'):
+        if f.lower() == nom_base.lower():
+            return f
+    return None
+
+STICKER_FOLLOW_PATH = trobar_fitxer_sense_distingir_majuscules("sticker_follow.png") or "sticker_follow.png"
+STICKER_THANKS_PATH = trobar_fitxer_sense_distingir_majuscules("sticker_thanks.png") or "sticker_thanks.png"
 STICKER_ACTIU = os.path.exists(STICKER_FOLLOW_PATH) and os.path.exists(STICKER_THANKS_PATH)
 STICKER_W = 220
 STICKER_Y = 1180
