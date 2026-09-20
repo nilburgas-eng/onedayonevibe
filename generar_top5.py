@@ -36,6 +36,18 @@ LOGO_OPACITY = 0.85
 LOGO_MARGIN  = 30
 LOGO_ACTIU   = os.path.exists(LOGO_PATH)
 
+def trobar_fitxer_sense_distingir_majuscules(nom_base):
+    for f in os.listdir('.'):
+        if f.lower() == nom_base.lower():
+            return f
+    return None
+
+STICKER_FOLLOW_PATH = trobar_fitxer_sense_distingir_majuscules("sticker_follow.png") or "sticker_follow.png"
+STICKER_THANKS_PATH = trobar_fitxer_sense_distingir_majuscules("sticker_thanks.png") or "sticker_thanks.png"
+STICKER_ACTIU = os.path.exists(STICKER_FOLLOW_PATH) and os.path.exists(STICKER_THANKS_PATH)
+STICKER_W = 220
+STICKER_Y = 1180
+
 PADDING_X = 100
 Y_TITOL1  = 260
 Y_TITOL2  = 340
@@ -89,6 +101,9 @@ os.makedirs(os.path.expanduser("~/videos"), exist_ok=True)
 clips_paths = []
 tracks_ordenats = sorted(tracks, key=lambda t: -int(t['numero']))
 
+if STICKER_ACTIU:
+    print(f"\nStickers Follow/Thanks actius, apareixeran al primer clip del video")
+
 for i, track in enumerate(tracks_ordenats):
     numero       = int(track['numero'])
     nom          = noms_nets[numero]
@@ -97,6 +112,7 @@ for i, track in enumerate(tracks_ordenats):
     durada_base  = DURADA_CLIP + durada_extra
     durada       = durada_base + DURADA_OUTRO if numero == 1 else durada_base
     posicio      = i + 1
+    es_primer    = (posicio == 1)
 
     print(f"\nGenerant clip {posicio} (#{numero}): {nom} @ {int(timestamp//60):02d}:{int(timestamp%60):02d}")
 
@@ -140,15 +156,51 @@ for i, track in enumerate(tracks_ordenats):
         filtres.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='Electronic Vibes Daily':fontsize=30:fontcolor=0x00BFFF@0.75:shadowcolor=black@0.20:shadowx=0:shadowy=1:x=(w-text_w)/2:y=(h/2)+248:enable='gte(t,{t_aparicio})'")
 
     vf = ",".join(filtres)
-    fc = f'[0:v]crop=ih*9/16:ih:(iw-ih*9/16)/2:0,scale=1080:1920,setsar=1,colorchannelmixer=ra=0.85:ga=0.85:ba=0.85,{vf}[out]'
-    inputs = f'-ss {offset_dins_tram:.2f} -i "{tram_path}"'
+    fc_base = f'[0:v]crop=ih*9/16:ih:(iw-ih*9/16)/2:0,scale=1080:1920,setsar=1,colorchannelmixer=ra=0.85:ga=0.85:ba=0.85,{vf}[txted]'
+    input_parts = [f'-ss {offset_dins_tram:.2f} -i "{tram_path}"']
+    seguent_idx = 1
+
+    logo_idx = None
     if LOGO_ACTIU:
-        fc += f";[1:v]scale={LOGO_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo];[out][logo]overlay=W-w-{LOGO_MARGIN}:{LOGO_MARGIN}[final]"
-        inputs += f' -i "{LOGO_PATH}"'
+        input_parts.append(f'-i "{LOGO_PATH}"')
+        logo_idx = seguent_idx
+        seguent_idx += 1
+
+    sticker_follow_idx = None
+    sticker_thanks_idx = None
+    if es_primer and STICKER_ACTIU:
+        input_parts.append(f'-loop 1 -i "{STICKER_FOLLOW_PATH}"')
+        sticker_follow_idx = seguent_idx
+        seguent_idx += 1
+        input_parts.append(f'-loop 1 -i "{STICKER_THANKS_PATH}"')
+        sticker_thanks_idx = seguent_idx
+        seguent_idx += 1
+
+    inputs = " ".join(input_parts)
+
+    fc_parts = [fc_base]
+    if es_primer and STICKER_ACTIU:
+        fc_parts.append(
+            f"[{sticker_follow_idx}:v]scale={STICKER_W}:-1,format=rgba,"
+            f"fade=t=in:st=2.0:d=0.3:alpha=1,fade=t=out:st=3.8:d=0.3:alpha=1[stfollow]"
+        )
+        fc_parts.append(
+            f"[{sticker_thanks_idx}:v]scale={STICKER_W}:-1,format=rgba,"
+            f"fade=t=in:st=3.8:d=0.3:alpha=1,fade=t=out:st=5.3:d=0.3:alpha=1[stthanks]"
+        )
+        fc_parts.append(f"[txted][stfollow]overlay=(W-w)/2:{STICKER_Y}:enable='between(t,2.0,4.1)'[stk1]")
+        fc_parts.append(f"[stk1][stthanks]overlay=(W-w)/2:{STICKER_Y}:enable='between(t,3.8,5.6)'[out]")
+    else:
+        fc_parts.append("[txted]copy[out]")
+
+    if LOGO_ACTIU:
+        fc_parts.append(f"[{logo_idx}:v]scale={LOGO_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo]")
+        fc_parts.append(f"[out][logo]overlay=W-w-{LOGO_MARGIN}:{LOGO_MARGIN}[final]")
         mapa_final = "[final]"
     else:
         mapa_final = "[out]"
 
+    fc = ";".join(fc_parts)
     cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map 0:a {VIDEO_OPTS} -c:a aac -b:a 192k "{output_path}" -y -loglevel error'
     result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
 
