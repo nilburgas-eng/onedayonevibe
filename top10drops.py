@@ -66,6 +66,12 @@ LOGO_OPACITY = 0.95
 LOGO_MARGIN  = 30
 LOGO_ACTIU   = os.path.exists(LOGO_PATH)
 
+STICKER_FOLLOW_PATH = "sticker_follow.png"
+STICKER_THANKS_PATH = "sticker_thanks.png"
+STICKER_ACTIU = os.path.exists(STICKER_FOLLOW_PATH) and os.path.exists(STICKER_THANKS_PATH)
+STICKER_W = 220
+STICKER_Y = 1180
+
 AMPLE_MAX_TITOL    = 900   # marge de seguretat dins dels 1080px d'ample
 AMPLE_MAX_SUBTITOL = 900
 MIDES_TITOL        = [68, 62, 56, 50, 44, 38]
@@ -297,6 +303,10 @@ if FONS_URL:
         print(f"   AVIS: no s'ha pogut consultar la durada, es descarta el video de fons")
         FONS_URL = ''
 
+max_pos = max(t['pos'] for t in tracks)
+if STICKER_ACTIU:
+    print(f"\nStickers Follow/Thanks actius, apareixeran al primer clip (#{max_pos})")
+
 clips_paths = []
 
 for track in tracks:
@@ -308,6 +318,7 @@ for track in tracks:
     timestamp_manual = track.get('timestamp_manual')
 
     es_ultim = (pos == 1)
+    es_primer = (pos == max_pos)
     durada = DURADA_TOP1 if es_ultim else DURADA_CLIP
     if es_ultim:
         durada += DURADA_OUTRO
@@ -508,6 +519,16 @@ for track in tracks:
         logo_idx = seguent_idx
         seguent_idx += 1
 
+    sticker_follow_idx = None
+    sticker_thanks_idx = None
+    if es_primer and STICKER_ACTIU:
+        input_parts.append(f'-loop 1 -i "{STICKER_FOLLOW_PATH}"')
+        sticker_follow_idx = seguent_idx
+        seguent_idx += 1
+        input_parts.append(f'-loop 1 -i "{STICKER_THANKS_PATH}"')
+        sticker_thanks_idx = seguent_idx
+        seguent_idx += 1
+
     inputs = " ".join(input_parts)
 
     fc_parts = [
@@ -523,8 +544,22 @@ for track in tracks:
         fc_parts.append("[withcover]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored]")
     else:
         fc_parts.append("[bg]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored]")
-    fc_parts.append(f"[colored]{txt_str},setpts=PTS/{SPEED_FACTOR}[out]")
+    fc_parts.append(f"[colored]{txt_str},setpts=PTS/{SPEED_FACTOR}[txted]")
     fc_parts.append(f"[{audio_idx}:a]atempo={SPEED_FACTOR}[aout]")
+
+    if es_primer and STICKER_ACTIU:
+        fc_parts.append(
+            f"[{sticker_follow_idx}:v]scale={STICKER_W}:-1,format=rgba,"
+            f"fade=t=in:st=2.0:d=0.3:alpha=1,fade=t=out:st=3.8:d=0.3:alpha=1[stfollow]"
+        )
+        fc_parts.append(
+            f"[{sticker_thanks_idx}:v]scale={STICKER_W}:-1,format=rgba,"
+            f"fade=t=in:st=3.8:d=0.3:alpha=1,fade=t=out:st=5.3:d=0.3:alpha=1[stthanks]"
+        )
+        fc_parts.append(f"[txted][stfollow]overlay=(W-w)/2:{STICKER_Y}:enable='between(t,2.0,4.1)'[stk1]")
+        fc_parts.append(f"[stk1][stthanks]overlay=(W-w)/2:{STICKER_Y}:enable='between(t,3.8,5.6)'[out]")
+    else:
+        fc_parts.append("[txted]copy[out]")
 
     if LOGO_ACTIU:
         fc_parts.append(f"[{logo_idx}:v]scale={LOGO_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo]")
