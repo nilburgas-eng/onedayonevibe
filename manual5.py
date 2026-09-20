@@ -45,6 +45,18 @@ LOGO_OPACITY = 0.85
 LOGO_MARGIN  = 30
 LOGO_ACTIU   = os.path.exists(LOGO_PATH)
 
+def trobar_fitxer_sense_distingir_majuscules(nom_base):
+    for f in os.listdir('.'):
+        if f.lower() == nom_base.lower():
+            return f
+    return None
+
+STICKER_FOLLOW_PATH = trobar_fitxer_sense_distingir_majuscules("sticker_follow.png") or "sticker_follow.png"
+STICKER_THANKS_PATH = trobar_fitxer_sense_distingir_majuscules("sticker_thanks.png") or "sticker_thanks.png"
+STICKER_ACTIU = os.path.exists(STICKER_FOLLOW_PATH) and os.path.exists(STICKER_THANKS_PATH)
+STICKER_W = 220
+STICKER_Y = 1180
+
 COVER_W  = 280
 COVER_H  = 280
 COVER_X  = 90
@@ -239,6 +251,10 @@ print(f"Subtitol: '{subtitol_disp}' (mida {mida_subtitol})")
 
 clips_paths = []
 
+max_pos = max(t['pos'] for t in tracks)
+if STICKER_ACTIU:
+    print(f"\nStickers Follow/Thanks actius, apareixeran al primer clip (#{max_pos})")
+
 for track in tracks:
     pos              = track['pos']
     nom              = track['nom']
@@ -248,6 +264,7 @@ for track in tracks:
     timestamp_manual = track.get('timestamp_manual')
 
     es_ultim = (pos == 1)
+    es_primer = (pos == max_pos)
     durada = DURADA_TOP1 if es_ultim else DURADA_CLIP
     if es_ultim:
         durada += DURADA_OUTRO
@@ -410,41 +427,70 @@ for track in tracks:
     txt_str = ",".join(txt)
     has_thumb = os.path.exists(thumb_path) and os.path.getsize(thumb_path) > 1000
 
+    input_parts = [f'-ss {inici} -i "{video_path}"']
+    audio_idx = 0
+    seguent_idx = 1
+
+    thumb_idx = None
     if has_thumb:
-        fc = (
-            "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
-            "crop=1080:1920:(iw-1080)/2:(ih-1920)/2[bg];"
-            "[1:v]scale={cw}:{ch}:force_original_aspect_ratio=decrease,"
-            "pad={cw}:{ch}:(ow-iw)/2:(oh-ih)/2:color=black@0,setsar=1[cover];"
-            "[bg][cover]overlay={cx}:{cy}[withcover];"
-            "[withcover]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored];"
-            "[colored]{txt},setpts=PTS/{sp}[out];"
-            "[0:a]atempo={sp}[aout]"
-        ).format(cw=COVER_W, ch=COVER_H, cx=COVER_X, cy=COVER_Y, txt=txt_str, sp=SPEED_FACTOR)
-        inputs = f'-ss {inici} -i "{video_path}" -i "{thumb_path}"'
-        if LOGO_ACTIU:
-            fc += f";[2:v]scale={LOGO_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo];[out][logo]overlay=W-w-{LOGO_MARGIN}:{LOGO_MARGIN}[final]"
-            inputs += f' -i "{LOGO_PATH}"'
-            mapa_final = "[final]"
-        else:
-            mapa_final = "[out]"
-        cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map "[aout]" {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
+        input_parts.append(f'-i "{thumb_path}"')
+        thumb_idx = seguent_idx
+        seguent_idx += 1
+
+    logo_idx = None
+    if LOGO_ACTIU:
+        input_parts.append(f'-i "{LOGO_PATH}"')
+        logo_idx = seguent_idx
+        seguent_idx += 1
+
+    sticker_follow_idx = None
+    sticker_thanks_idx = None
+    if es_primer and STICKER_ACTIU:
+        input_parts.append(f'-loop 1 -i "{STICKER_FOLLOW_PATH}"')
+        sticker_follow_idx = seguent_idx
+        seguent_idx += 1
+        input_parts.append(f'-loop 1 -i "{STICKER_THANKS_PATH}"')
+        sticker_thanks_idx = seguent_idx
+        seguent_idx += 1
+
+    inputs = " ".join(input_parts)
+
+    fc_parts = ["[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920:(iw-1080)/2:(ih-1920)/2[bg]"]
+    if has_thumb:
+        fc_parts.append(
+            f"[{thumb_idx}:v]scale={COVER_W}:{COVER_H}:force_original_aspect_ratio=decrease,"
+            f"pad={COVER_W}:{COVER_H}:(ow-iw)/2:(oh-ih)/2:color=black@0,setsar=1[cover]"
+        )
+        fc_parts.append(f"[bg][cover]overlay={COVER_X}:{COVER_Y}[withcover]")
+        fc_parts.append("[withcover]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored]")
     else:
-        fc = (
-            "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
-            "crop=1080:1920:(iw-1080)/2:(ih-1920)/2[bg];"
-            "[bg]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored];"
-            "[colored]{txt},setpts=PTS/{sp}[out];"
-            "[0:a]atempo={sp}[aout]"
-        ).format(txt=txt_str, sp=SPEED_FACTOR)
-        inputs = f'-ss {inici} -i "{video_path}"'
-        if LOGO_ACTIU:
-            fc += f";[1:v]scale={LOGO_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo];[out][logo]overlay=W-w-{LOGO_MARGIN}:{LOGO_MARGIN}[final]"
-            inputs += f' -i "{LOGO_PATH}"'
-            mapa_final = "[final]"
-        else:
-            mapa_final = "[out]"
-        cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map "[aout]" {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
+        fc_parts.append("[bg]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored]")
+    fc_parts.append(f"[colored]{txt_str},setpts=PTS/{SPEED_FACTOR}[txted]")
+    fc_parts.append(f"[{audio_idx}:a]atempo={SPEED_FACTOR}[aout]")
+
+    if es_primer and STICKER_ACTIU:
+        fc_parts.append(
+            f"[{sticker_follow_idx}:v]scale={STICKER_W}:-1,format=rgba,"
+            f"fade=t=in:st=2.0:d=0.3:alpha=1,fade=t=out:st=3.8:d=0.3:alpha=1[stfollow]"
+        )
+        fc_parts.append(
+            f"[{sticker_thanks_idx}:v]scale={STICKER_W}:-1,format=rgba,"
+            f"fade=t=in:st=3.8:d=0.3:alpha=1,fade=t=out:st=5.3:d=0.3:alpha=1[stthanks]"
+        )
+        fc_parts.append(f"[txted][stfollow]overlay=(W-w)/2:{STICKER_Y}:enable='between(t,2.0,4.1)'[stk1]")
+        fc_parts.append(f"[stk1][stthanks]overlay=(W-w)/2:{STICKER_Y}:enable='between(t,3.8,5.6)'[out]")
+    else:
+        fc_parts.append("[txted]copy[out]")
+
+    if LOGO_ACTIU:
+        fc_parts.append(f"[{logo_idx}:v]scale={LOGO_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo]")
+        fc_parts.append(f"[out][logo]overlay=W-w-{LOGO_MARGIN}:{LOGO_MARGIN}[final]")
+        mapa_final = "[final]"
+    else:
+        mapa_final = "[out]"
+
+    fc = ";".join(fc_parts)
+    cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map "[aout]" {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
 
     os.system(cmd)
     clips_paths.append((pos, output_path))
