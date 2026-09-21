@@ -11,11 +11,11 @@ on:
         description: 'Text manual (opcional, nomes si vols saltar-te l extraccio automatica)'
         required: false
         default: ''
-      foto1_url:
-        description: 'URL de la foto 1 (fons del titular)'
+      foto1_path:
+        description: 'Path al repo de la foto 1 (fons del titular)'
         required: true
-      foto2_url:
-        description: 'URL de la foto 2 (fons del resum)'
+      foto2_path:
+        description: 'Path al repo de la foto 2 (fons del resum)'
         required: true
       instruccions_extra:
         description: 'Instruccions extra per la IA (opcional: to verbal, dades extra, matisos...)'
@@ -50,8 +50,8 @@ jobs:
         env:
           URL_NOTICIA: ${{ github.event.inputs.url_noticia }}
           TEXT_MANUAL: ${{ github.event.inputs.text_manual }}
-          FOTO1_URL: ${{ github.event.inputs.foto1_url }}
-          FOTO2_URL: ${{ github.event.inputs.foto2_url }}
+          FOTO1_PATH: ${{ github.event.inputs.foto1_path }}
+          FOTO2_PATH: ${{ github.event.inputs.foto2_path }}
           INSTRUCCIONS_EXTRA: ${{ github.event.inputs.instruccions_extra }}
           ANTHROPIC_KEY: ${{ secrets.ANTHROPIC_KEY }}
         run: python3 actualitat.py
