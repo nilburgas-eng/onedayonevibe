@@ -97,7 +97,7 @@ async function pujarFoto(inputEl, num) {
         });
         const extensio = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
         const nomFitxer = `foto${num}_${Date.now()}.${extensio}`;
-        const path = `actualitat_fotos/${nomFitxer}`;
+        const path = `manual_covers/actualitat_${nomFitxer}`;
         const r = await fetch(
             `https://api.github.com/repos/${GITHUB_REPO}/contents/${path}`,
             {
