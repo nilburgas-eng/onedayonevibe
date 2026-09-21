@@ -23,8 +23,8 @@ for font_path in [FONT_BEBAS, FONT_SEMIBOLD, FONT_EXTRABOLD, FONT_MEDIUM]:
 
 URL_NOTICIA   = os.environ.get('URL_NOTICIA', '').strip()
 TEXT_MANUAL   = os.environ.get('TEXT_MANUAL', '').strip()
-FOTO1_URL     = os.environ.get('FOTO1_URL', '').strip()
-FOTO2_URL     = os.environ.get('FOTO2_URL', '').strip()
+FOTO1_PATH    = os.environ.get('FOTO1_PATH', '').strip()
+FOTO2_PATH    = os.environ.get('FOTO2_PATH', '').strip()
 INSTRUCCIONS_EXTRA = os.environ.get('INSTRUCCIONS_EXTRA', '').strip()
 ANTHROPIC_KEY = os.environ.get('ANTHROPIC_KEY', '')
 
@@ -249,28 +249,18 @@ print(f"   Summary: {summary}")
 print(f"   Caption: {caption}")
 print(f"   Hashtags: {' '.join(hashtags)}")
 
-if not FOTO1_URL or not FOTO2_URL:
-    print("ERROR: falten FOTO1_URL i/o FOTO2_URL (cal pujar les dues fotos des de la web app)")
+if not FOTO1_PATH or not FOTO2_PATH:
+    print("ERROR: falten FOTO1_PATH i/o FOTO2_PATH (cal pujar les dues fotos des de la web app)")
     exit(1)
 
-
-def descarregar_foto(url, dest_path, etiqueta):
-    print(f"\nDescarregant {etiqueta}: {url}")
-    try:
-        r_foto = requests.get(url, timeout=60)
-        r_foto.raise_for_status()
-        with open(dest_path, 'wb') as f:
-            f.write(r_foto.content)
-        print(f"   {etiqueta} OK ({len(r_foto.content)//1024} KB)")
-    except Exception as e:
-        print(f"ERROR descarregant {etiqueta}: {e}")
+for etiqueta, path in [("Foto 1 (titular)", FOTO1_PATH), ("Foto 2 (resum)", FOTO2_PATH)]:
+    if not os.path.exists(path) or os.path.getsize(path) < 500:
+        print(f"ERROR: no s'ha trobat {etiqueta} al repo ({path})")
         exit(1)
+    print(f"{etiqueta} OK ({path}, {os.path.getsize(path)//1024} KB)")
 
-
-foto1_local_path = os.path.expanduser("~/foto1_noticia.jpg")
-foto2_local_path = os.path.expanduser("~/foto2_noticia.jpg")
-descarregar_foto(FOTO1_URL, foto1_local_path, "Foto 1 (titular)")
-descarregar_foto(FOTO2_URL, foto2_local_path, "Foto 2 (resum)")
+foto1_local_path = FOTO1_PATH
+foto2_local_path = FOTO2_PATH
 
 # ---------- IMATGE 1: TITULAR (Foto 1) ----------
 img1 = preparar_fons(foto1_local_path, darken=0.20)
