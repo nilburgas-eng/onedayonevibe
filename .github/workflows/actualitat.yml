@@ -1,0 +1,101 @@
+name: Generar Actualitat
+
+on:
+  workflow_dispatch:
+    inputs:
+      url_noticia:
+        description: 'URL de la noticia'
+        required: false
+        default: ''
+      text_manual:
+        description: 'Text manual (opcional, nomes si vols saltar-te l extraccio automatica)'
+        required: false
+        default: ''
+      foto1_url:
+        description: 'URL de la foto 1 (fons del titular)'
+        required: true
+      foto2_url:
+        description: 'URL de la foto 2 (fons del resum)'
+        required: true
+      instruccions_extra:
+        description: 'Instruccions extra per la IA (opcional: to verbal, dades extra, matisos...)'
+        required: false
+        default: ''
+
+jobs:
+  generar:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout codi
+        uses: actions/checkout@v4
+
+      - name: Instal·lar dependencies
+        run: |
+          pip install requests anthropic pillow readability-lxml lxml_html_clean
+          echo "Dependencies OK"
+
+      - name: Descarregar fonts
+        run: |
+          mkdir -p ~/fonts
+          wget -q "https://github.com/google/fonts/raw/main/ofl/bebasneue/BebasNeue-Regular.ttf" -O ~/fonts/BebasNeue.ttf
+          wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-SemiBold.ttf" -O ~/fonts/Montserrat-SemiBold.ttf
+          wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-ExtraBold.ttf" -O ~/fonts/Montserrat-ExtraBold.ttf
+          wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-Medium.ttf" -O ~/fonts/Montserrat-Medium.ttf
+          wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-Bold.ttf" -O ~/fonts/Montserrat-Bold.ttf
+          echo "Fonts: $(ls ~/fonts/ | wc -l)"
+
+      - name: Generar Actualitat
+        env:
+          URL_NOTICIA: ${{ github.event.inputs.url_noticia }}
+          TEXT_MANUAL: ${{ github.event.inputs.text_manual }}
+          FOTO1_URL: ${{ github.event.inputs.foto1_url }}
+          FOTO2_URL: ${{ github.event.inputs.foto2_url }}
+          INSTRUCCIONS_EXTRA: ${{ github.event.inputs.instruccions_extra }}
+          ANTHROPIC_KEY: ${{ secrets.ANTHROPIC_KEY }}
+        run: python3 actualitat.py
+
+      - name: Pujar imatges a GitHub Releases
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+        run: |
+          python3 << 'PYEOF'
+          import os, requests
+          repo = "${{ github.repository }}"
+          tag = "actualitat_generat"
+          token = os.environ['GITHUB_TOKEN']
+          headers = {"Authorization": f"token {token}"}
+
+          r = requests.get(f"https://api.github.com/repos/{repo}/releases/tags/{tag}", headers=headers)
+          if r.status_code == 200:
+              release = r.json()
+              upload_url = release['upload_url'].split('{')[0]
+              print("Release existent trobat")
+              for a in release.get('assets', []):
+                  if a['name'] in ('slide1_headline.png', 'slide2_summary.png', 'caption.txt'):
+                      requests.delete(f"https://api.github.com/repos/{repo}/releases/assets/{a['id']}", headers=headers)
+          else:
+              print("Creant release nou...")
+              r = requests.post(f"https://api.github.com/repos/{repo}/releases", headers=headers,
+                  json={"tag_name": tag, "name": tag, "draft": False})
+              if r.status_code not in (200, 201):
+                  print(f"ERROR creant release: {r.status_code}")
+                  print(r.text)
+                  exit(1)
+              upload_url = r.json()['upload_url'].split('{')[0]
+
+          for nom_fitxer, content_type in [
+              ("slide1_headline.png", "image/png"),
+              ("slide2_summary.png", "image/png"),
+              ("caption.txt", "text/plain"),
+          ]:
+              path = os.path.expanduser(f"~/output/{nom_fitxer}")
+              if not os.path.exists(path):
+                  print(f"AVIS: no existeix {nom_fitxer}")
+                  continue
+              with open(path, 'rb') as f:
+                  r2 = requests.post(f"{upload_url}?name={nom_fitxer}",
+                      headers={**headers, "Content-Type": content_type}, data=f)
+              print(f"Pujat {nom_fitxer}: {r2.status_code}")
+          PYEOF
