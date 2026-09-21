@@ -79,93 +79,50 @@ window.onload = function() {
     }
 }
 
-function redimensionarImatge(file, maxCostat = 1600, qualitat = 0.85) {
-    return new Promise((resolve, reject) => {
-        const img = new Image();
-        const url = URL.createObjectURL(file);
-        img.onload = () => {
-            URL.revokeObjectURL(url);
-            let { width, height } = img;
-            if (width > height && width > maxCostat) {
-                height = Math.round(height * (maxCostat / width));
-                width = maxCostat;
-            } else if (height >= width && height > maxCostat) {
-                width = Math.round(width * (maxCostat / height));
-                height = maxCostat;
-            }
-            const canvas = document.createElement('canvas');
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, width, height);
-            const dataUrl = canvas.toDataURL('image/jpeg', qualitat);
-            resolve(dataUrl.split(',')[1]);
-        };
-        img.onerror = () => {
-            URL.revokeObjectURL(url);
-            reject(new Error('No s\'ha pogut llegir la imatge'));
-        };
-        img.src = url;
-    });
-}
-
 async function pujarFoto(inputEl, num) {
     const file = inputEl.files[0];
     if (!file) return;
-    if (file.size > 20 * 1024 * 1024) {
-        mostrarStatus('❌ Imatge massa gran (màxim ~20MB)', 'error');
+    if (file.size > 15 * 1024 * 1024) {
+        mostrarStatus('❌ Imatge massa gran (màxim ~15MB)', 'error');
         inputEl.value = '';
         return;
     }
-
-    const intents = [
-        { costat: 1600, qualitat: 0.85 },
-        { costat: 1000, qualitat: 0.75 },
-        { costat: 700, qualitat: 0.65 },
-    ];
-
-    for (let i = 0; i < intents.length; i++) {
-        const { costat, qualitat } = intents[i];
-        mostrarStatus(`⏳ Pujant foto ${num} (${costat}px, intent ${i + 1}/${intents.length})...`, 'info');
-        try {
-            const base64 = await redimensionarImatge(file, costat, qualitat);
-            console.log(`Foto ${num} intent ${i + 1}: base64 length = ${base64.length}`);
-            const nomFitxer = `foto${num}_${Date.now()}.jpg`;
-            const path = `actualitat_fotos/${nomFitxer}`;
-            const r = await fetch(
-                `https://api.github.com/repos/${GITHUB_REPO}/contents/${path}`,
-                {
-                    method: 'PUT',
-                    headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        message: `Foto ${num} per actualitat`,
-                        content: base64,
-                        branch: 'main'
-                    })
-                }
-            );
-            if (r.status === 201 || r.status === 200) {
-                if (num === 1) foto1Path = path;
-                else foto2Path = path;
-                const statusEl = document.getElementById(`foto${num}-status`);
-                statusEl.innerHTML = `✅ Foto ${num} pujada (${costat}px): ${nomFitxer}`;
-                statusEl.style.color = '#00ff88';
-                mostrarStatus(`✅ Foto ${num} pujada correctament! (${costat}px, ${(base64.length/1024).toFixed(0)} KB en base64)`, 'ok');
-                return;
-            } else {
-                const err = await r.json().catch(() => ({}));
-                if (i === intents.length - 1) {
-                    mostrarStatus(`❌ Error pujant foto ${num} (${r.status}): ${err.message || ''}`, 'error');
-                    return;
-                }
+    mostrarStatus(`⏳ Pujant foto ${num}...`, 'info');
+    try {
+        const base64 = await new Promise((res, rej) => {
+            const reader = new FileReader();
+            reader.onload = () => res(reader.result.split(',')[1]);
+            reader.onerror = () => rej(new Error('Error llegint el fitxer'));
+            reader.readAsDataURL(file);
+        });
+        const extensio = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+        const nomFitxer = `foto${num}_${Date.now()}.${extensio}`;
+        const path = `actualitat_fotos/${nomFitxer}`;
+        const r = await fetch(
+            `https://api.github.com/repos/${GITHUB_REPO}/contents/${path}`,
+            {
+                method: 'PUT',
+                headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message: `Foto ${num} per actualitat`,
+                    content: base64,
+                    branch: 'main'
+                })
             }
-        } catch (e) {
-            console.log(`Foto ${num} intent ${i + 1} ha fallat: ${e.message}`);
-            if (i === intents.length - 1) {
-                mostrarStatus(`❌ Error pujant foto ${num} despres de ${intents.length} intents: ${e.message}`, 'error');
-                return;
-            }
+        );
+        if (r.status === 201 || r.status === 200) {
+            if (num === 1) foto1Path = path;
+            else foto2Path = path;
+            const statusEl = document.getElementById(`foto${num}-status`);
+            statusEl.innerHTML = `✅ Foto ${num} pujada: ${nomFitxer}`;
+            statusEl.style.color = '#00ff88';
+            mostrarStatus(`✅ Foto ${num} pujada correctament!`, 'ok');
+        } else {
+            const err = await r.json().catch(() => ({}));
+            mostrarStatus(`❌ Error pujant foto ${num} (${r.status}): ${err.message || ''}`, 'error');
         }
+    } catch (e) {
+        mostrarStatus('❌ Error: ' + e.message, 'error');
     }
 }
 
