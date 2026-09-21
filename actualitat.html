@@ -69,59 +69,14 @@
 <script>
 const GITHUB_REPO = "nilburgas-eng/onedayonevibe";
 let GITHUB_TOKEN = localStorage.getItem('github_token') || '';
-let foto1Url = '';
-let foto2Url = '';
+let foto1Path = '';
+let foto2Path = '';
 
 window.onload = function() {
     if (!GITHUB_TOKEN) {
         GITHUB_TOKEN = prompt('Introdueix el teu GitHub Token:');
         if (GITHUB_TOKEN) localStorage.setItem('github_token', GITHUB_TOKEN);
     }
-}
-
-let releaseManualId = null;
-
-async function obtenirReleaseManual() {
-    if (releaseManualId) return releaseManualId;
-    let r = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/tags/manual-media`, {
-        headers: { 'Authorization': `token ${GITHUB_TOKEN}` }
-    });
-    if (r.status === 200) {
-        const data = await r.json();
-        releaseManualId = data.id;
-        return releaseManualId;
-    }
-    r = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases`, {
-        method: 'POST',
-        headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            tag_name: 'manual-media',
-            name: 'Vídeos i portades pujats manualment',
-            body: 'No esborris aquest release: aquí es guarden els vídeos/portades manuals dels formats.',
-            prerelease: true
-        })
-    });
-    if (r.status === 201) {
-        const data = await r.json();
-        releaseManualId = data.id;
-        return releaseManualId;
-    }
-    throw new Error('No s\'ha pogut crear/trobar el release per als fitxers manuals');
-}
-
-async function pujarAmbReintent(url, opcions, intents = 2) {
-    let ultimError;
-    for (let i = 0; i < intents; i++) {
-        try {
-            return await fetch(url, opcions);
-        } catch (e) {
-            ultimError = e;
-            if (i < intents - 1) {
-                await new Promise(res => setTimeout(res, 1500));
-            }
-        }
-    }
-    throw ultimError;
 }
 
 async function pujarFoto(inputEl, num) {
@@ -134,21 +89,30 @@ async function pujarFoto(inputEl, num) {
     }
     mostrarStatus(`⏳ Pujant foto ${num}...`, 'info');
     try {
-        const releaseId = await obtenirReleaseManual();
+        const base64 = await new Promise((res, rej) => {
+            const reader = new FileReader();
+            reader.onload = () => res(reader.result.split(',')[1]);
+            reader.onerror = () => rej(new Error('Error llegint el fitxer'));
+            reader.readAsDataURL(file);
+        });
         const extensio = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
-        const nomFitxer = `actualitat_foto${num}_${Date.now()}.${extensio}`;
-        const r = await pujarAmbReintent(
-            `https://uploads.github.com/repos/${GITHUB_REPO}/releases/${releaseId}/assets?name=${encodeURIComponent(nomFitxer)}`,
+        const nomFitxer = `foto${num}_${Date.now()}.${extensio}`;
+        const path = `actualitat_fotos/${nomFitxer}`;
+        const r = await fetch(
+            `https://api.github.com/repos/${GITHUB_REPO}/contents/${path}`,
             {
-                method: 'POST',
-                headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Content-Type': file.type || 'application/octet-stream' },
-                body: file
+                method: 'PUT',
+                headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message: `Foto ${num} per actualitat`,
+                    content: base64,
+                    branch: 'main'
+                })
             }
         );
-        if (r.status === 201) {
-            const data = await r.json();
-            if (num === 1) foto1Url = data.browser_download_url;
-            else foto2Url = data.browser_download_url;
+        if (r.status === 201 || r.status === 200) {
+            if (num === 1) foto1Path = path;
+            else foto2Path = path;
             const statusEl = document.getElementById(`foto${num}-status`);
             statusEl.innerHTML = `✅ Foto ${num} pujada: ${nomFitxer}`;
             statusEl.style.color = '#00ff88';
@@ -158,7 +122,6 @@ async function pujarFoto(inputEl, num) {
             mostrarStatus(`❌ Error pujant foto ${num} (${r.status}): ${err.message || ''}`, 'error');
         }
     } catch (e) {
-
         mostrarStatus('❌ Error: ' + e.message, 'error');
     }
 }
@@ -203,7 +166,7 @@ async function generarActualitat() {
         mostrarStatus('❌ Posa la URL de la notícia (o el text manual)', 'error');
         return;
     }
-    if (!foto1Url || !foto2Url) {
+    if (!foto1Path || !foto2Path) {
         mostrarStatus('❌ Puja les dues fotos (1 i 2) abans de generar', 'error');
         return;
     }
@@ -211,8 +174,8 @@ async function generarActualitat() {
     const res = await dispararWorkflow('actualitat.yml', {
         url_noticia: url,
         text_manual: textManual,
-        foto1_url: foto1Url,
-        foto2_url: foto2Url,
+        foto1_path: foto1Path,
+        foto2_path: foto2Path,
         instruccions_extra: instruccionsExtra
     });
     if (res.status === 204) {
