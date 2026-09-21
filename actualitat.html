@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>onedayonevibe — Actualitat</title>
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0d0d0d; color: #fff; min-height: 100vh; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px 0; }
+    h1 { font-size: 28px; font-weight: 800; color: #00BFFF; margin-bottom: 4px; }
+    .subtitle { font-size: 14px; color: #666; margin-bottom: 30px; }
+    .card { background: #1a1a1a; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+    .card h2 { font-size: 14px; font-weight: 600; color: #00BFFF; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
+    label { display: block; font-size: 13px; color: #999; margin-bottom: 6px; }
+    input, textarea { width: 100%; background: #2a2a2a; border: 1px solid #333; border-radius: 8px; padding: 12px; color: #fff; font-size: 15px; margin-bottom: 14px; outline: none; font-family: inherit; }
+    input:focus, textarea:focus { border-color: #00BFFF; }
+    .btn { width: 100%; padding: 16px; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; border: none; margin-bottom: 12px; }
+    .btn:active { opacity: 0.8; }
+    .btn-green { background: #1DB954; color: #000; }
+    .btn-secondary { background: #2a2a2a; color: #fff; border: 1px solid #444; }
+    .btn-danger { background: #ff4444; color: #fff; }
+    .status { background: #1a1a1a; border-radius: 12px; padding: 16px; margin-bottom: 16px; display: none; }
+    .status.visible { display: block; }
+    .status-text { font-size: 14px; line-height: 1.6; }
+    .status-ok { color: #00ff88; }
+    .status-error { color: #ff4444; }
+    .status-info { color: #00BFFF; }
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>@onedayonevibe</h1>
+    <p class="subtitle">Actualitat — Carrusel de notícies</p>
+
+    <div class="card">
+        <h2>✏️ Notícia</h2>
+        <label>URL de la notícia</label>
+        <input type="text" id="url_noticia" placeholder="https://wololosound.com/..." />
+        <label>Text manual (opcional — només si l'extracció automàtica no funciona bé)</label>
+        <textarea id="text_manual" rows="6" placeholder="Enganxa aquí el text de la notícia si vols saltar-te l'extracció automàtica..."></textarea>
+        <label>💬 Instruccions extra per la IA (opcional)</label>
+        <textarea id="instruccions_extra" rows="3" placeholder="Ex: el festival ja ha acabat, escriu-ho en passat. / Afegeix que és la primera vegada que passa a Àsia."></textarea>
+        <label>🖼️ Foto 1 — fons del titular (obligatòria)</label>
+        <input type="file" accept="image/*" onchange="pujarFoto(this, 1)" />
+        <div id="foto1-status" style="font-size:12px;color:#666;margin-top:-6px;margin-bottom:6px;"></div>
+        <label>🖼️ Foto 2 — fons del resum (obligatòria)</label>
+        <input type="file" accept="image/*" onchange="pujarFoto(this, 2)" />
+        <div id="foto2-status" style="font-size:12px;color:#666;margin-top:-6px;margin-bottom:6px;"></div>
+    </div>
+
+    <div id="status" class="status">
+        <div id="status-text" class="status-text"></div>
+    </div>
+
+    <button class="btn btn-green" onclick="generarActualitat()">🎬 Generar carrusel</button>
+
+    <div class="card">
+        <h2>⬇️ Descarregar / Esborrar</h2>
+        <button class="btn btn-secondary" onclick="veureEstat()">📊 Consultar estat</button>
+        <button class="btn btn-secondary" onclick="descarregarSlide(1)">⬇️ Descarregar imatge 1 (titular)</button>
+        <button class="btn btn-secondary" onclick="descarregarSlide(2)">⬇️ Descarregar imatge 2 (resum)</button>
+        <button class="btn btn-secondary" onclick="descarregarCaption()">📋 Copiar descripció + hashtags</button>
+        <button class="btn btn-danger" onclick="esborrarRelease()">🗑️ Esborrar Release</button>
+        <button class="btn btn-secondary" onclick="canviarToken()">🔑 Canviar token</button>
+    </div>
+</div>
+
+<script>
+const GITHUB_REPO = "nilburgas-eng/onedayonevibe";
+let GITHUB_TOKEN = localStorage.getItem('github_token') || '';
+let foto1Url = '';
+let foto2Url = '';
+
+window.onload = function() {
+    if (!GITHUB_TOKEN) {
+        GITHUB_TOKEN = prompt('Introdueix el teu GitHub Token:');
+        if (GITHUB_TOKEN) localStorage.setItem('github_token', GITHUB_TOKEN);
+    }
+}
+
+let releaseManualId = null;
+
+async function obtenirReleaseManual() {
+    if (releaseManualId) return releaseManualId;
+    let r = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/tags/manual-media`, {
+        headers: { 'Authorization': `token ${GITHUB_TOKEN}` }
+    });
+    if (r.status === 200) {
+        const data = await r.json();
+        releaseManualId = data.id;
+        return releaseManualId;
+    }
+    r = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases`, {
+        method: 'POST',
+        headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            tag_name: 'manual-media',
+            name: 'Vídeos i portades pujats manualment',
+            body: 'No esborris aquest release: aquí es guarden els vídeos/portades manuals dels formats.',
+            prerelease: true
+        })
+    });
+    if (r.status === 201) {
+        const data = await r.json();
+        releaseManualId = data.id;
+        return releaseManualId;
+    }
+    throw new Error('No s\'ha pogut crear/trobar el release per als fitxers manuals');
+}
+
+async function pujarFoto(inputEl, num) {
+    const file = inputEl.files[0];
+    if (!file) return;
+    if (file.size > 15 * 1024 * 1024) {
+        mostrarStatus('❌ Imatge massa gran (màxim ~15MB)', 'error');
+        inputEl.value = '';
+        return;
+    }
+    mostrarStatus(`⏳ Pujant foto ${num}...`, 'info');
+    try {
+        const releaseId = await obtenirReleaseManual();
+        const extensio = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+        const nomFitxer = `actualitat_foto${num}_${Date.now()}.${extensio}`;
+        const r = await fetch(
+            `https://uploads.github.com/repos/${GITHUB_REPO}/releases/${releaseId}/assets?name=${encodeURIComponent(nomFitxer)}`,
+            {
+                method: 'POST',
+                headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Content-Type': file.type || 'application/octet-stream' },
+                body: file
+            }
+        );
+        if (r.status === 201) {
+            const data = await r.json();
+            if (num === 1) foto1Url = data.browser_download_url;
+            else foto2Url = data.browser_download_url;
+            const statusEl = document.getElementById(`foto${num}-status`);
+            statusEl.innerHTML = `✅ Foto ${num} pujada: ${nomFitxer}`;
+            statusEl.style.color = '#00ff88';
+            mostrarStatus(`✅ Foto ${num} pujada correctament!`, 'ok');
+        } else {
+            const err = await r.json().catch(() => ({}));
+            mostrarStatus(`❌ Error pujant foto ${num} (${r.status}): ${err.message || ''}`, 'error');
+        }
+    } catch (e) {
+        mostrarStatus('❌ Error: ' + e.message, 'error');
+    }
+}
+
+function canviarToken() {
+    const nou = prompt('Introdueix el nou GitHub Token:');
+    if (nou) {
+        GITHUB_TOKEN = nou;
+        localStorage.setItem('github_token', nou);
+        mostrarStatus('✅ Token actualitzat!', 'ok');
+    }
+}
+
+function mostrarStatus(text, tipus) {
+    const el = document.getElementById('status');
+    const textEl = document.getElementById('status-text');
+    el.classList.add('visible');
+    textEl.innerHTML = `<span class="status-${tipus}">${text}</span>`;
+}
+
+async function dispararWorkflow(workflow, inputs) {
+    const r = await fetch(
+        `https://api.github.com/repos/${GITHUB_REPO}/actions/workflows/${workflow}/dispatches`,
+        {
+            method: 'POST',
+            headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ref: 'main', inputs })
+        }
+    );
+    let detall = '';
+    if (r.status !== 204) {
+        try { detall = (await r.json()).message || ''; } catch(e) {}
+    }
+    return { status: r.status, detall };
+}
+
+async function generarActualitat() {
+    const url = document.getElementById('url_noticia').value.trim();
+    const textManual = document.getElementById('text_manual').value.trim();
+    const instruccionsExtra = document.getElementById('instruccions_extra').value.trim();
+    if (!url && !textManual) {
+        mostrarStatus('❌ Posa la URL de la notícia (o el text manual)', 'error');
+        return;
+    }
+    if (!foto1Url || !foto2Url) {
+        mostrarStatus('❌ Puja les dues fotos (1 i 2) abans de generar', 'error');
+        return;
+    }
+    mostrarStatus('⏳ Generant carrusel...', 'info');
+    const res = await dispararWorkflow('actualitat.yml', {
+        url_noticia: url,
+        text_manual: textManual,
+        foto1_url: foto1Url,
+        foto2_url: foto2Url,
+        instruccions_extra: instruccionsExtra
+    });
+    if (res.status === 204) {
+        mostrarStatus('✅ Generació iniciada!<br>⏳ Tarda 1-2 min. Després "Descarregar imatges" i "Copiar descripció".', 'ok');
+    } else {
+        mostrarStatus(`❌ Error ${res.status}: ${res.detall}`, 'error');
+    }
+}
+
+async function veureEstat() {
+    mostrarStatus('⏳ Consultant estat...', 'info');
+    const r = await fetch(
+        `https://api.github.com/repos/${GITHUB_REPO}/actions/runs?per_page=5`,
+        { headers: { 'Authorization': `token ${GITHUB_TOKEN}` } }
+    );
+    const data = await r.json();
+    const runs = data.workflow_runs;
+    if (!runs || runs.length === 0) { mostrarStatus('❌ No hi ha workflows recents', 'error'); return; }
+    let html = '<b>Últims workflows:</b><br><br>';
+    for (const run of runs) {
+        const icon = run.status === 'completed' ? (run.conclusion === 'success' ? '✅' : '❌') : '⏳';
+        html += `${icon} <b>${run.name}</b> — ${run.conclusion || run.status}<br>`;
+        html += `&nbsp;&nbsp;&nbsp;${new Date(run.created_at).toLocaleString()}<br><br>`;
+    }
+    mostrarStatus(html, 'info');
+}
+
+async function obtenirRelease() {
+    const r = await fetch(
+        `https://api.github.com/repos/${GITHUB_REPO}/releases/tags/actualitat_generat`,
+        { headers: { 'Authorization': `token ${GITHUB_TOKEN}` } }
+    );
+    if (r.status !== 200) return null;
+    return await r.json();
+}
+
+async function descarregarSlide(num) {
+    const release = await obtenirRelease();
+    if (!release) { mostrarStatus('❌ Release no trobat', 'error'); return; }
+    const nom = num === 1 ? 'slide1_headline.png' : 'slide2_summary.png';
+    const asset = release.assets.find(a => a.name === nom);
+    if (asset) window.open(asset.browser_download_url, '_blank');
+    else mostrarStatus('❌ Imatge no trobada encara', 'error');
+}
+
+async function descarregarCaption() {
+    const release = await obtenirRelease();
+    if (!release) { mostrarStatus('❌ Release no trobat', 'error'); return; }
+    const asset = release.assets.find(a => a.name === 'caption.txt');
+    if (!asset) { mostrarStatus('❌ Descripció no trobada encara', 'error'); return; }
+    const r = await fetch(asset.browser_download_url);
+    const text = await r.text();
+    try {
+        await navigator.clipboard.writeText(text);
+        mostrarStatus('✅ Descripció copiada al porta-retalls!<br><br>' + text.replace(/\n/g, '<br>'), 'ok');
+    } catch (e) {
+        mostrarStatus('📋 Descripció:<br><br>' + text.replace(/\n/g, '<br>'), 'info');
+    }
+}
+
+async function esborrarRelease() {
+    mostrarStatus('⏳ Esborrant...', 'info');
+    const r = await fetch(
+        `https://api.github.com/repos/${GITHUB_REPO}/releases/tags/actualitat_generat`,
+        { headers: { 'Authorization': `token ${GITHUB_TOKEN}` } }
+    );
+    if (r.status !== 200) { mostrarStatus('❌ Release no trobat', 'error'); return; }
+    const release = await r.json();
+    await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/${release.id}`,
+        { method: 'DELETE', headers: { 'Authorization': `token ${GITHUB_TOKEN}` } });
+    await fetch(`https://api.github.com/repos/${GITHUB_REPO}/git/refs/tags/actualitat_generat`,
+        { method: 'DELETE', headers: { 'Authorization': `token ${GITHUB_TOKEN}` } });
+    mostrarStatus('✅ Release esborrat!', 'ok');
+}
+</script>
+</body>
+</html>
