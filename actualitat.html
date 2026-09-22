@@ -60,7 +60,7 @@
         <button class="btn btn-secondary" onclick="veureEstat()">📊 Consultar estat</button>
         <button class="btn btn-secondary" onclick="descarregarSlide(1)">⬇️ Descarregar imatge 1 (titular)</button>
         <button class="btn btn-secondary" onclick="descarregarSlide(2)">⬇️ Descarregar imatge 2 (resum)</button>
-        <button class="btn btn-secondary" onclick="descarregarCaption()">📋 Copiar descripció + hashtags</button>
+        <button class="btn btn-secondary" onclick="descarregarCaption()">📋 Carregar descripció + hashtags (editable)</button>
         <button class="btn btn-danger" onclick="esborrarRelease()">🗑️ Esborrar Release</button>
         <button class="btn btn-secondary" onclick="canviarToken()">🔑 Canviar token</button>
     </div>
@@ -228,11 +228,29 @@ async function descarregarCaption() {
     if (!asset) { mostrarStatus('❌ Descripció no trobada encara', 'error'); return; }
     const r = await fetch(asset.browser_download_url);
     const text = await r.text();
+    const el = document.getElementById('status');
+    const textEl = document.getElementById('status-text');
+    el.classList.add('visible');
+    textEl.innerHTML =
+        '<span class="status-info">📋 Descripció (toca el quadre i clica "Copiar"):</span>' +
+        '<textarea id="caption-box" style="width:100%;margin-top:8px;padding:10px;border-radius:8px;background:#2a2a2a;border:1px solid #333;color:#fff;font-size:14px;" rows="6">' + text + '</textarea>' +
+        '<button class="btn btn-secondary" style="margin-top:10px;" onclick="copiarCaption()">📋 Copiar</button>';
+}
+
+function copiarCaption() {
+    const box = document.getElementById('caption-box');
+    box.focus();
+    box.select();
+    box.setSelectionRange(0, 999999);
     try {
-        await navigator.clipboard.writeText(text);
-        mostrarStatus('✅ Descripció copiada al porta-retalls!<br><br>' + text.replace(/\n/g, '<br>'), 'ok');
+        const ok = document.execCommand('copy');
+        if (ok) {
+            mostrarStatus('✅ Descripció copiada al porta-retalls!', 'ok');
+        } else {
+            mostrarStatus('⚠️ No s\'ha pogut copiar automàticament. Selecciona el text manualment i copia\'l.', 'error');
+        }
     } catch (e) {
-        mostrarStatus('📋 Descripció:<br><br>' + text.replace(/\n/g, '<br>'), 'info');
+        mostrarStatus('⚠️ No s\'ha pogut copiar automàticament. Selecciona el text manualment i copia\'l.', 'error');
     }
 }
 
