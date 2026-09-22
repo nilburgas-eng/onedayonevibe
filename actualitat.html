@@ -224,19 +224,16 @@ async function descarregarSlide(num) {
 async function descarregarCaption() {
     mostrarStatus('⏳ Carregant descripció...', 'info');
     try {
-        const release = await obtenirRelease();
-        if (!release) { mostrarStatus('❌ Release no trobat', 'error'); return; }
-        const asset = release.assets.find(a => a.name === 'caption.txt');
-        if (!asset) { mostrarStatus('❌ Descripció no trobada encara', 'error'); return; }
         const r = await fetch(
-            `https://api.github.com/repos/${GITHUB_REPO}/releases/assets/${asset.id}`,
-            { headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Accept': 'application/octet-stream' } }
+            `https://api.github.com/repos/${GITHUB_REPO}/contents/actualitat_caption.txt`,
+            { headers: { 'Authorization': `token ${GITHUB_TOKEN}` } }
         );
         if (!r.ok) {
-            mostrarStatus(`❌ Error baixant la descripció (${r.status})`, 'error');
+            mostrarStatus(`❌ Descripció no trobada encara (${r.status})`, 'error');
             return;
         }
-        const text = await r.text();
+        const data = await r.json();
+        const text = decodeURIComponent(escape(atob(data.content.replace(/\n/g, ''))));
         const el = document.getElementById('status');
         const textEl = document.getElementById('status-text');
         el.classList.add('visible');
