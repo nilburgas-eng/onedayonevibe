@@ -222,19 +222,31 @@ async function descarregarSlide(num) {
 }
 
 async function descarregarCaption() {
-    const release = await obtenirRelease();
-    if (!release) { mostrarStatus('❌ Release no trobat', 'error'); return; }
-    const asset = release.assets.find(a => a.name === 'caption.txt');
-    if (!asset) { mostrarStatus('❌ Descripció no trobada encara', 'error'); return; }
-    const r = await fetch(asset.browser_download_url);
-    const text = await r.text();
-    const el = document.getElementById('status');
-    const textEl = document.getElementById('status-text');
-    el.classList.add('visible');
-    textEl.innerHTML =
-        '<span class="status-info">📋 Descripció (toca el quadre i clica "Copiar"):</span>' +
-        '<textarea id="caption-box" style="width:100%;margin-top:8px;padding:10px;border-radius:8px;background:#2a2a2a;border:1px solid #333;color:#fff;font-size:14px;" rows="6">' + text + '</textarea>' +
-        '<button class="btn btn-secondary" style="margin-top:10px;" onclick="copiarCaption()">📋 Copiar</button>';
+    mostrarStatus('⏳ Carregant descripció...', 'info');
+    try {
+        const release = await obtenirRelease();
+        if (!release) { mostrarStatus('❌ Release no trobat', 'error'); return; }
+        const asset = release.assets.find(a => a.name === 'caption.txt');
+        if (!asset) { mostrarStatus('❌ Descripció no trobada encara', 'error'); return; }
+        const r = await fetch(
+            `https://api.github.com/repos/${GITHUB_REPO}/releases/assets/${asset.id}`,
+            { headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Accept': 'application/octet-stream' } }
+        );
+        if (!r.ok) {
+            mostrarStatus(`❌ Error baixant la descripció (${r.status})`, 'error');
+            return;
+        }
+        const text = await r.text();
+        const el = document.getElementById('status');
+        const textEl = document.getElementById('status-text');
+        el.classList.add('visible');
+        textEl.innerHTML =
+            '<span class="status-info">📋 Descripció (toca el quadre i clica "Copiar"):</span>' +
+            '<textarea id="caption-box" style="width:100%;margin-top:8px;padding:10px;border-radius:8px;background:#2a2a2a;border:1px solid #333;color:#fff;font-size:14px;" rows="6">' + text + '</textarea>' +
+            '<button class="btn btn-secondary" style="margin-top:10px;" onclick="copiarCaption()">📋 Copiar</button>';
+    } catch (e) {
+        mostrarStatus('❌ Error carregant la descripció: ' + e.message, 'error');
+    }
 }
 
 function copiarCaption() {
