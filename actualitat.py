@@ -33,17 +33,13 @@ BG_COLOR     = (13, 13, 13)
 COLOR_ACCENT = (0, 191, 255)
 COLOR_WHITE  = (255, 255, 255)
 
-Y_KICKER   = 260
-Y_TITOL    = 330
-BOX_TOP_H  = 440
-BOX_BOT_Y  = 1580
-BOX_BOT_H  = 340
-Y_RESUM    = 1660
+CONTENT_TOP    = 420   # res per sobre d'aixo (deixa espai per la barra de cerca/hora i el logo)
+CONTENT_BOTTOM = 1580  # res per sota d'aixo (deixa espai pel nom de compte/descripcio/punts del carrusel de TikTok)
 
 LOGO_PATH    = "logo.png"
-LOGO_W       = 90
-LOGO_OPACITY = 0.85
-LOGO_MARGIN  = 30
+LOGO_W       = 190
+LOGO_OPACITY = 0.95
+LOGO_Y       = 140
 LOGO_ACTIU   = os.path.exists(LOGO_PATH)
 
 
@@ -147,8 +143,8 @@ def afegir_logo(img):
         if LOGO_OPACITY < 1.0:
             alpha = logo.split()[3].point(lambda p: int(p * LOGO_OPACITY))
             logo.putalpha(alpha)
-        x = W - LOGO_W - LOGO_MARGIN
-        y = LOGO_MARGIN
+        x = (W - LOGO_W) // 2
+        y = LOGO_Y
         img.paste(logo, (x, y), logo)
     except Exception as e:
         print(f"AVIS: no s'ha pogut afegir el logo: {e}")
@@ -264,15 +260,15 @@ foto2_local_path = FOTO2_PATH
 
 # ---------- IMATGE 1: TITULAR (Foto 1) ----------
 img1 = preparar_fons(foto1_local_path, darken=0.20)
-img1 = caixa_semitransparent(img1, [(0, 0), (W, BOX_TOP_H)], opacitat=0.55)
+img1 = caixa_semitransparent(img1, [(0, CONTENT_TOP), (W, CONTENT_BOTTOM)], opacitat=0.55)
 draw1 = ImageDraw.Draw(img1)
 
 font_h, linies_h, alcada_linia_h = ajustar_bloc_text(
     draw1, headline, FONT_BEBAS,
     mides=[80, 72, 64, 56, 48, 42],
-    max_width=920, max_height=BOX_TOP_H - 60
+    max_width=900, max_height=(CONTENT_BOTTOM - CONTENT_TOP) - 60
 )
-y_inici_h = (BOX_TOP_H - len(linies_h) * alcada_linia_h) / 2
+y_inici_h = CONTENT_TOP + ((CONTENT_BOTTOM - CONTENT_TOP) - len(linies_h) * alcada_linia_h) / 2
 dibuixar_bloc_centrat(draw1, linies_h, font_h, y_inici_h, alcada_linia_h, COLOR_WHITE)
 
 img1 = afegir_logo(img1)
@@ -282,15 +278,15 @@ print(f"\nImatge 1 (titular) generada: {path1}")
 
 # ---------- IMATGE 2: RESUM (Foto 2) ----------
 img2 = preparar_fons(foto2_local_path, darken=0.20)
-img2 = caixa_semitransparent(img2, [(0, BOX_BOT_Y), (W, H)], opacitat=0.55)
+img2 = caixa_semitransparent(img2, [(0, CONTENT_TOP), (W, CONTENT_BOTTOM)], opacitat=0.55)
 draw2 = ImageDraw.Draw(img2)
 
 font_s, linies_s, alcada_linia_s = ajustar_bloc_text(
     draw2, summary, FONT_SEMIBOLD,
     mides=[46, 42, 38, 34, 30, 26],
-    max_width=920, max_height=BOX_BOT_H - 60
+    max_width=900, max_height=(CONTENT_BOTTOM - CONTENT_TOP) - 60
 )
-y_inici_s = BOX_BOT_Y + (BOX_BOT_H - len(linies_s) * alcada_linia_s) / 2
+y_inici_s = CONTENT_TOP + ((CONTENT_BOTTOM - CONTENT_TOP) - len(linies_s) * alcada_linia_s) / 2
 dibuixar_bloc_centrat(draw2, linies_s, font_s, y_inici_s, alcada_linia_s, COLOR_WHITE)
 
 img2 = afegir_logo(img2)
