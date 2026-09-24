@@ -27,7 +27,7 @@
     .status-error { color: #ff4444; }
     .status-info { color: #00BFFF; }
     .track { background: #222; border-radius: 10px; padding: 14px; margin-bottom: 12px; border-left: 4px solid #00BFFF; }
-    .track-head { font-size: 15px; font-weight: 700; margin-bottom: 10px; }
+    .track-head { font-size: 15px; font-weight: 700; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
     .track-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .track-grid input { margin-bottom: 0; font-size: 13px; padding: 10px; }
     .track-full { margin-top: 8px; }
@@ -152,7 +152,10 @@ function renderTracks() {
         const div = document.createElement('div');
         div.className = 'track';
         div.innerHTML = `
-            <div class="track-head">#${t.pos}</div>
+            <div class="track-head">
+                <span>#${t.pos}</span>
+                <button onclick="obrirYoutube(${i})" style="background:#00BFFF;color:#000;border:none;border-radius:5px;padding:3px 10px;font-size:14px;font-weight:700;cursor:pointer;">🎬</button>
+            </div>
             <div class="track-full">
                 <input type="text" placeholder="Nom cançó" value="${(t.nom||'').replace(/"/g,'&quot;')}" onchange="actualitzar(${i}, 'nom', this.value)" />
             </div>
@@ -170,6 +173,20 @@ function renderTracks() {
         `;
         cont.appendChild(div);
     });
+}
+
+function obrirYoutube(i) {
+    const t = tracksActuals[i];
+    const url = t.yt_url
+        ? t.yt_url
+        : `https://www.youtube.com/results?search_query=${encodeURIComponent(`${t.artista} ${t.nom} official video`)}`;
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
 }
 
 function actualitzar(i, camp, valor) {
