@@ -10,6 +10,10 @@ on:
         description: 'Video generic de fons (opcional, nomes visual)'
         required: false
         default: ''
+      titol_x:
+        description: 'Genere/artista pel titol (opcional, ex: HARDSTYLE, MARTIN GARRIX)'
+        required: false
+        default: ''
 
 jobs:
   generar:
@@ -75,6 +79,7 @@ jobs:
         env:
           TRACKS: ${{ github.event.inputs.tracks }}
           FONS_URL: ${{ github.event.inputs.fons_url }}
+          TITOL_X: ${{ github.event.inputs.titol_x }}
           SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
           SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
         run: python3 guessthetrack.py
