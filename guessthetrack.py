@@ -23,11 +23,14 @@ FONS_URL          = os.environ.get('FONS_URL', '').strip()    # video generic de
 MARGE_FONS        = 15.0
 PADDING_FONS      = 1.0
 SPOTIFY_SECRET    = os.environ.get('SPOTIFY_CLIENT_SECRET', '')
+TITOL_X           = os.environ.get('TITOL_X', '').strip()
 COMPTE            = "@onedayonevibe"
 N_RONDES          = 8
-DURADA_RONDA      = 4.5
-REVEAL_ABANS_FI   = 1.5     # segons abans del final on es revela la resposta
-DURADA_OUTRO      = 2.0
+GUESS_DURADA      = 3.0
+TRANSICIO_DURADA  = 0.2
+REVEAL_DURADA     = 1.0
+DURADA_RONDA      = GUESS_DURADA + TRANSICIO_DURADA + REVEAL_DURADA   # 4.2s
+RECAP_DURADA      = 1.0
 FADE_DURADA       = 0.3
 
 VIDEO_OPTS = "-c:v libx264 -preset slow -crf 18 -pix_fmt yuv420p"
@@ -37,20 +40,19 @@ SPEED_FACTOR = 1.03
 COLOR_ACCENT = "0x00BFFF"
 COLOR_WHITE  = "white"
 
-COVER_W  = 320
-COVER_H  = 320
-COVER_X  = 380
-COVER_Y  = 640
-BLUR_FORCA = "24:2"   # luma_radius:luma_power
+COVER_W  = 560
+COVER_H  = 560
+COVER_X  = (1080 - COVER_W) // 2
+COVER_Y  = 460
+PIXEL_DIVISOR = 18   # com mes gran, mes petit el bloc de pixel
 
-Y_TITOL1   = 260
-Y_TITOL2   = 330
-Y_RONDA    = 1080
-Y_COMMENT  = 1180
-Y_RESULTAT1 = 1080
-Y_RESULTAT2 = 1150
-Y_OUTRO    = 1560
-Y_OUTRO2   = 1618
+Y_TITOL1    = 210
+Y_RONDA     = 305
+BAR_X       = COVER_X
+BAR_Y       = COVER_Y + COVER_H + 40
+BAR_W       = COVER_W
+Y_RESULTAT1 = BAR_Y + 60
+Y_RESULTAT2 = Y_RESULTAT1 + 65
 
 LOGO_PATH    = "logo.png"
 LOGO_W       = 90
@@ -68,7 +70,8 @@ STICKER_FOLLOW_PATH = trobar_fitxer_sense_distingir_majuscules("sticker_follow.p
 STICKER_THANKS_PATH = trobar_fitxer_sense_distingir_majuscules("sticker_thanks.png") or "sticker_thanks.png"
 STICKER_ACTIU = os.path.exists(STICKER_FOLLOW_PATH) and os.path.exists(STICKER_THANKS_PATH)
 STICKER_W = 220
-STICKER_Y = 1300
+STICKER_Y = 1450
+
 
 def trobar_fitxer_per_prefix(prefix):
     """Busca un fitxer al directori actual que comenci per 'prefix', sigui quina sigui l'extensio."""
@@ -76,8 +79,6 @@ def trobar_fitxer_per_prefix(prefix):
         if f.lower().startswith(prefix.lower()):
             return f
     return None
-
-INTRO_AUDIO_PATH = trobar_fitxer_per_prefix("intro_audio.")
 
 
 def get_spotify_token():
@@ -199,7 +200,7 @@ if FONS_URL:
             usable = durada_fons_total
         bucket = usable / n
         for i, track in enumerate(sorted(tracks, key=lambda t: t['pos'])):
-            durada_ronda_i = DURADA_RONDA + (DURADA_OUTRO if track['pos'] == 1 else 0)
+            durada_ronda_i = DURADA_RONDA
             marge_bucket = max(0, bucket - durada_ronda_i)
             inici_bucket = usable_inici + i * bucket
             offset = inici_bucket + random.uniform(0, marge_bucket)
@@ -209,9 +210,6 @@ if FONS_URL:
         FONS_URL = ''
 
 clips_paths = []
-
-if INTRO_AUDIO_PATH:
-    print(f"\nAudio d'intro trobat: {INTRO_AUDIO_PATH} (es barrejara amb la primera ronda)")
 
 for track in tracks:
     pos              = track['pos']
@@ -223,10 +221,11 @@ for track in tracks:
 
     es_ultim  = (pos == 1)
     es_primer = (pos == max_pos)
-    durada = DURADA_RONDA + (DURADA_OUTRO if es_ultim else 0)
-    reveal_t = durada - REVEAL_ABANS_FI
+    durada = DURADA_RONDA
+    reveal_t = GUESS_DURADA
+    dificultat = (track.get('dificultat') or 'EASY').upper()
 
-    print(f"\nRonda {ronda_num} (#{pos}): {nom} - {artista}")
+    print(f"\nRonda {ronda_num} (#{pos}): {nom} - {artista} [{dificultat}]")
 
     video_path = os.path.expanduser(f"~/videos/{pos:02d}.mp4")
     thumb_path = os.path.expanduser(f"~/videos/{pos:02d}_thumb.jpg")
@@ -298,24 +297,20 @@ for track in tracks:
 
     has_thumb = os.path.exists(thumb_path) and os.path.getsize(thumb_path) > 1000
 
-    txt = []
-    txt.append(f"drawbox=x=0:y=0:w=1080:h=440:color=black@0.24:t=fill")
-    txt.append(f"drawbox=x=0:y=1580:w=1080:h=340:color=black@0.18:t=fill")
-    txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='GUESS THE TRACK':fontsize=70:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
-    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='ROUND {ronda_num}/{N_RONDES}':fontsize=42:fontcolor={COLOR_ACCENT}:borderw=2:bordercolor=black@0.6:x=(w-text_w)/2:y={Y_TITOL2}")
+    titol_complet = f"GUESS THE {TITOL_X.upper()} DROP" if TITOL_X else "GUESS THE DROP"
+    etiqueta_ronda = f"{ronda_num}/{N_RONDES} \u00b7 {dificultat}"
 
-    txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='COMMENT YOUR GUESS 👇':fontsize=38:fontcolor=white@0.85:borderw=2:bordercolor=black@0.7:x=(w-text_w)/2:y={Y_COMMENT}:enable='lt(t,{reveal_t})'")
+    txt = []
+    txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol_complet}':fontsize=56:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
+    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{etiqueta_ronda}':fontsize=38:fontcolor={COLOR_ACCENT}:borderw=2:bordercolor=black@0.6:x=(w-text_w)/2:y={Y_RONDA}")
+
+    txt.append(f"drawbox=x={BAR_X}:y={BAR_Y}:w={BAR_W}:h=5:color=white@0.15:t=fill")
+    txt.append(f"drawbox=x={BAR_X}:y={BAR_Y}:w='if(lt(t,{GUESS_DURADA}),{BAR_W}*({GUESS_DURADA}-t)/{GUESS_DURADA},0)':h=5:color={COLOR_ACCENT}:t=fill:eval=frame")
 
     resultat1 = f"{nom_net}"
     resultat2 = f"{artista_net}"
     txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{resultat1}':fontsize=54:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_RESULTAT1}:enable='gte(t,{reveal_t})'")
     txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{resultat2}':fontsize=42:fontcolor={COLOR_ACCENT}:borderw=2:bordercolor=black@0.8:x=(w-text_w)/2:y={Y_RESULTAT2}:enable='gte(t,{reveal_t})'")
-
-    if es_ultim:
-        compte_text = COMPTE.replace("'", "")
-        t_aparicio = durada - DURADA_OUTRO + 0.3
-        txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{compte_text}':fontsize=50:fontcolor=white@0.82:borderw=2:bordercolor=black@0.6:x=(w-text_w)/2:y={Y_OUTRO}:enable='gte(t,{t_aparicio})'")
-        txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='Electronic Vibes Daily':fontsize=30:fontcolor={COLOR_ACCENT}@0.70:borderw=1:bordercolor=black@0.5:x=(w-text_w)/2:y={Y_OUTRO2}:enable='gte(t,{t_aparicio})'")
 
     txt_str = ",".join(txt)
 
@@ -352,12 +347,6 @@ for track in tracks:
         sticker_thanks_idx = seguent_idx
         seguent_idx += 1
 
-    intro_idx = None
-    if es_primer and INTRO_AUDIO_PATH:
-        input_parts.append(f'-i "{INTRO_AUDIO_PATH}"')
-        intro_idx = seguent_idx
-        seguent_idx += 1
-
     inputs = " ".join(input_parts)
 
     fc_parts = [f"[{visual_idx}:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920:(iw-1080)/2:(ih-1920)/2[bg]"]
@@ -366,21 +355,22 @@ for track in tracks:
     if has_thumb:
         fc_parts.append(
             f"[{thumb_idx}:v]scale={COVER_W}:{COVER_H}:force_original_aspect_ratio=decrease,"
-            f"pad={COVER_W}:{COVER_H}:(ow-iw)/2:(oh-ih)/2:color=black@0.9,setsar=1,split=2[coversharp][covertoblur]"
+            f"pad={COVER_W}:{COVER_H}:(ow-iw)/2:(oh-ih)/2:color=black@0.9,setsar=1,format=rgba,split=2[coverbase1][coverbase2]"
         )
-        fc_parts.append(f"[covertoblur]boxblur={BLUR_FORCA}[coverblur]")
-        fc_parts.append(f"[{current}][coverblur]overlay={COVER_X}:{COVER_Y}:enable='lt(t,{reveal_t})'[withblur]")
-        fc_parts.append(f"[withblur][coversharp]overlay={COVER_X}:{COVER_Y}:enable='gte(t,{reveal_t})'[withcover]")
+        fc_parts.append(
+            f"[coverbase1]scale=iw/{PIXEL_DIVISOR}:ih/{PIXEL_DIVISOR}:flags=neighbor,"
+            f"scale={COVER_W}:{COVER_H}:flags=neighbor,"
+            f"fade=t=out:st={reveal_t}:d={TRANSICIO_DURADA}:alpha=1[coverpixel]"
+        )
+        fc_parts.append(f"[coverbase2]fade=t=in:st={reveal_t}:d={TRANSICIO_DURADA}:alpha=1[coversharp]")
+        fc_parts.append(f"[{current}][coverpixel]overlay={COVER_X}:{COVER_Y}[step1]")
+        fc_parts.append(f"[step1][coversharp]overlay={COVER_X}:{COVER_Y}[withcover]")
         current = "withcover"
 
     fc_parts.append(f"[{current}]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored]")
     fc_parts.append(f"[colored]{txt_str},setpts=PTS/{SPEED_FACTOR}[txted]")
 
-    if intro_idx is not None:
-        fc_parts.append(f"[{audio_idx}:a]atempo={SPEED_FACTOR}[songa]")
-        fc_parts.append(f"[songa][{intro_idx}:a]amix=inputs=2:duration=first:dropout_transition=2[aout]")
-    else:
-        fc_parts.append(f"[{audio_idx}:a]atempo={SPEED_FACTOR}[aout]")
+    fc_parts.append(f"[{audio_idx}:a]atempo={SPEED_FACTOR}[aout]")
 
     if es_primer and STICKER_ACTIU:
         fc_parts.append(
@@ -415,6 +405,44 @@ for track in tracks:
         print(f"   FFMPEG STDERR: {result.stderr[-1500:]}")
     clips_paths.append((pos, output_path))
 
+# ---------- PANTALLA FINAL: "HOW MANY DID YOU GET?" ----------
+recap_path = f"{OUTPUT}/clip_99_recap.mp4"
+txt_recap = []
+txt_recap.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='HOW MANY DID YOU GET?':fontsize=52:fontcolor=white:borderw=2:bordercolor=black@0.7:x=(w-text_w)/2:y=780")
+txt_recap.append(f"drawtext=fontfile='{FONT_BEBAS}':text='__/{N_RONDES}':fontsize=140:fontcolor={COLOR_ACCENT}:borderw=3:bordercolor=black@0.8:x=(w-text_w)/2:y=880")
+compte_text = COMPTE.replace("'", "")
+txt_recap.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{compte_text}':fontsize=40:fontcolor=white@0.85:borderw=2:bordercolor=black@0.6:x=(w-text_w)/2:y=1550")
+txt_recap.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='One Day One Vibe':fontsize=28:fontcolor={COLOR_ACCENT}@0.75:borderw=1:bordercolor=black@0.5:x=(w-text_w)/2:y=1608")
+txt_recap_str = ",".join(txt_recap)
+
+input_parts_recap = [f'-f lavfi -i color=c=0x0d0d0d:s=1080x1920:d={RECAP_DURADA}', '-f lavfi -i anullsrc=r=44100:cl=stereo']
+seguent_idx_recap = 2
+logo_idx_recap = None
+if LOGO_ACTIU:
+    input_parts_recap.append(f'-i "{LOGO_PATH}"')
+    logo_idx_recap = seguent_idx_recap
+    seguent_idx_recap += 1
+inputs_recap = " ".join(input_parts_recap)
+
+fc_recap = [f"[0:v]{txt_recap_str}[txted]"]
+if LOGO_ACTIU:
+    fc_recap.append(f"[{logo_idx_recap}:v]scale={LOGO_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo]")
+    fc_recap.append(f"[txted][logo]overlay=W-w-{LOGO_MARGIN}:{LOGO_MARGIN}[out]")
+    mapa_recap = "[out]"
+else:
+    mapa_recap = "[txted]"
+fc_recap_str = ";".join(fc_recap)
+
+cmd_recap = f'ffmpeg {inputs_recap} -t {RECAP_DURADA} -filter_complex "{fc_recap_str}" -map "{mapa_recap}" -map 1:a {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 -shortest "{recap_path}" -y -loglevel error'
+result_recap = subprocess.run(cmd_recap, shell=True, capture_output=True, text=True)
+mida_recap = os.path.getsize(recap_path) if os.path.exists(recap_path) else 0
+if mida_recap > 1000:
+    print(f"\nPantalla final generada ({mida_recap//1024} KB)")
+else:
+    print(f"\nERROR: pantalla final no generada correctament")
+    print(f"   FFMPEG STDERR: {result_recap.stderr[-1500:]}")
+    recap_path = None
+
 clips_paths.sort(key=lambda x: x[0], reverse=True)
 clips_valids = []
 for pos, path in clips_paths:
@@ -422,6 +450,9 @@ for pos, path in clips_paths:
         clips_valids.append(path)
     else:
         print(f"   Ronda #{pos} descartada: {path}")
+
+if recap_path and os.path.exists(recap_path) and os.path.getsize(recap_path) > 1000:
+    clips_valids.append(recap_path)
 
 if len(clips_valids) < 2:
     print("ERROR: No hi ha prou rondes valides")
