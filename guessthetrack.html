@@ -37,17 +37,20 @@
 <body>
 <div class="container">
     <h1>@onedayonevibe</h1>
-    <p class="subtitle">Guess The Track — 8 rondes</p>
+    <p class="subtitle">Guess The Drop — 8 rondes</p>
 
     <div class="card">
-        <h2>🎵 Els 8 temes</h2>
-        <p style="font-size:12px;color:#666;margin-bottom:14px;">El timestamp ha de ser el moment exacte del "drop" o la part més reconeixible — durant els primers 3s la portada surt difuminada, i a l'últim 1.5s es revela la resposta.</p>
+        <h2>Els 8 drops</h2>
+        <p style="font-size:12px;color:#666;margin-bottom:14px;">El timestamp ha de ser el moment exacte del "drop" — durant els primers 3s la portada surt pixelada, es revela en 0.2s, i queda 1s mostrant el resultat.</p>
 
-        <label>🎞️ Vídeo genèric de fons (opcional — com a top10drops, nomes visual)</label>
+        <label>Genere/artista pel titol (opcional)</label>
+        <input type="text" id="titol_x" placeholder="EDM, HARDSTYLE, RAWSTYLE, AVICII, MARTIN GARRIX... (buit = GUESS THE DROP)" />
+
+        <label>Video generic de fons (opcional — com a top10drops, nomes visual)</label>
         <input type="text" id="fons_url" placeholder="https://youtu.be/... (deixa buit per usar el video de cada tema)" />
         <p style="font-size:11px;color:#666;margin-top:-10px;margin-bottom:14px;">Si l'omples, cada ronda agafa un tram aleatori d'aquest vídeo com a imatge — l'àudio segueix sortint sempre del tema real.</p>
 
-        <label>📋 O enganxa la llista sencera (una per línia, "Nom - Artista")</label>
+        <label>O enganxa la llista sencera (una per línia, "Nom - Artista")</label>
         <textarea id="llista-paste" rows="4" placeholder="Dragonborn - Headhunterz&#10;The Vandal - Da Tweekaz&#10;Reload - Sebastian Ingrosso &amp; Tommy Trash"></textarea>
         <button class="btn btn-secondary" onclick="omplirDesDeLlista()">📋 Omplir des de la llista</button>
 
@@ -150,6 +153,15 @@ function renderTracks() {
                 <input type="text" placeholder="Timestamp del drop (mm:ss)" value="${segonsAStr(t.timestamp_manual)}" onchange="actualitzar(${i}, 'ts', this.value)" />
                 <input type="text" placeholder="URL YouTube (opcional)" value="${t.yt_url||''}" onchange="actualitzar(${i}, 'yt', this.value)" />
             </div>
+            <div class="track-full">
+                <select onchange="actualitzar(${i}, 'dificultat', this.value)">
+                    <option value="EASY" ${t.dificultat==='EASY'||!t.dificultat?'selected':''}>EASY</option>
+                    <option value="MEDIUM" ${t.dificultat==='MEDIUM'?'selected':''}>MEDIUM</option>
+                    <option value="HARD" ${t.dificultat==='HARD'?'selected':''}>HARD</option>
+                    <option value="VERY HARD" ${t.dificultat==='VERY HARD'?'selected':''}>VERY HARD</option>
+                    <option value="LEGEND" ${t.dificultat==='LEGEND'?'selected':''}>LEGEND</option>
+                </select>
+            </div>
         `;
         cont.appendChild(div);
     });
@@ -174,6 +186,7 @@ function actualitzar(i, camp, valor) {
     else if (camp === 'nom') tracksActuals[i].nom = valor.trim();
     else if (camp === 'artista') tracksActuals[i].artista = valor.trim();
     else if (camp === 'yt') tracksActuals[i].yt_url = valor.trim() || null;
+    else if (camp === 'dificultat') tracksActuals[i].dificultat = valor;
 }
 
 function omplirDesDeLlista() {
@@ -201,7 +214,7 @@ function omplirDesDeLlista() {
             tracksActuals.push({
                 pos: tracksActuals.length + 1,
                 nom, artista,
-                timestamp_manual: null, yt_url: null
+                timestamp_manual: null, yt_url: null, dificultat: 'EASY'
             });
         }
         comptador++;
@@ -214,14 +227,14 @@ function afegirTrack() {
     tracksActuals.push({
         pos: tracksActuals.length + 1,
         nom: '', artista: '',
-        timestamp_manual: null, yt_url: null
+        timestamp_manual: null, yt_url: null, dificultat: 'EASY'
     });
     renderTracks();
 }
 
 function netejarTracks() {
     return tracksActuals.map(t => {
-        const o = { pos: t.pos, ronda: t.pos, nom: t.nom, artista: t.artista };
+        const o = { pos: t.pos, ronda: t.pos, nom: t.nom, artista: t.artista, dificultat: t.dificultat || 'EASY' };
         if (t.timestamp_manual !== null && t.timestamp_manual !== undefined) o.timestamp_manual = t.timestamp_manual;
         if (t.yt_url) o.yt_url = t.yt_url;
         return o;
@@ -235,10 +248,12 @@ async function generarVideo() {
         return;
     }
     const fonsUrl = document.getElementById('fons_url').value.trim();
+    const titolX = document.getElementById('titol_x').value.trim();
     mostrarStatus('⏳ Generant vídeo...', 'info');
     const res = await dispararWorkflow('guessthetrack.yml', {
         tracks: JSON.stringify(netejarTracks()),
-        fons_url: fonsUrl
+        fons_url: fonsUrl,
+        titol_x: titolX
     });
     if (res.status === 204) {
         mostrarStatus('✅ Generació iniciada!<br>⏳ Tarda uns minuts. Després "Descarregar vídeo final".', 'ok');
