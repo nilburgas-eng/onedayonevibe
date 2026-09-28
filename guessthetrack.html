@@ -41,7 +41,7 @@
 
     <div class="card">
         <h2>Els 8 drops</h2>
-        <p style="font-size:12px;color:#666;margin-bottom:14px;">El timestamp ha de ser el moment exacte del "drop" — durant els primers 3s la portada surt pixelada, es despixela en 0.4s, i queda 1s mostrant el resultat.</p>
+        <p style="font-size:12px;color:#666;margin-bottom:14px;">L'ordre de les files és l'ordre del vídeo: la fila 1 és el primer drop (1/8) i l'última el darrer (8/8). El timestamp ha de ser el moment exacte del "drop" — durant els primers 3s la portada surt pixelada, es despixela en 0.4s, i queda 1s mostrant el resultat.</p>
 
         <label>Genere/artista pel titol (opcional)</label>
         <input type="text" id="titol_x" placeholder="EDM, HARDSTYLE, RAWSTYLE, AVICII, MARTIN GARRIX... (buit = GUESS THE DROP)" />
@@ -140,7 +140,7 @@ function renderTracks() {
         div.className = 'track';
         div.innerHTML = `
             <div class="track-head">
-                <span>Ronda ${t.pos}</span>
+                <span>Ronda ${i + 1}${i === 0 ? ' · sona la primera' : ''}</span>
                 <button onclick="obrirYoutube(${i})" style="background:#00BFFF;color:#000;border:none;border-radius:5px;padding:3px 10px;font-size:14px;font-weight:700;cursor:pointer;">🎬</button>
             </div>
             <div class="track-full">
@@ -233,8 +233,10 @@ function afegirTrack() {
 }
 
 function netejarTracks() {
-    return tracksActuals.map(t => {
-        const o = { pos: t.pos, ronda: t.pos, nom: t.nom, artista: t.artista, dificultat: t.dificultat || 'EASY' };
+    const total = tracksActuals.length;
+    return tracksActuals.map((t, i) => {
+        // La fila 1 (dalt) sona la primera: rep la posicio mes alta (el script reprodueix de major a menor)
+        const o = { pos: total - i, ronda: i + 1, nom: t.nom, artista: t.artista, dificultat: t.dificultat || 'EASY' };
         if (t.timestamp_manual !== null && t.timestamp_manual !== undefined) o.timestamp_manual = t.timestamp_manual;
         if (t.yt_url) o.yt_url = t.yt_url;
         return o;
