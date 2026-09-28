@@ -27,9 +27,10 @@ TITOL_X           = os.environ.get('TITOL_X', '').strip()
 COMPTE            = "@onedayonevibe"
 N_RONDES          = 8
 GUESS_DURADA      = 3.0
-TRANSICIO_DURADA  = 0.2
+TRANSICIO_DURADA  = 0.4
 REVEAL_DURADA     = 1.0
-DURADA_RONDA      = GUESS_DURADA + TRANSICIO_DURADA + REVEAL_DURADA   # 4.2s
+DURADA_RONDA      = GUESS_DURADA + TRANSICIO_DURADA + REVEAL_DURADA   # 4.4s
+PIXEL_PASSOS_REVEAL = [12, 7, 4]   # divisors de pixelat durant el despixelat (de mes a menys pixelat)
 RECAP_DURADA      = 1.0
 FADE_DURADA       = 0.3
 
@@ -51,6 +52,10 @@ Y_RONDA     = 305
 BAR_X       = COVER_X
 BAR_Y       = COVER_Y + COVER_H + 40
 BAR_W       = COVER_W
+BAR_SEGMENTS = 60   # la barra de compte enrere es dibuixa com a 60 segments que van desapareixent
+BANDA_TOP_H       = 400    # banda fosca sota el titol i l'etiqueta N/8
+BANDA_RESULTAT_H  = 280    # banda fosca sota la barra, amb nom i artista
+BANDA_OPACITAT    = 0.35
 Y_RESULTAT1 = BAR_Y + 60
 Y_RESULTAT2 = Y_RESULTAT1 + 65
 
@@ -292,8 +297,8 @@ for track in tracks:
             print(f"   AVIS: no s'ha pogut baixar el tram generic, s'usa el video propi")
 
     output_path = f"{OUTPUT}/clip_{pos:02d}.mp4"
-    nom_net = nom.replace("'", "").replace('"', '').replace(':', '-')
-    artista_net = artista.replace("'", "").replace('"', '').replace(':', '-')
+    nom_net = nom.replace("'", "").replace('"', '').replace(':', '-').strip().rstrip(' -\u2013\u2014')
+    artista_net = artista.replace("'", "").replace('"', '').replace(':', '-').strip().rstrip(' -\u2013\u2014')
 
     has_thumb = os.path.exists(thumb_path) and os.path.getsize(thumb_path) > 1000
 
@@ -301,11 +306,19 @@ for track in tracks:
     etiqueta_ronda = f"{ronda_num}/{N_RONDES} \u00b7 {dificultat}"
 
     txt = []
+    txt.append(f"drawbox=x=0:y=0:w=1080:h={BANDA_TOP_H}:color=black@{BANDA_OPACITAT}:t=fill")
+    txt.append(f"drawbox=x=0:y={BAR_Y - 30}:w=1080:h={BANDA_RESULTAT_H}:color=black@{BANDA_OPACITAT}:t=fill")
     txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol_complet}':fontsize=56:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
     txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{etiqueta_ronda}':fontsize=38:fontcolor={COLOR_ACCENT}:borderw=2:bordercolor=black@0.6:x=(w-text_w)/2:y={Y_RONDA}")
 
     txt.append(f"drawbox=x={BAR_X}:y={BAR_Y}:w={BAR_W}:h=5:color=white@0.15:t=fill")
-    txt.append(f"drawbox=x={BAR_X}:y={BAR_Y}:w='if(lt(t,{GUESS_DURADA}),{BAR_W}*({GUESS_DURADA}-t)/{GUESS_DURADA},0)':h=5:color={COLOR_ACCENT}:t=fill:eval=frame")
+    seg_w = BAR_W / BAR_SEGMENTS
+    for k in range(BAR_SEGMENTS):
+        x_k = int(round(BAR_X + k * seg_w))
+        x_seg_seguent = int(round(BAR_X + (k + 1) * seg_w))
+        w_k = max(1, x_seg_seguent - x_k)
+        t_lim = GUESS_DURADA * (1 - k / BAR_SEGMENTS)
+        txt.append(f"drawbox=x={x_k}:y={BAR_Y}:w={w_k}:h=5:color={COLOR_ACCENT}:t=fill:enable='lt(t,{t_lim:.3f})'")
 
     resultat1 = f"{nom_net}"
     resultat2 = f"{artista_net}"
@@ -327,7 +340,7 @@ for track in tracks:
 
     thumb_idx = None
     if has_thumb:
-        input_parts.append(f'-i "{thumb_path}"')
+        input_parts.append(f'-loop 1 -framerate 30 -i "{thumb_path}"')
         thumb_idx = seguent_idx
         seguent_idx += 1
 
@@ -353,18 +366,32 @@ for track in tracks:
 
     current = "bg"
     if has_thumb:
+        n_nivells = 2 + len(PIXEL_PASSOS_REVEAL)   # pixelat inicial + passos + nitid
+        raws = [f"cvraw{j}" for j in range(n_nivells)]
         fc_parts.append(
             f"[{thumb_idx}:v]scale={COVER_W}:{COVER_H}:force_original_aspect_ratio=decrease,"
-            f"pad={COVER_W}:{COVER_H}:(ow-iw)/2:(oh-ih)/2:color=black@0.9,setsar=1,format=rgba,split=2[coverbase1][coverbase2]"
+            f"pad={COVER_W}:{COVER_H}:(ow-iw)/2:(oh-ih)/2:color=black@0.9,setsar=1,"
+            f"split={n_nivells}" + "".join(f"[{r}]" for r in raws)
         )
-        fc_parts.append(
-            f"[coverbase1]scale=iw/{PIXEL_DIVISOR}:ih/{PIXEL_DIVISOR}:flags=neighbor,"
-            f"scale={COVER_W}:{COVER_H}:flags=neighbor,"
-            f"fade=t=out:st={reveal_t}:d={TRANSICIO_DURADA}:alpha=1[coverpixel]"
-        )
-        fc_parts.append(f"[coverbase2]fade=t=in:st={reveal_t}:d={TRANSICIO_DURADA}:alpha=1[coversharp]")
-        fc_parts.append(f"[{current}][coverpixel]overlay={COVER_X}:{COVER_Y}[step1]")
-        fc_parts.append(f"[step1][coversharp]overlay={COVER_X}:{COVER_Y}[withcover]")
+        divisors = [PIXEL_DIVISOR] + PIXEL_PASSOS_REVEAL
+        for j, d in enumerate(divisors):
+            fc_parts.append(
+                f"[{raws[j]}]scale=iw/{d}:ih/{d}:flags=neighbor,scale={COVER_W}:{COVER_H}:flags=neighbor[cvl{j}]"
+            )
+        fc_parts.append(f"[{raws[-1]}]copy[cvsharp]")
+
+        pas_dur = TRANSICIO_DURADA / len(PIXEL_PASSOS_REVEAL)
+        fc_parts.append(f"[{current}][cvl0]overlay={COVER_X}:{COVER_Y}:enable='lt(t,{reveal_t})'[cvo0]")
+        anterior = "cvo0"
+        for j in range(len(PIXEL_PASSOS_REVEAL)):
+            t0 = reveal_t + j * pas_dur
+            t1 = t0 + pas_dur
+            fc_parts.append(
+                f"[{anterior}][cvl{j+1}]overlay={COVER_X}:{COVER_Y}:enable='gte(t,{t0:.3f})*lt(t,{t1:.3f})'[cvo{j+1}]"
+            )
+            anterior = f"cvo{j+1}"
+        t_nitid = reveal_t + TRANSICIO_DURADA
+        fc_parts.append(f"[{anterior}][cvsharp]overlay={COVER_X}:{COVER_Y}:enable='gte(t,{t_nitid:.3f})'[withcover]")
         current = "withcover"
 
     fc_parts.append(f"[{current}]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored]")
@@ -410,6 +437,7 @@ recap_path = f"{OUTPUT}/clip_99_recap.mp4"
 txt_recap = []
 txt_recap.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='HOW MANY DID YOU GET?':fontsize=52:fontcolor=white:borderw=2:bordercolor=black@0.7:x=(w-text_w)/2:y=780")
 txt_recap.append(f"drawtext=fontfile='{FONT_BEBAS}':text='__/{N_RONDES}':fontsize=140:fontcolor={COLOR_ACCENT}:borderw=3:bordercolor=black@0.8:x=(w-text_w)/2:y=880")
+txt_recap.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='COMMENT YOUR SCORE':fontsize=40:fontcolor=white@0.85:borderw=2:bordercolor=black@0.7:x=(w-text_w)/2:y=1080")
 compte_text = COMPTE.replace("'", "")
 txt_recap.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{compte_text}':fontsize=40:fontcolor=white@0.85:borderw=2:bordercolor=black@0.6:x=(w-text_w)/2:y=1550")
 txt_recap.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='One Day One Vibe':fontsize=28:fontcolor={COLOR_ACCENT}@0.75:borderw=1:bordercolor=black@0.5:x=(w-text_w)/2:y=1608")
