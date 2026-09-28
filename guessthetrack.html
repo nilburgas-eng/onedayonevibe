@@ -41,10 +41,17 @@
 
     <div class="card">
         <h2>Els 8 drops</h2>
-        <p style="font-size:12px;color:#666;margin-bottom:14px;">L'ordre de les files és l'ordre del vídeo: la fila 1 és el primer drop (1/8) i l'última el darrer (8/8). El timestamp ha de ser el moment exacte del "drop" — durant els primers 3s la portada surt pixelada, es despixela en 0.4s, i queda 1s mostrant el resultat.</p>
+        <p style="font-size:12px;color:#666;margin-bottom:14px;">Per defecte el vídeo va de més fàcil a més difícil (1/8 → 8/8) segons la dificultat que triïs a cada fila, sigui quin sigui l'ordre de les files. El timestamp ha de ser el moment exacte del "drop" — durant els primers 3.3s la portada i el nom surten difuminats, es desenfoquen en 0.4s, i queda 1.3s mostrant el resultat.</p>
 
         <label>Genere/artista pel titol (opcional)</label>
         <input type="text" id="titol_x" placeholder="EDM, HARDSTYLE, RAWSTYLE, AVICII, MARTIN GARRIX... (buit = GUESS THE DROP)" />
+
+        <label>Ordre del video</label>
+        <select id="ordre" onchange="renderTracks()">
+            <option value="dificultat">Automatic: de mes facil a mes dificil (recomanat)</option>
+            <option value="dalt_primer">Manual: la fila 1 (dalt) sona la primera</option>
+            <option value="dalt_ultim">Manual: la fila 1 (dalt) sona l'ultima</option>
+        </select>
 
         <label>Video generic de fons (opcional — com a top10drops, nomes visual)</label>
         <input type="text" id="fons_url" placeholder="https://youtu.be/... (deixa buit per usar el video de cada tema)" />
@@ -132,7 +139,27 @@ async function dispararWorkflow(workflow, inputs) {
     return { status: r.status, detall };
 }
 
+const RANG_DIFICULTAT = { 'EASY': 0, 'MEDIUM': 1, 'HARD': 2, 'VERY HARD': 3, 'LEGEND': 4 };
+
+// Retorna, per a cada fila, el numero que tindra al video (1 = la primera que sona).
+function ordreReproduccio() {
+    const n = tracksActuals.length;
+    const mode = document.getElementById('ordre').value;
+    const files = tracksActuals.map((t, i) => i);
+    if (mode === 'dalt_ultim') {
+        files.reverse();
+    } else if (mode === 'dificultat') {
+        const rang = i => RANG_DIFICULTAT[tracksActuals[i].dificultat || 'EASY'] ?? 0;
+        files.sort((a, b) => (rang(a) - rang(b)) || (a - b));
+    }
+    const posicio = new Array(n);
+    files.forEach((fila, k) => { posicio[fila] = k + 1; });
+    return posicio;
+}
+
 function renderTracks() {
+    const posicio = ordreReproduccio();
+    const totalFiles = tracksActuals.length;
     const cont = document.getElementById('tracks-list');
     cont.innerHTML = '';
     tracksActuals.forEach((t, i) => {
@@ -140,7 +167,7 @@ function renderTracks() {
         div.className = 'track';
         div.innerHTML = `
             <div class="track-head">
-                <span>Ronda ${i + 1}${i === 0 ? ' · sona la primera' : ''}</span>
+                <span>Ronda ${posicio[i]}/${totalFiles}${posicio[i] === 1 ? ' · sona la primera' : ''}${posicio[i] === totalFiles ? ' · sona l\'ultima' : ''}</span>
                 <button onclick="obrirYoutube(${i})" style="background:#00BFFF;color:#000;border:none;border-radius:5px;padding:3px 10px;font-size:14px;font-weight:700;cursor:pointer;">🎬</button>
             </div>
             <div class="track-full">
@@ -186,7 +213,7 @@ function actualitzar(i, camp, valor) {
     else if (camp === 'nom') tracksActuals[i].nom = valor.trim();
     else if (camp === 'artista') tracksActuals[i].artista = valor.trim();
     else if (camp === 'yt') tracksActuals[i].yt_url = valor.trim() || null;
-    else if (camp === 'dificultat') tracksActuals[i].dificultat = valor;
+    else if (camp === 'dificultat') { tracksActuals[i].dificultat = valor; renderTracks(); }
 }
 
 function omplirDesDeLlista() {
@@ -234,9 +261,10 @@ function afegirTrack() {
 
 function netejarTracks() {
     const total = tracksActuals.length;
+    const posicio = ordreReproduccio();
     return tracksActuals.map((t, i) => {
-        // La fila 1 (dalt) sona la primera: rep la posicio mes alta (el script reprodueix de major a menor)
-        const o = { pos: total - i, ronda: i + 1, nom: t.nom, artista: t.artista, dificultat: t.dificultat || 'EASY' };
+        // El script reprodueix de posicio mes alta a mes baixa: la que ha de sonar primera rep la mes alta
+        const o = { pos: total - posicio[i] + 1, ronda: posicio[i], nom: t.nom, artista: t.artista, dificultat: t.dificultat || 'EASY' };
         if (t.timestamp_manual !== null && t.timestamp_manual !== undefined) o.timestamp_manual = t.timestamp_manual;
         if (t.yt_url) o.yt_url = t.yt_url;
         return o;
