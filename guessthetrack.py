@@ -1,5 +1,10 @@
 import os, json, re, subprocess, base64, shutil, random
 import requests
+try:
+    from PIL import ImageFont
+    PIL_OK = True
+except Exception:
+    PIL_OK = False
 
 OUTPUT = os.path.expanduser("~/output")
 FONTS  = os.path.expanduser("~/fonts")
@@ -25,7 +30,6 @@ PADDING_FONS      = 1.0
 SPOTIFY_SECRET    = os.environ.get('SPOTIFY_CLIENT_SECRET', '')
 TITOL_X           = os.environ.get('TITOL_X', '').strip()
 COMPTE            = "@onedayonevibe"
-N_RONDES          = 8
 GUESS_DURADA      = 3.0
 TRANSICIO_DURADA  = 0.4
 REVEAL_DURADA     = 1.0
@@ -47,13 +51,12 @@ COVER_X  = (1080 - COVER_W) // 2
 COVER_Y  = 460
 PIXEL_DIVISOR = 18   # com mes gran, mes petit el bloc de pixel
 
-Y_TITOL1    = 210
-Y_RONDA     = 305
+Y_TITOL1    = 190
 BAR_X       = COVER_X
 BAR_Y       = COVER_Y + COVER_H + 40
 BAR_W       = COVER_W
 BAR_SEGMENTS = 60   # la barra de compte enrere es dibuixa com a 60 segments que van desapareixent
-BANDA_TOP_H       = 400    # banda fosca sota el titol i l'etiqueta N/8
+BANDA_TOP_H       = 430    # banda fosca sota el titol i l'etiqueta N/8
 BANDA_RESULTAT_H  = 280    # banda fosca sota la barra, amb nom i artista
 BANDA_OPACITAT    = 0.35
 Y_RESULTAT1 = BAR_Y + 60
@@ -165,6 +168,23 @@ def get_youtube_thumbnail(yt_url):
     return None
 
 
+def mida_que_hi_cap(text, font_path, mida_max, mida_min, ample_max, factor_estimat=0.55):
+    """Mida de font mes gran (entre mida_max i mida_min) perque el text càpiga en ample_max px.
+    Mesura amb la tipografia real si Pillow hi es; si no, fa una estimacio."""
+    for mida in range(mida_max, mida_min - 1, -2):
+        ample = None
+        if PIL_OK:
+            try:
+                ample = ImageFont.truetype(font_path, mida).getlength(text)
+            except Exception:
+                ample = None
+        if ample is None:
+            ample = len(text) * mida * factor_estimat
+        if ample <= ample_max:
+            return mida
+    return mida_min
+
+
 TRACKS_RAW = os.environ.get('TRACKS', '')
 print("Carregant tracks rebuts...")
 tracks = json.loads(TRACKS_RAW)
@@ -187,6 +207,10 @@ spotify_token = get_spotify_token()
 print("Token OK" if spotify_token else "Sense token Spotify")
 
 max_pos = max(t['pos'] for t in tracks)
+
+# Numeracio segons l'ordre real de reproduccio: el primer que sona es 1/N (les posicions mes altes sonen primer)
+N_TOTAL = len(tracks)
+numero_ronda = {t['pos']: i + 1 for i, t in enumerate(sorted(tracks, key=lambda t: t['pos'], reverse=True))}
 if STICKER_ACTIU:
     print(f"\nStickers Follow/Thanks actius, apareixeran a la primera ronda (#{max_pos})")
 
@@ -222,7 +246,7 @@ for track in tracks:
     artista          = track.get('artista', '')
     yt_url           = track.get('yt_url')
     timestamp_manual = track.get('timestamp_manual')
-    ronda_num        = track.get('ronda', pos)
+    ronda_num        = numero_ronda[pos]
 
     es_ultim  = (pos == 1)
     es_primer = (pos == max_pos)
@@ -303,13 +327,15 @@ for track in tracks:
     has_thumb = os.path.exists(thumb_path) and os.path.getsize(thumb_path) > 1000
 
     titol_complet = f"GUESS THE {TITOL_X.upper()} DROP" if TITOL_X else "GUESS THE DROP"
-    etiqueta_ronda = f"{ronda_num}/{N_RONDES} \u00b7 {dificultat}"
+    etiqueta_ronda = f"{ronda_num}/{N_TOTAL} \u00b7 {dificultat}"
 
     txt = []
     txt.append(f"drawbox=x=0:y=0:w=1080:h={BANDA_TOP_H}:color=black@{BANDA_OPACITAT}:t=fill")
     txt.append(f"drawbox=x=0:y={BAR_Y - 30}:w=1080:h={BANDA_RESULTAT_H}:color=black@{BANDA_OPACITAT}:t=fill")
-    txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol_complet}':fontsize=56:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
-    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{etiqueta_ronda}':fontsize=38:fontcolor={COLOR_ACCENT}:borderw=2:bordercolor=black@0.6:x=(w-text_w)/2:y={Y_RONDA}")
+    mida_titol = mida_que_hi_cap(titol_complet, FONT_BEBAS, 108, 56, 940, factor_estimat=0.42)
+    y_ronda = Y_TITOL1 + mida_titol + 30
+    txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol_complet}':fontsize={mida_titol}:fontcolor=white:borderw=3:bordercolor=black@0.7:shadowx=0:shadowy=3:x=(w-text_w)/2:y={Y_TITOL1}")
+    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{etiqueta_ronda}':fontsize=44:fontcolor={COLOR_ACCENT}:borderw=2:bordercolor=black@0.6:x=(w-text_w)/2:y={y_ronda}")
 
     txt.append(f"drawbox=x={BAR_X}:y={BAR_Y}:w={BAR_W}:h=5:color=white@0.15:t=fill")
     seg_w = BAR_W / BAR_SEGMENTS
@@ -322,8 +348,7 @@ for track in tracks:
 
     resultat1 = f"{nom_net}"
     resultat2 = f"{artista_net}"
-    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{resultat1}':fontsize=54:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_RESULTAT1}:enable='gte(t,{reveal_t})'")
-    txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{resultat2}':fontsize=42:fontcolor={COLOR_ACCENT}:borderw=2:bordercolor=black@0.8:x=(w-text_w)/2:y={Y_RESULTAT2}:enable='gte(t,{reveal_t})'")
+    # El nom i l'artista es dibuixen en una capa propia (mes avall) perque es puguin pixelar igual que la portada.
 
     txt_str = ",".join(txt)
 
@@ -395,7 +420,38 @@ for track in tracks:
         current = "withcover"
 
     fc_parts.append(f"[{current}]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored]")
-    fc_parts.append(f"[colored]{txt_str},setpts=PTS/{SPEED_FACTOR}[txted]")
+    fc_parts.append(f"[colored]{txt_str}[txbase]")
+
+    # ---- Capa del nom + artista: pixelada igual que la portada i es revela amb ella ----
+    mida_nom = mida_que_hi_cap(resultat1, FONT_EXTRABOLD, 56, 30, 980, factor_estimat=0.62)
+    mida_art = mida_que_hi_cap(resultat2, FONT_SEMIBOLD, 44, 26, 980, factor_estimat=0.60)
+    y_nom_capa = 12
+    y_art_capa = y_nom_capa + mida_nom + 14
+    capa_h = y_art_capa + mida_art + 22
+    y_capa = Y_RESULTAT1 - y_nom_capa
+    n_nivells_t = 2 + len(PIXEL_PASSOS_REVEAL)
+    raws_t = [f"txraw{j}" for j in range(n_nivells_t)]
+    fc_parts.append(
+        f"color=c=black@0.0:s=1080x{capa_h}:r=30:d={durada + 1},format=rgba,"
+        f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{resultat1}':fontsize={mida_nom}:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=2:x=(w-text_w)/2:y={y_nom_capa},"
+        f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{resultat2}':fontsize={mida_art}:fontcolor={COLOR_ACCENT}:borderw=2:bordercolor=black@0.8:x=(w-text_w)/2:y={y_art_capa},"
+        f"split={n_nivells_t}" + "".join(f"[{r}]" for r in raws_t)
+    )
+    divisors_t = [PIXEL_DIVISOR] + PIXEL_PASSOS_REVEAL
+    for j, d in enumerate(divisors_t):
+        fc_parts.append(f"[{raws_t[j]}]scale=iw/{d}:ih/{d}:flags=neighbor,scale=1080:{capa_h}:flags=neighbor[tl{j}]")
+    fc_parts.append(f"[{raws_t[-1]}]copy[tlsharp]")
+
+    pas_dur_t = TRANSICIO_DURADA / len(PIXEL_PASSOS_REVEAL)
+    fc_parts.append(f"[txbase][tl0]overlay=0:{y_capa}:enable='lt(t,{reveal_t})'[tlo0]")
+    anterior_t = "tlo0"
+    for j in range(len(PIXEL_PASSOS_REVEAL)):
+        t0 = reveal_t + j * pas_dur_t
+        t1 = t0 + pas_dur_t
+        fc_parts.append(f"[{anterior_t}][tl{j+1}]overlay=0:{y_capa}:enable='gte(t,{t0:.3f})*lt(t,{t1:.3f})'[tlo{j+1}]")
+        anterior_t = f"tlo{j+1}"
+    fc_parts.append(f"[{anterior_t}][tlsharp]overlay=0:{y_capa}:enable='gte(t,{reveal_t + TRANSICIO_DURADA:.3f})'[txlay]")
+    fc_parts.append(f"[txlay]setpts=PTS/{SPEED_FACTOR}[txted]")
 
     fc_parts.append(f"[{audio_idx}:a]atempo={SPEED_FACTOR}[aout]")
 
@@ -436,7 +492,7 @@ for track in tracks:
 recap_path = f"{OUTPUT}/clip_99_recap.mp4"
 txt_recap = []
 txt_recap.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='HOW MANY DID YOU GET?':fontsize=52:fontcolor=white:borderw=2:bordercolor=black@0.7:x=(w-text_w)/2:y=780")
-txt_recap.append(f"drawtext=fontfile='{FONT_BEBAS}':text='__/{N_RONDES}':fontsize=140:fontcolor={COLOR_ACCENT}:borderw=3:bordercolor=black@0.8:x=(w-text_w)/2:y=880")
+txt_recap.append(f"drawtext=fontfile='{FONT_BEBAS}':text='__/{N_TOTAL}':fontsize=140:fontcolor={COLOR_ACCENT}:borderw=3:bordercolor=black@0.8:x=(w-text_w)/2:y=880")
 txt_recap.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='COMMENT YOUR SCORE':fontsize=40:fontcolor=white@0.85:borderw=2:bordercolor=black@0.7:x=(w-text_w)/2:y=1080")
 compte_text = COMPTE.replace("'", "")
 txt_recap.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{compte_text}':fontsize=40:fontcolor=white@0.85:borderw=2:bordercolor=black@0.6:x=(w-text_w)/2:y=1550")
