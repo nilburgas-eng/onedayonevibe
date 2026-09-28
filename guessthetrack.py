@@ -30,11 +30,16 @@ PADDING_FONS      = 1.0
 SPOTIFY_SECRET    = os.environ.get('SPOTIFY_CLIENT_SECRET', '')
 TITOL_X           = os.environ.get('TITOL_X', '').strip()
 COMPTE            = "@onedayonevibe"
-GUESS_DURADA      = 3.0
+GUESS_DURADA      = 3.3
 TRANSICIO_DURADA  = 0.4
-REVEAL_DURADA     = 1.0
-DURADA_RONDA      = GUESS_DURADA + TRANSICIO_DURADA + REVEAL_DURADA   # 4.4s
-PIXEL_PASSOS_REVEAL = [12, 7, 4]   # divisors de pixelat durant el despixelat (de mes a menys pixelat)
+REVEAL_DURADA     = 1.3
+DURADA_RONDA      = GUESS_DURADA + TRANSICIO_DURADA + REVEAL_DURADA   # 5.0s
+# Desenfocament (gaussia): sigma inicial i passos fins a nitid. Es va 'enfocant' en 4 passos durant la transicio.
+BLUR_INICIAL        = 34
+BLUR_PASSOS_REVEAL  = [20, 10, 4]
+# El nom/artista es desenfoca menys que la portada: si no, s'esborraria del tot i perdria l'efecte d'alguna cosa amagada
+BLUR_TEXT_INICIAL       = 12
+BLUR_TEXT_PASSOS_REVEAL = [7, 4, 2]
 RECAP_DURADA      = 1.0
 FADE_DURADA       = 0.3
 
@@ -49,7 +54,6 @@ COVER_W  = 560
 COVER_H  = 560
 COVER_X  = (1080 - COVER_W) // 2
 COVER_Y  = 460
-PIXEL_DIVISOR = 18   # com mes gran, mes petit el bloc de pixel
 
 Y_TITOL1    = 190
 BAR_X       = COVER_X
@@ -348,7 +352,7 @@ for track in tracks:
 
     resultat1 = f"{nom_net}"
     resultat2 = f"{artista_net}"
-    # El nom i l'artista es dibuixen en una capa propia (mes avall) perque es puguin pixelar igual que la portada.
+    # El nom i l'artista es dibuixen en una capa propia (mes avall) perque es puguin desenfocar igual que la portada.
 
     txt_str = ",".join(txt)
 
@@ -391,24 +395,22 @@ for track in tracks:
 
     current = "bg"
     if has_thumb:
-        n_nivells = 2 + len(PIXEL_PASSOS_REVEAL)   # pixelat inicial + passos + nitid
+        n_nivells = 2 + len(BLUR_PASSOS_REVEAL)   # blur inicial + passos + nitid
         raws = [f"cvraw{j}" for j in range(n_nivells)]
         fc_parts.append(
             f"[{thumb_idx}:v]scale={COVER_W}:{COVER_H}:force_original_aspect_ratio=decrease,"
             f"pad={COVER_W}:{COVER_H}:(ow-iw)/2:(oh-ih)/2:color=black@0.9,setsar=1,"
             f"split={n_nivells}" + "".join(f"[{r}]" for r in raws)
         )
-        divisors = [PIXEL_DIVISOR] + PIXEL_PASSOS_REVEAL
-        for j, d in enumerate(divisors):
-            fc_parts.append(
-                f"[{raws[j]}]scale=iw/{d}:ih/{d}:flags=neighbor,scale={COVER_W}:{COVER_H}:flags=neighbor[cvl{j}]"
-            )
+        sigmes = [BLUR_INICIAL] + BLUR_PASSOS_REVEAL
+        for j, sg in enumerate(sigmes):
+            fc_parts.append(f"[{raws[j]}]gblur=sigma={sg}:steps=3[cvl{j}]")
         fc_parts.append(f"[{raws[-1]}]copy[cvsharp]")
 
-        pas_dur = TRANSICIO_DURADA / len(PIXEL_PASSOS_REVEAL)
+        pas_dur = TRANSICIO_DURADA / len(BLUR_PASSOS_REVEAL)
         fc_parts.append(f"[{current}][cvl0]overlay={COVER_X}:{COVER_Y}:enable='lt(t,{reveal_t})'[cvo0]")
         anterior = "cvo0"
-        for j in range(len(PIXEL_PASSOS_REVEAL)):
+        for j in range(len(BLUR_PASSOS_REVEAL)):
             t0 = reveal_t + j * pas_dur
             t1 = t0 + pas_dur
             fc_parts.append(
@@ -422,14 +424,14 @@ for track in tracks:
     fc_parts.append(f"[{current}]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored]")
     fc_parts.append(f"[colored]{txt_str}[txbase]")
 
-    # ---- Capa del nom + artista: pixelada igual que la portada i es revela amb ella ----
+    # ---- Capa del nom + artista: desenfocada igual que la portada i es revela amb ella ----
     mida_nom = mida_que_hi_cap(resultat1, FONT_EXTRABOLD, 56, 30, 980, factor_estimat=0.62)
     mida_art = mida_que_hi_cap(resultat2, FONT_SEMIBOLD, 44, 26, 980, factor_estimat=0.60)
     y_nom_capa = 12
     y_art_capa = y_nom_capa + mida_nom + 14
     capa_h = y_art_capa + mida_art + 22
     y_capa = Y_RESULTAT1 - y_nom_capa
-    n_nivells_t = 2 + len(PIXEL_PASSOS_REVEAL)
+    n_nivells_t = 2 + len(BLUR_TEXT_PASSOS_REVEAL)
     raws_t = [f"txraw{j}" for j in range(n_nivells_t)]
     fc_parts.append(
         f"color=c=black@0.0:s=1080x{capa_h}:r=30:d={durada + 1},format=rgba,"
@@ -437,15 +439,15 @@ for track in tracks:
         f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{resultat2}':fontsize={mida_art}:fontcolor={COLOR_ACCENT}:borderw=2:bordercolor=black@0.8:x=(w-text_w)/2:y={y_art_capa},"
         f"split={n_nivells_t}" + "".join(f"[{r}]" for r in raws_t)
     )
-    divisors_t = [PIXEL_DIVISOR] + PIXEL_PASSOS_REVEAL
-    for j, d in enumerate(divisors_t):
-        fc_parts.append(f"[{raws_t[j]}]scale=iw/{d}:ih/{d}:flags=neighbor,scale=1080:{capa_h}:flags=neighbor[tl{j}]")
+    sigmes_t = [BLUR_TEXT_INICIAL] + BLUR_TEXT_PASSOS_REVEAL
+    for j, sg in enumerate(sigmes_t):
+        fc_parts.append(f"[{raws_t[j]}]gblur=sigma={sg}:steps=3[tl{j}]")
     fc_parts.append(f"[{raws_t[-1]}]copy[tlsharp]")
 
-    pas_dur_t = TRANSICIO_DURADA / len(PIXEL_PASSOS_REVEAL)
+    pas_dur_t = TRANSICIO_DURADA / len(BLUR_TEXT_PASSOS_REVEAL)
     fc_parts.append(f"[txbase][tl0]overlay=0:{y_capa}:enable='lt(t,{reveal_t})'[tlo0]")
     anterior_t = "tlo0"
-    for j in range(len(PIXEL_PASSOS_REVEAL)):
+    for j in range(len(BLUR_TEXT_PASSOS_REVEAL)):
         t0 = reveal_t + j * pas_dur_t
         t1 = t0 + pas_dur_t
         fc_parts.append(f"[{anterior_t}][tl{j+1}]overlay=0:{y_capa}:enable='gte(t,{t0:.3f})*lt(t,{t1:.3f})'[tlo{j+1}]")
