@@ -77,8 +77,20 @@ def scrape_electronica_tidal():
 def scrape_electronica_dancecharts():
     url = "https://www.dance-charts.de/djcharts"
     print(f"Scraping electronica: {url}")
-    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
-    html = requests.get(url, headers=headers, timeout=30).text
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                      "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "de-DE,de;q=0.9,en;q=0.8",
+    }
+    r = requests.get(url, headers=headers, timeout=30)
+    html = r.text
+    print(f"DEBUG status HTTP: {r.status_code}, mida resposta: {len(html)} caracters")
+    print(f"DEBUG conte '/songinfos/': {'/songinfos/' in html}")
+    print(f"DEBUG conte 'youtube.com/watch': {'youtube.com/watch' in html}")
+    if '/songinfos/' not in html:
+        print("DEBUG primers 1000 caracters de la resposta:")
+        print(html[:1000])
 
     import datetime
     avui = datetime.date.today()
@@ -88,7 +100,7 @@ def scrape_electronica_dancecharts():
     tracks = []
     # Cada cancó del rànquing te un enllaç /songinfos/ID-slug; el dividim per aquest
     # patró per aïllar cada bloc i extreure'n titol, artista i (si hi es) l'enllaç de YouTube.
-    blocs = re.split(r'href="(?:https://www\.dance-charts\.de)?/songinfos/(\d+)-[\w-]+"', html)
+    blocs = re.split(r'href=[\'"](?:https?://(?:www\.)?dance-charts\.de)?/songinfos/(\d+)-[\w%-]*[\'"]', html)
     vistos = set()
     for i in range(1, len(blocs), 2):
         if len(tracks) >= 10:
