@@ -2,45 +2,119 @@ import os, json, re
 import requests
 
 GENERE = os.environ.get('GENERE', 'electronica')
+TIDAL_PLAYLIST_ID = "d57a8f2c-4158-44b7-aa7f-4ba4314c1ba8"  # 40 Biggest EDM/DANCE Hits Weekly
 
-def scrape_electronica():
-    url = "https://www.electricfm.com/music/weekly-top-20-chart"
-    print(f"Scraping electronica: {url}")
-    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
-    html = requests.get(url, headers=headers).text
+def get_tidal_token():
+    client_id = os.environ.get('TIDAL_CLIENT_ID', '')
+    client_secret = os.environ.get('TIDAL_CLIENT_SECRET', '')
+    r = requests.post(
+        "https://auth.tidal.com/v1/oauth2/token",
+        data={"grant_type": "client_credentials"},
+        auth=(client_id, client_secret)
+    )
+    r.raise_for_status()
+    return r.json()['access_token']
 
-    setmana_text = ""
-    m = re.search(r'Week of ([A-Z][a-z]+ \d+, \d{4})', html)
-    if m:
-        setmana_text = f"WEEK OF {m.group(1).upper()}"
+def scrape_electronica_tidal():
+    print(f"Consultant playlist de Tidal: {TIDAL_PLAYLIST_ID}")
+    token = get_tidal_token()
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.api+json"
+    }
+    r = requests.get(
+        f"https://openapi.tidal.com/v2/playlists/{TIDAL_PLAYLIST_ID}",
+        headers=headers,
+        params={"countryCode": "US", "include": "items"}
+    )
+    r.raise_for_status()
+    data = r.json()
 
-    net = re.sub(r'<[^>]+>', '\n', html)
-    net = re.sub(r'&amp;', '&', net)
-    net = re.sub(r'&#039;|&#39;', "'", net)
-    net = re.sub(r'&quot;', '"', net)
-    linies = [l.strip() for l in net.split('\n')]
-    linies = [l for l in linies if l]
+    # DEBUG: si l'estructura no encaixa com esperem, aixo ens dira com es la resposta real
+    print("DEBUG claus arrel:", list(data.keys()))
+    if 'included' in data:
+        tipus_inclosos = set(item.get('type') for item in data['included'])
+        print("DEBUG tipus a 'included':", tipus_inclosos)
+
+    # Mapa d'items inclosos (tracks i artistes) per id, format JSON:API
+    inclosos = {(item['type'], item['id']): item for item in data.get('included', [])}
+
+    ordre_items = data.get('data', {}).get('relationships', {}).get('items', {}).get('data', [])
 
     tracks = []
+    pos = 1
+    for ref in ordre_items:
+        if pos > 10:
+            break
+        track = inclosos.get((ref.get('type'), ref.get('id')))
+        if not track:
+            continue
+        attrs = track.get('attributes', {})
+        nom = attrs.get('title')
+        if not nom:
+            continue
+
+        artista = ''
+        rel_artistes = track.get('relationships', {}).get('artists', {}).get('data', [])
+        if rel_artistes:
+            art = inclosos.get((rel_artistes[0].get('type'), rel_artistes[0].get('id')))
+            if art:
+                artista = art.get('attributes', {}).get('name', '')
+
+        tracks.append({
+            'pos': pos, 'nom': nom, 'artista': artista, 'cover_url': None,
+            'timestamp_manual': None, 'nom_manual': None, 'yt_url': None
+        })
+        pos += 1
+
+    import datetime
+    avui = datetime.date.today()
+    dilluns = avui - datetime.timedelta(days=avui.weekday())
+    setmana_text = f"WEEK OF {dilluns.strftime('%B %d, %Y').upper()}"
+
+    return tracks, setmana_text
+
+def scrape_electronica_dancecharts():
+    url = "https://www.dance-charts.de/djcharts"
+    print(f"Scraping electronica: {url}")
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+    html = requests.get(url, headers=headers, timeout=30).text
+
+    import datetime
+    avui = datetime.date.today()
+    dilluns = avui - datetime.timedelta(days=avui.weekday())
+    setmana_text = f"WEEK OF {dilluns.strftime('%B %d, %Y').upper()}"
+
+    tracks = []
+    # Cada cancó del rànquing te un enllaç /songinfos/ID-slug; el dividim per aquest
+    # patró per aïllar cada bloc i extreure'n titol, artista i (si hi es) l'enllaç de YouTube.
+    blocs = re.split(r'href="(?:https://www\.dance-charts\.de)?/songinfos/(\d+)-[\w-]+"', html)
     vistos = set()
-    i = 0
-    while i < len(linies) and len(tracks) < 10:
-        m_pos = re.match(r'^#(\d+)$', linies[i])
-        if m_pos:
-            pos_num = int(m_pos.group(1))
-            resta = [l for l in linies[i+1:i+6] if l and not re.match(r'^#\d+$', l)]
-            if len(resta) >= 2:
-                nom = resta[0]
-                artista = resta[1]
-                key = (nom.lower(), artista.lower())
-                if key not in vistos and pos_num <= 10:
-                    vistos.add(key)
-                    tracks.append({
-                        'pos': pos_num, 'nom': nom, 'artista': artista, 'cover_url': None,
-                        'timestamp_manual': None, 'nom_manual': None, 'yt_url': None
-                    })
-        i += 1
-    tracks.sort(key=lambda t: t['pos'])
+    for i in range(1, len(blocs), 2):
+        if len(tracks) >= 10:
+            break
+        song_id = blocs[i]
+        if song_id in vistos:
+            continue
+        abans = blocs[i - 1][-500:] if i - 1 >= 0 else ''
+        despres = blocs[i + 1][:1000] if i + 1 < len(blocs) else ''
+
+        m_titol = re.search(r'title="([^"]+)"', despres[:300])
+        titol = html_unescape(m_titol.group(1)) if m_titol else None
+
+        m_yt = re.search(r'(https://www\.youtube\.com/watch\?v=[\w-]+)', despres)
+        yt_url = m_yt.group(1) if m_yt else None
+
+        m_art = re.search(r'([A-ZÀ-Ü0-9][A-ZÀ-Ü0-9 &.,\'\-]{2,70})\s*$', abans.strip())
+        artista = html_unescape(m_art.group(1)) if m_art else ''
+
+        if titol:
+            vistos.add(song_id)
+            tracks.append({
+                'pos': len(tracks) + 1, 'nom': titol, 'artista': artista, 'cover_url': None,
+                'timestamp_manual': None, 'nom_manual': None, 'yt_url': yt_url
+            })
+
     return tracks, setmana_text
 
 def html_unescape(s):
@@ -111,7 +185,13 @@ def scrape_hardstyle():
 if GENERE == 'hardstyle':
     tracks, setmana_text = scrape_hardstyle()
 else:
-    tracks, setmana_text = scrape_electronica()
+    try:
+        tracks, setmana_text = scrape_electronica_tidal()
+        if not tracks:
+            raise Exception("Tidal no ha retornat tracks")
+    except Exception as e:
+        print(f"ERROR amb Tidal ({e}), fent servir dance-charts.de com a reserva")
+        tracks, setmana_text = scrape_electronica_dancecharts()
 
 if not tracks:
     print("ERROR: No s'han trobat tracks")
