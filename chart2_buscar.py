@@ -74,59 +74,44 @@ def scrape_electronica_tidal():
 
     return tracks, setmana_text
 
-def scrape_electronica_dancecharts():
-    url = "https://www.dance-charts.de/djcharts"
+def scrape_electronica():
+    url = "https://www.electricfm.com/music/weekly-top-20-chart"
     print(f"Scraping electronica: {url}")
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                      "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "de-DE,de;q=0.9,en;q=0.8",
-    }
-    r = requests.get(url, headers=headers, timeout=30)
-    html = r.text
-    print(f"DEBUG status HTTP: {r.status_code}, mida resposta: {len(html)} caracters")
-    print(f"DEBUG conte '/songinfos/': {'/songinfos/' in html}")
-    print(f"DEBUG conte 'youtube.com/watch': {'youtube.com/watch' in html}")
-    if '/songinfos/' not in html:
-        print("DEBUG primers 1000 caracters de la resposta:")
-        print(html[:1000])
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+    html = requests.get(url, headers=headers).text
 
-    import datetime
-    avui = datetime.date.today()
-    dilluns = avui - datetime.timedelta(days=avui.weekday())
-    setmana_text = f"WEEK OF {dilluns.strftime('%B %d, %Y').upper()}"
+    setmana_text = ""
+    m = re.search(r'Week of ([A-Z][a-z]+ \d+, \d{4})', html)
+    if m:
+        setmana_text = f"WEEK OF {m.group(1).upper()}"
+
+    net = re.sub(r'<[^>]+>', '\n', html)
+    net = re.sub(r'&amp;', '&', net)
+    net = re.sub(r'&#039;|&#39;', "'", net)
+    net = re.sub(r'&quot;', '"', net)
+    linies = [l.strip() for l in net.split('\n')]
+    linies = [l for l in linies if l]
 
     tracks = []
-    # Cada cancó del rànquing te un enllaç /songinfos/ID-slug; el dividim per aquest
-    # patró per aïllar cada bloc i extreure'n titol, artista i (si hi es) l'enllaç de YouTube.
-    blocs = re.split(r'href=[\'"](?:https?://(?:www\.)?dance-charts\.de)?/songinfos/(\d+)-[\w%-]*[\'"]', html)
     vistos = set()
-    for i in range(1, len(blocs), 2):
-        if len(tracks) >= 10:
-            break
-        song_id = blocs[i]
-        if song_id in vistos:
-            continue
-        abans = blocs[i - 1][-500:] if i - 1 >= 0 else ''
-        despres = blocs[i + 1][:1000] if i + 1 < len(blocs) else ''
-
-        m_titol = re.search(r'title="([^"]+)"', despres[:300])
-        titol = html_unescape(m_titol.group(1)) if m_titol else None
-
-        m_yt = re.search(r'(https://www\.youtube\.com/watch\?v=[\w-]+)', despres)
-        yt_url = m_yt.group(1) if m_yt else None
-
-        m_art = re.search(r'([A-ZÀ-Ü0-9][A-ZÀ-Ü0-9 &.,\'\-]{2,70})\s*$', abans.strip())
-        artista = html_unescape(m_art.group(1)) if m_art else ''
-
-        if titol:
-            vistos.add(song_id)
-            tracks.append({
-                'pos': len(tracks) + 1, 'nom': titol, 'artista': artista, 'cover_url': None,
-                'timestamp_manual': None, 'nom_manual': None, 'yt_url': yt_url
-            })
-
+    i = 0
+    while i < len(linies) and len(tracks) < 10:
+        m_pos = re.match(r'^#(\d+)$', linies[i])
+        if m_pos:
+            pos_num = int(m_pos.group(1))
+            resta = [l for l in linies[i+1:i+6] if l and not re.match(r'^#\d+$', l)]
+            if len(resta) >= 2:
+                nom = resta[0]
+                artista = resta[1]
+                key = (nom.lower(), artista.lower())
+                if key not in vistos and pos_num <= 10:
+                    vistos.add(key)
+                    tracks.append({
+                        'pos': pos_num, 'nom': nom, 'artista': artista, 'cover_url': None,
+                        'timestamp_manual': None, 'nom_manual': None, 'yt_url': None
+                    })
+        i += 1
+    tracks.sort(key=lambda t: t['pos'])
     return tracks, setmana_text
 
 def html_unescape(s):
@@ -202,8 +187,8 @@ else:
         if not tracks:
             raise Exception("Tidal no ha retornat tracks")
     except Exception as e:
-        print(f"ERROR amb Tidal ({e}), fent servir dance-charts.de com a reserva")
-        tracks, setmana_text = scrape_electronica_dancecharts()
+        print(f"ERROR amb Tidal ({e}), fent servir electricfm.com com a reserva")
+        tracks, setmana_text = scrape_electronica()
 
 if not tracks:
     print("ERROR: No s'han trobat tracks")
