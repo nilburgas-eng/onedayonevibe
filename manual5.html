@@ -58,6 +58,9 @@
             <option value="spotify">🎧 Spotify (per defecte)</option>
             <option value="youtube">🎬 Miniatura de YouTube</option>
         </select>
+        <label>🎞️ Vídeo genèric de fons (opcional — nomes visual)</label>
+        <input type="text" id="fons_url" placeholder="https://youtu.be/... (deixa buit per usar el video de cada tema)" />
+        <p style="font-size:11px;color:#666;margin-top:-10px;margin-bottom:0;">Marca el checkbox "imatge del fons" a la pista que vulguis — l'àudio sempre surt del tema real.</p>
     </div>
 
     <div id="status" class="status">
@@ -67,6 +70,11 @@
     <div id="tracks-card" class="card">
         <h2>🎵 Pas 2 — Els 5 temes</h2>
         <p style="font-size:12px;color:#666;margin-bottom:14px;">Afegeix cada tema a mà: nom, artista i l'enllaç de YouTube (o puja un vídeo/portada propis). El botó 🎬 obre el vídeo o la cerca a YouTube.</p>
+
+        <label>📋 O enganxa la llista sencera (una per línia, "Nom - Artista")</label>
+        <textarea id="llista-paste" rows="4" style="width:100%;background:#2a2a2a;border:1px solid #333;border-radius:8px;padding:12px;color:#fff;font-size:14px;margin-bottom:14px;font-family:inherit;" placeholder="Dragonborn - Headhunterz&#10;The Vandal - Da Tweekaz&#10;Reload - Sebastian Ingrosso &amp; Tommy Trash"></textarea>
+        <button class="btn btn-secondary" onclick="omplirDesDeLlista()">📋 Omplir des de la llista</button>
+
         <div id="tracks-list"></div>
         <button class="btn btn-secondary" onclick="afegirTrack()">➕ Afegir cançó</button>
         <button class="btn btn-green" onclick="generarVideo()">🎬 Generar vídeo</button>
@@ -165,6 +173,10 @@ function renderTracks() {
                 <input type="text" placeholder="Timestamp (mm:ss)" value="${segonsAStr(t.timestamp_manual)}" onchange="actualitzar(${i}, 'ts', this.value)" />
                 <input type="text" placeholder="URL YouTube" value="${t.yt_url||''}" onchange="actualitzar(${i}, 'yt', this.value)" />
             </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:10px;">
+                <input type="checkbox" id="vg-${i}" style="width:auto;margin-bottom:0;" ${t.visual_general ? 'checked' : ''} onchange="actualitzar(${i}, 'visual_general', this.checked)" />
+                <label for="vg-${i}" style="margin-bottom:0;font-size:13px;color:#ccc;">Usar imatge del vídeo genèric de fons (en lloc del videoclip propi)</label>
+            </div>
             <div class="track-full">
                 <label style="margin-top:6px;">🎥 O puja un vídeo propi (no cal que sigui a YouTube)</label>
                 <input type="file" accept="video/*" onchange="pujarVideoManual(${i}, this)" />
@@ -190,6 +202,42 @@ function actualitzar(i, camp, valor) {
     else if (camp === 'nom') tracksActuals[i].nom = valor.trim();
     else if (camp === 'artista') tracksActuals[i].artista = valor.trim();
     else if (camp === 'yt') tracksActuals[i].yt_url = valor.trim() || null;
+    else if (camp === 'visual_general') tracksActuals[i].visual_general = valor;
+}
+
+function omplirDesDeLlista() {
+    const raw = document.getElementById('llista-paste').value;
+    const linies = raw.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    if (linies.length === 0) {
+        mostrarStatus('❌ La llista és buida', 'error');
+        return;
+    }
+    let comptador = 0;
+    linies.forEach((linia, i) => {
+        const neta = linia.replace(/^\s*\d+\s*[\.\)\:]\s*/, '').trim();
+        let nom = neta;
+        let artista = '';
+        const idx = neta.indexOf(' - ');
+        if (idx !== -1) {
+            nom = neta.slice(0, idx).trim();
+            artista = neta.slice(idx + 3).trim();
+        }
+        if (!nom) return;
+        if (tracksActuals[i]) {
+            tracksActuals[i].nom = nom;
+            tracksActuals[i].artista = artista;
+        } else {
+            tracksActuals.push({
+                pos: tracksActuals.length + 1,
+                nom, artista,
+                timestamp_manual: null, yt_url: null,
+                video_manual: null, cover_manual: null, cover_none: false, visual_general: false
+            });
+        }
+        comptador++;
+    });
+    renderTracks();
+    mostrarStatus(`✅ ${comptador} temes omplerts des de la llista.`, 'ok');
 }
 
 let releaseManualId = null;
@@ -339,7 +387,7 @@ function afegirTrack() {
         pos: tracksActuals.length + 1,
         nom: '', artista: '',
         timestamp_manual: null, yt_url: null,
-        video_manual: null, cover_manual: null, cover_none: false
+        video_manual: null, cover_manual: null, cover_none: false, visual_general: false
     });
     renderTracks();
 }
@@ -366,6 +414,7 @@ function netejarTracks() {
         if (t.video_manual) o.video_manual = t.video_manual;
         if (t.cover_manual) o.cover_manual = t.cover_manual;
         if (t.cover_none) o.cover_none = true;
+        if (t.visual_general) o.visual_general = true;
         return o;
     });
 }
@@ -384,12 +433,14 @@ async function generarVideo() {
     const subtitol = document.getElementById('subtitol').value.trim();
     const estil = document.getElementById('estil').value;
     const coverFont = document.getElementById('cover_font').value;
+    const fonsUrl = document.getElementById('fons_url').value.trim();
     mostrarStatus('⏳ Generant vídeo...', 'info');
     const res = await dispararWorkflow('manual5.yml', {
         titol,
         subtitol,
         estil,
         cover_font: coverFont,
+        fons_url: fonsUrl,
         tracks: JSON.stringify(netejarTracks())
     });
     if (res.status === 204) {
