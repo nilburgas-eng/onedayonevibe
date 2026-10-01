@@ -1,4 +1,4 @@
-import os, json, re, subprocess, base64, shutil
+import os, json, re, subprocess, base64, shutil, random
 import librosa, numpy as np
 from scipy.signal import find_peaks, butter, filtfilt
 from PIL import ImageFont
@@ -25,6 +25,9 @@ ESTIL             = os.environ.get('ESTIL', 'energetic')
 TITOL_ENV         = os.environ.get('TITOL', '5 Tracks You Need to Know')
 SUBTITOL_ENV      = os.environ.get('SUBTITOL', '')
 COVER_FONT        = os.environ.get('COVER_FONT', 'spotify')   # 'spotify' o 'youtube'
+FONS_URL          = os.environ.get('FONS_URL', '').strip()    # video generic de fons (nomes visual)
+MARGE_FONS        = 15.0
+PADDING_FONS      = 1.0
 SPOTIFY_CLIENT_ID = os.environ.get('SPOTIFY_CLIENT_ID', '')
 SPOTIFY_SECRET    = os.environ.get('SPOTIFY_CLIENT_SECRET', '')
 COMPTE            = "@onedayonevibe"
@@ -130,6 +133,33 @@ def get_youtube_thumbnail(yt_url):
         except:
             pass
     return None
+
+def get_durada_video_remot(url):
+    try:
+        r = subprocess.run(
+            ['yt-dlp', '--dump-json', '--no-download', '--cookies', 'cookies.txt',
+             '--js-runtime', 'node', '--remote-components', 'ejs:github', url],
+            capture_output=True, text=True, timeout=60
+        )
+        if r.returncode != 0 or not r.stdout:
+            return None
+        info = json.loads(r.stdout.splitlines()[0])
+        durada = info.get('duration')
+        return float(durada) if durada else None
+    except Exception as e:
+        print(f"   ERROR consultant durada del video de fons: {e}")
+        return None
+
+def baixar_tros_fons(url, inici, durada_tros, output_path):
+    fi = inici + durada_tros
+    cmd = (
+        f'yt-dlp -f "bestvideo[height<=1440][ext=mp4]/best[ext=mp4]/best" '
+        f'--download-sections "*{inici:.2f}-{fi:.2f}" --force-keyframes-at-cuts '
+        f'--merge-output-format mp4 --cookies cookies.txt --js-runtime node '
+        f'--remote-components ejs:github -o "{output_path}" "{url}" -q'
+    )
+    ret = os.system(cmd)
+    return ret == 0 and os.path.exists(output_path) and os.path.getsize(output_path) > 10000
 
 def partir_nom(nom, max_chars=22):
     if len(nom) <= max_chars:
@@ -255,6 +285,30 @@ max_pos = max(t['pos'] for t in tracks)
 if STICKER_ACTIU:
     print(f"\nStickers Follow/Thanks actius, apareixeran al primer clip (#{max_pos})")
 
+offsets_fons = {}
+if FONS_URL:
+    print(f"\nVideo generic de fons (nomes visual): {FONS_URL}")
+    durada_fons_total = get_durada_video_remot(FONS_URL)
+    if durada_fons_total:
+        print(f"   Durada total: {int(durada_fons_total//60):02d}:{int(durada_fons_total%60):02d}")
+        n = len(tracks)
+        usable_inici = MARGE_FONS
+        usable_fi = max(MARGE_FONS, durada_fons_total - MARGE_FONS)
+        usable = max(0, usable_fi - usable_inici)
+        if usable <= 0:
+            usable_inici = 0
+            usable = durada_fons_total
+        bucket = usable / n
+        for i, track in enumerate(sorted(tracks, key=lambda t: t['pos'])):
+            durada_track = (DURADA_TOP1 + DURADA_OUTRO) if track['pos'] == 1 else DURADA_CLIP
+            marge_bucket = max(0, bucket - durada_track)
+            inici_bucket = usable_inici + i * bucket
+            offset = inici_bucket + random.uniform(0, marge_bucket)
+            offsets_fons[track['pos']] = max(0, min(offset, durada_fons_total - durada_track - 0.5))
+    else:
+        print(f"   AVIS: no s'ha pogut consultar la durada, es descarta el video de fons")
+        FONS_URL = ''
+
 for track in tracks:
     pos              = track['pos']
     nom              = track['nom']
@@ -262,6 +316,7 @@ for track in tracks:
     yt_url           = track.get('yt_url')
     video_manual     = track.get('video_manual')
     timestamp_manual = track.get('timestamp_manual')
+    visual_general   = track.get('visual_general', False)
 
     es_ultim = (pos == 1)
     es_primer = (pos == max_pos)
@@ -272,6 +327,7 @@ for track in tracks:
     video_path = os.path.expanduser(f"~/video_{pos:02d}.mp4")
     audio_path = os.path.expanduser(f"~/audio_{pos:02d}.wav")
     thumb_path = os.path.expanduser(f"~/thumb_{pos:02d}.jpg")
+    fons_path  = os.path.expanduser(f"~/fons_{pos:02d}.mp4")
 
     print(f"\n--- #{pos}: {nom} - {artista} ---")
 
@@ -389,6 +445,18 @@ for track in tracks:
     else:
         inici = trobar_moment_impactant(audio_path, duracio_total, ESTIL) if os.path.exists(audio_path) else 30.0
 
+    usar_fons_visual = False
+    if visual_general and FONS_URL and pos in offsets_fons:
+        offset_fons = offsets_fons[pos]
+        inici_baixada = max(0, offset_fons - PADDING_FONS)
+        durada_baixada = durada + 2 * PADDING_FONS
+        print(f"   Imatge del video generic seleccionada ({int(offset_fons//60):02d}:{int(offset_fons%60):02d})")
+        ok_fons = baixar_tros_fons(FONS_URL, inici_baixada, durada_baixada, fons_path)
+        if ok_fons:
+            usar_fons_visual = True
+        else:
+            print(f"   AVIS: no s'ha pogut baixar el tram generic, s'usa la imatge propia")
+
     output_path = f"{OUTPUT}/clip_{pos:02d}.mp4"
 
     nom_net = nom.replace("'", "").replace('"', '').replace(':', '-')
@@ -429,7 +497,14 @@ for track in tracks:
 
     input_parts = [f'-ss {inici} -i "{video_path}"']
     audio_idx = 0
+    visual_idx = 0
     seguent_idx = 1
+
+    if usar_fons_visual:
+        offset_dins_tros = min(PADDING_FONS, offsets_fons[pos])
+        input_parts.append(f'-ss {offset_dins_tros:.2f} -i "{fons_path}"')
+        visual_idx = seguent_idx
+        seguent_idx += 1
 
     thumb_idx = None
     if has_thumb:
@@ -455,7 +530,7 @@ for track in tracks:
 
     inputs = " ".join(input_parts)
 
-    fc_parts = ["[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920:(iw-1080)/2:(ih-1920)/2[bg]"]
+    fc_parts = [f"[{visual_idx}:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920:(iw-1080)/2:(ih-1920)/2[bg]"]
     if has_thumb:
         fc_parts.append(
             f"[{thumb_idx}:v]scale={COVER_W}:{COVER_H}:force_original_aspect_ratio=decrease,"
