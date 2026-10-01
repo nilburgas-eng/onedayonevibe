@@ -19,6 +19,10 @@ on:
         description: 'Portades: spotify o youtube'
         required: false
         default: 'spotify'
+      fons_url:
+        description: 'Video generic de fons (opcional, nomes visual)'
+        required: false
+        default: ''
       estil:
         description: 'Estil: energetic, melodic o vocal'
         required: false
@@ -111,6 +115,7 @@ jobs:
           TITOL: ${{ github.event.inputs.titol }}
           SUBTITOL: ${{ github.event.inputs.subtitol }}
           COVER_FONT: ${{ github.event.inputs.cover_font }}
+          FONS_URL: ${{ github.event.inputs.fons_url }}
           ESTIL: ${{ github.event.inputs.estil }}
           SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
           SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
