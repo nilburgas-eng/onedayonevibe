@@ -35,8 +35,8 @@ TRANSICIO_DURADA  = 0.4
 REVEAL_DURADA     = 1.3
 DURADA_RONDA      = GUESS_DURADA + TRANSICIO_DURADA + REVEAL_DURADA   # 5.0s
 # Desenfocament (gaussia): sigma inicial i passos fins a nitid. Es va 'enfocant' en 4 passos durant la transicio.
-BLUR_INICIAL        = 34
-BLUR_PASSOS_REVEAL  = [20, 10, 4]
+BLUR_INICIAL        = 26
+BLUR_PASSOS_REVEAL  = [15, 8, 3]
 # El nom/artista es desenfoca menys que la portada: si no, s'esborraria del tot i perdria l'efecte d'alguna cosa amagada
 BLUR_TEXT_INICIAL       = 12
 BLUR_TEXT_PASSOS_REVEAL = [7, 4, 2]
@@ -50,8 +50,8 @@ SPEED_FACTOR = 1.03
 COLOR_ACCENT = "0x00BFFF"
 COLOR_WHITE  = "white"
 
-COVER_W  = 560
-COVER_H  = 560
+COVER_W  = 420
+COVER_H  = 420
 COVER_X  = (1080 - COVER_W) // 2
 COVER_Y  = 460
 
