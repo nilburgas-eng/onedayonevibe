@@ -1,11 +1,11 @@
 {
   "genere": "electronica",
-  "setmana_text": "WEEK OF SEPTEMBER 15, 2026",
+  "setmana_text": "WEEK OF OCTOBER 6, 2026",
   "tracks": [
     {
       "pos": 1,
-      "nom": "FOCUS",
-      "artista": "LOEK & LEON LOUR",
+      "nom": "TAKE IT SLOW (BULLIT)",
+      "artista": "ROBIN SCHULZ X WATERMAT",
       "cover_url": null,
       "timestamp_manual": null,
       "nom_manual": null,
@@ -13,8 +13,8 @@
     },
     {
       "pos": 2,
-      "nom": "EVERLASTING",
-      "artista": "ARMIN VAN BUUREN & SACHA",
+      "nom": "MISSING PIECE",
+      "artista": "FRANK WALKER & ALEXANDER STEWART",
       "cover_url": null,
       "timestamp_manual": null,
       "nom_manual": null,
@@ -22,8 +22,8 @@
     },
     {
       "pos": 3,
-      "nom": "GRAVITY",
-      "artista": "STEVE AOKI x ELY OAKS F/ SACHA",
+      "nom": "MUSIC SOUNDS",
+      "artista": "FAST BOY",
       "cover_url": null,
       "timestamp_manual": null,
       "nom_manual": null,
@@ -49,8 +49,8 @@
     },
     {
       "pos": 6,
-      "nom": "BETTER TIMES",
-      "artista": "ROBIN SCHULZ F/ BARBZ",
+      "nom": "ALL I KNOW",
+      "artista": "LUCAS & STEVE",
       "cover_url": null,
       "timestamp_manual": null,
       "nom_manual": null,
@@ -58,8 +58,8 @@
     },
     {
       "pos": 7,
-      "nom": "NO AIR",
-      "artista": "NGHTMRE & JORDIN SPARKS",
+      "nom": "MEMORIES",
+      "artista": "VIZE & ESKE",
       "cover_url": null,
       "timestamp_manual": null,
       "nom_manual": null,
@@ -67,8 +67,8 @@
     },
     {
       "pos": 8,
-      "nom": "ORACLE",
-      "artista": "GORGON CITY F/ JEM COOKE",
+      "nom": "ALIVE",
+      "artista": "CASCADA",
       "cover_url": null,
       "timestamp_manual": null,
       "nom_manual": null,
@@ -76,8 +76,8 @@
     },
     {
       "pos": 9,
-      "nom": "SILVER LINING",
-      "artista": "JEX",
+      "nom": "DANCETERIA",
+      "artista": "MADONNA",
       "cover_url": null,
       "timestamp_manual": null,
       "nom_manual": null,
@@ -85,8 +85,8 @@
     },
     {
       "pos": 10,
-      "nom": "SIREN",
-      "artista": "FELIX JAEHN & OMAR RUDBERG",
+      "nom": "LONELY MAN",
+      "artista": "DASH BERLIN F/ SIMON WARD",
       "cover_url": null,
       "timestamp_manual": null,
       "nom_manual": null,
