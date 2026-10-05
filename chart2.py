@@ -55,13 +55,15 @@ STICKER_ACTIU = os.path.exists(STICKER_FOLLOW_PATH) and os.path.exists(STICKER_T
 STICKER_W = 220
 STICKER_Y = 1180
 
-# ---------- PROVA SETMANAL: marca d'aigua al centre + FOLLOW gran a la meitat del video ----------
-# True  = el logo surt al centre (on abans sortia el Follow) a tots els clips; a la meitat del video
-#         el logo es converteix en el Follow (gran) i despres en el Thanks, i torna a ser logo.
+# ---------- PROVA SETMANAL: logo fix a baix + boto FOLLOW a la meitat del video ----------
+# True  = el logo surt sempre a baix, just sobre del @compte del final, a tots els clips. A la meitat del
+#         video apareix el boto FOLLOW (gran) just a sobre del logo, i despres el Thanks.
 # False = comportament anterior (logo a la cantonada + Follow/Thanks al principi).
 PROVA_FOLLOW_MIG = True
-LOGO_CENTRE_W    = 120    # amplada del logo al centre (abans: 90 a la cantonada)
-LOGO_CENTRE_CY   = 1261   # centre vertical del logo = on abans quedava l'emblema del Follow
+LOGO_CENTRE_W    = 120    # amplada del logo (abans: 90 a la cantonada)
+LOGO_CENTRE_CY   = 1488   # centre vertical del logo: a baix, just sobre del @compte del final (y=1560)
+FOLLOW_W         = 437    # amplada total del sticker (el boto visible en fa ~77%). Abans: 220
+FOLLOW_GAP       = 14     # separacio entre el boto i el logo
 THANKS_MIG       = True   # despres del Follow, mostrar el Thanks (com abans)
 FOLLOW_DURADA    = 2.1
 THANKS_DURADA    = 1.8
@@ -69,29 +71,27 @@ CTA_FADE         = 0.3
 LOGO_PER_CLIP    = LOGO_ACTIU and not PROVA_FOLLOW_MIG
 STICKER_PER_CLIP = STICKER_ACTIU and not PROVA_FOLLOW_MIG
 
-def mesurar_emblema(path):
-    """Mesura l'emblema (el cercle del logo) a dalt del sticker. Torna fraccions de la imatge:
-    centre x, centre y, amplada de l'emblema i alcada/amplada de la imatge."""
-    per_defecte = {'cx': 0.5017, 'cy': 0.3463, 'bw': 0.2749, 'aspect': 1295 / 1215}
+def mesurar_cta(path):
+    """Prepara un sticker per quedar-nos nomes amb el boto, sense l'emblema de dalt.
+    Torna (y0, y1, aspect): primera fila despres de l'emblema, ultima fila visible (fraccions de l'alcada)
+    i alcada/amplada de la imatge."""
     try:
         from PIL import Image
         a = np.array(Image.open(path).convert('RGBA'))[:, :, 3] > 20
         h, w = a.shape
         ys = np.where(a.any(axis=1))[0]
-        fi = ys[0]
-        for y in ys[1:]:
-            if y != fi + 1:
+        c0, c1 = int(w * 0.40), int(w * 0.60)          # franja central, per on baixa l'emblema
+        y0 = None
+        for y in range(int(ys[0]), h):
+            if not a[y, c0:c1].any():                   # primera fila amb el centre buit: l'emblema ja ha acabat
+                y0 = y
                 break
-            fi = y
-        sub = a[ys[0]:fi + 1]
-        xs = np.where(sub.any(axis=0))[0]
-        bw = (xs[-1] - xs[0] + 1) / w
-        if not (0.10 < bw < 0.60):      # si el sticker no te l'emblema separat, usem les mides per defecte
-            return per_defecte
-        return {'cx': (xs[0] + xs[-1] + 1) / 2 / w, 'cy': (ys[0] + fi + 1) / 2 / h, 'bw': bw, 'aspect': h / w}
+        if y0 is None or y0 >= ys[-1]:
+            y0 = int(ys[0] + 0.45 * (ys[-1] - ys[0]))
+        return y0 / h, (int(ys[-1]) + 1) / h, h / w
     except Exception as e:
-        print(f"   AVIS: no s'ha pogut mesurar l'emblema del sticker ({e}), uso mides per defecte")
-        return per_defecte
+        print(f"   AVIS: no s'ha pogut mesurar el sticker ({e}), uso mides per defecte")
+        return 0.4826, 0.7869, 1295 / 1215
 
 COVER_W  = 280
 COVER_H  = 280
@@ -529,47 +529,43 @@ durada_final = sum(durades) - FADE_DURADA * (n_clips - 1)
 
 if PROVA_FOLLOW_MIG and (LOGO_ACTIU or STICKER_ACTIU):
     idx = n_clips
-    cx_pantalla = 540
     t0 = durada_final / 2                      # el Follow surt just a la meitat del video
-    seq_fi = t0 + FOLLOW_DURADA
-    if THANKS_MIG:
-        seq_fi = t0 + FOLLOW_DURADA - CTA_FADE + THANKS_DURADA
     actual = "[vfinal]"
 
+    # --- logo fix a baix, sempre visible ---
+    logo_top = LOGO_CENTRE_CY - 49             # valor per defecte si no es pot llegir el logo
     if LOGO_ACTIU:
+        try:
+            from PIL import Image
+            lw, lh = Image.open(LOGO_PATH).size
+            logo_top = LOGO_CENTRE_CY - (LOGO_CENTRE_W * lh / lw) / 2
+        except Exception:
+            pass
         extra_inputs += f' -loop 1 -framerate 30 -i "{LOGO_PATH}"'
         logo_i = idx
         idx += 1
-        if STICKER_ACTIU:
-            # el logo desapareix mentre dura el Follow/Thanks i torna a apareixer despres
-            overlay_filters.append(
-                f"[{logo_i}:v]scale={LOGO_CENTRE_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY},split=2[lga][lgb]")
-            overlay_filters.append(f"[lga]fade=t=out:st={t0:.3f}:d={CTA_FADE}:alpha=1[lgpre]")
-            overlay_filters.append(f"[lgb]fade=t=in:st={seq_fi - CTA_FADE:.3f}:d={CTA_FADE}:alpha=1[lgpost]")
-            overlay_filters.append(f"{actual}[lgpre]overlay=(W-w)/2:{LOGO_CENTRE_CY}-h/2[vl1]")
-            overlay_filters.append(f"[vl1][lgpost]overlay=(W-w)/2:{LOGO_CENTRE_CY}-h/2[vl2]")
-            actual = "[vl2]"
-        else:
-            overlay_filters.append(
-                f"[{logo_i}:v]scale={LOGO_CENTRE_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[lgone]")
-            overlay_filters.append(f"{actual}[lgone]overlay=(W-w)/2:{LOGO_CENTRE_CY}-h/2[vl2]")
-            actual = "[vl2]"
+        overlay_filters.append(
+            f"[{logo_i}:v]scale={LOGO_CENTRE_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[lgone]")
+        overlay_filters.append(f"{actual}[lgone]overlay=(W-w)/2:{LOGO_CENTRE_CY}-h/2[vl2]")
+        actual = "[vl2]"
 
+    # --- boto FOLLOW (i despres THANKS) just a sobre del logo, sense l'emblema del sticker ---
     if STICKER_ACTIU:
-        emb = mesurar_emblema(STICKER_FOLLOW_PATH)
-        sw = round(LOGO_CENTRE_W / emb['bw'])          # l'emblema del sticker fa la mateixa amplada que el logo
-        sx = round(cx_pantalla - emb['cx'] * sw)
-        sy = round(LOGO_CENTRE_CY - emb['cy'] * sw * emb['aspect'])
-        print(f"   Follow mig: sticker {sw}px d'ample (abans {STICKER_W}), apareix a {t0:.1f}s de {durada_final:.1f}s")
+        y0f, y1f, asp_f = mesurar_cta(STICKER_FOLLOW_PATH)
+        y0t, y1t, asp_t = mesurar_cta(STICKER_THANKS_PATH)
+        alt_boto = (y1f - y0f) * FOLLOW_W * asp_f              # alcada visible del boto Follow, en pixels
+        sy = round(logo_top - FOLLOW_GAP - alt_boto)           # el Thanks va a la mateixa alcada
+        print(f"   Follow mig: boto de {FOLLOW_W}px just sobre el logo (y={sy}), apareix a {t0:.1f}s de {durada_final:.1f}s")
         extra_inputs += f' -loop 1 -framerate 30 -i "{STICKER_FOLLOW_PATH}"'
         follow_i = idx
         idx += 1
         overlay_filters.append(
-            f"[{follow_i}:v]scale={sw}:-1,format=rgba,fade=t=in:st={t0:.3f}:d={CTA_FADE}:alpha=1,"
+            f"[{follow_i}:v]scale={FOLLOW_W}:-1,format=rgba,crop=iw:ih*{y1f - y0f:.5f}:0:ih*{y0f:.5f},"
+            f"fade=t=in:st={t0:.3f}:d={CTA_FADE}:alpha=1,"
             f"fade=t=out:st={t0 + FOLLOW_DURADA - CTA_FADE:.3f}:d={CTA_FADE}:alpha=1[stf]")
         etiqueta = "[vl3]" if THANKS_MIG else "[vout]"
         overlay_filters.append(
-            f"{actual}[stf]overlay={sx}:{sy}:enable='between(t,{t0:.3f},{t0 + FOLLOW_DURADA:.3f})'{etiqueta}")
+            f"{actual}[stf]overlay=(W-w)/2:{sy}:enable='between(t,{t0:.3f},{t0 + FOLLOW_DURADA:.3f})'{etiqueta}")
         actual = etiqueta
         if THANKS_MIG:
             t_th = t0 + FOLLOW_DURADA - CTA_FADE
@@ -577,10 +573,11 @@ if PROVA_FOLLOW_MIG and (LOGO_ACTIU or STICKER_ACTIU):
             thanks_i = idx
             idx += 1
             overlay_filters.append(
-                f"[{thanks_i}:v]scale={sw}:-1,format=rgba,fade=t=in:st={t_th:.3f}:d={CTA_FADE}:alpha=1,"
+                f"[{thanks_i}:v]scale={FOLLOW_W}:-1,format=rgba,crop=iw:ih*{y1t - y0t:.5f}:0:ih*{y0t:.5f},"
+                f"fade=t=in:st={t_th:.3f}:d={CTA_FADE}:alpha=1,"
                 f"fade=t=out:st={t_th + THANKS_DURADA - CTA_FADE:.3f}:d={CTA_FADE}:alpha=1[stt]")
             overlay_filters.append(
-                f"{actual}[stt]overlay={sx}:{sy}:enable='between(t,{t_th:.3f},{t_th + THANKS_DURADA:.3f})'[vout]")
+                f"{actual}[stt]overlay=(W-w)/2:{sy}:enable='between(t,{t_th:.3f},{t_th + THANKS_DURADA:.3f})'[vout]")
             actual = "[vout]"
     else:
         overlay_filters.append(f"{actual}copy[vout]")
