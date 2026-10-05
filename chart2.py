@@ -1,4 +1,4 @@
-import os, json, re, subprocess, base64, shutil
+import os, json, re, subprocess, base64, shutil, time
 import librosa, numpy as np
 from scipy.signal import find_peaks, butter, filtfilt
 import requests
@@ -54,6 +54,44 @@ STICKER_THANKS_PATH = trobar_fitxer_sense_distingir_majuscules("sticker_thanks.p
 STICKER_ACTIU = os.path.exists(STICKER_FOLLOW_PATH) and os.path.exists(STICKER_THANKS_PATH)
 STICKER_W = 220
 STICKER_Y = 1180
+
+# ---------- PROVA SETMANAL: marca d'aigua al centre + FOLLOW gran a la meitat del video ----------
+# True  = el logo surt al centre (on abans sortia el Follow) a tots els clips; a la meitat del video
+#         el logo es converteix en el Follow (gran) i despres en el Thanks, i torna a ser logo.
+# False = comportament anterior (logo a la cantonada + Follow/Thanks al principi).
+PROVA_FOLLOW_MIG = True
+LOGO_CENTRE_W    = 120    # amplada del logo al centre (abans: 90 a la cantonada)
+LOGO_CENTRE_CY   = 1261   # centre vertical del logo = on abans quedava l'emblema del Follow
+THANKS_MIG       = True   # despres del Follow, mostrar el Thanks (com abans)
+FOLLOW_DURADA    = 2.1
+THANKS_DURADA    = 1.8
+CTA_FADE         = 0.3
+LOGO_PER_CLIP    = LOGO_ACTIU and not PROVA_FOLLOW_MIG
+STICKER_PER_CLIP = STICKER_ACTIU and not PROVA_FOLLOW_MIG
+
+def mesurar_emblema(path):
+    """Mesura l'emblema (el cercle del logo) a dalt del sticker. Torna fraccions de la imatge:
+    centre x, centre y, amplada de l'emblema i alcada/amplada de la imatge."""
+    per_defecte = {'cx': 0.5017, 'cy': 0.3463, 'bw': 0.2749, 'aspect': 1295 / 1215}
+    try:
+        from PIL import Image
+        a = np.array(Image.open(path).convert('RGBA'))[:, :, 3] > 20
+        h, w = a.shape
+        ys = np.where(a.any(axis=1))[0]
+        fi = ys[0]
+        for y in ys[1:]:
+            if y != fi + 1:
+                break
+            fi = y
+        sub = a[ys[0]:fi + 1]
+        xs = np.where(sub.any(axis=0))[0]
+        bw = (xs[-1] - xs[0] + 1) / w
+        if not (0.10 < bw < 0.60):      # si el sticker no te l'emblema separat, usem les mides per defecte
+            return per_defecte
+        return {'cx': (xs[0] + xs[-1] + 1) / 2 / w, 'cy': (ys[0] + fi + 1) / 2 / h, 'bw': bw, 'aspect': h / w}
+    except Exception as e:
+        print(f"   AVIS: no s'ha pogut mesurar l'emblema del sticker ({e}), uso mides per defecte")
+        return per_defecte
 
 COVER_W  = 280
 COVER_H  = 280
@@ -200,7 +238,9 @@ else:
 clips_paths = []
 
 max_pos = max(t['pos'] for t in tracks)
-if STICKER_ACTIU:
+if PROVA_FOLLOW_MIG:
+    print("\nPROVA ACTIVA: logo al centre + Follow/Thanks a la meitat del video")
+elif STICKER_ACTIU:
     print(f"\nStickers Follow/Thanks actius, apareixeran al primer clip (#{max_pos})")
 
 for track in tracks:
@@ -295,11 +335,11 @@ for track in tracks:
     elif yt_url:
         font = yt_url
         print(f"   URL manual: {yt_url}")
-        ret = os.system(f'yt-dlp -f "bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[ext=mp4]/best" --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{font}" --no-playlist -q')
+        ret = os.system(f'yt-dlp -4 -f "bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[ext=mp4]/best" --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{font}" --no-playlist -q')
     else:
         font = f"ytsearch1:{artista} {nom} official video"
         print(f"   Cerca: {artista} {nom}")
-        ret = os.system(f'yt-dlp -f "bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[ext=mp4]/best" --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{font}" --no-playlist -q')
+        ret = os.system(f'yt-dlp -4 -f "bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[ext=mp4]/best" --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{font}" --no-playlist -q')
 
     if ret != 0 or not os.path.exists(video_path) or os.path.getsize(video_path) < 10000:
         print(f"   No s'ha trobat videoclip - usant portada")
@@ -382,14 +422,14 @@ for track in tracks:
         seguent_idx += 1
 
     logo_idx = None
-    if LOGO_ACTIU:
+    if LOGO_PER_CLIP:
         input_parts.append(f'-i "{LOGO_PATH}"')
         logo_idx = seguent_idx
         seguent_idx += 1
 
     sticker_follow_idx = None
     sticker_thanks_idx = None
-    if es_primer and STICKER_ACTIU:
+    if es_primer and STICKER_PER_CLIP:
         input_parts.append(f'-loop 1 -i "{STICKER_FOLLOW_PATH}"')
         sticker_follow_idx = seguent_idx
         seguent_idx += 1
@@ -412,7 +452,7 @@ for track in tracks:
     fc_parts.append(f"[colored]{txt_str},setpts=PTS/{SPEED_FACTOR}[txted]")
     fc_parts.append(f"[{audio_idx}:a]atempo={SPEED_FACTOR}[aout]")
 
-    if es_primer and STICKER_ACTIU:
+    if es_primer and STICKER_PER_CLIP:
         fc_parts.append(
             f"[{sticker_follow_idx}:v]scale={STICKER_W}:-1,format=rgba,"
             f"fade=t=in:st=2.0:d=0.3:alpha=1,fade=t=out:st=3.8:d=0.3:alpha=1[stfollow]"
@@ -426,7 +466,7 @@ for track in tracks:
     else:
         fc_parts.append("[txted]copy[out]")
 
-    if LOGO_ACTIU:
+    if LOGO_PER_CLIP:
         fc_parts.append(f"[{logo_idx}:v]scale={LOGO_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo]")
         fc_parts.append(f"[out][logo]overlay=W-w-{LOGO_MARGIN}:{LOGO_MARGIN}[final]")
         mapa_final = "[final]"
@@ -444,6 +484,7 @@ for track in tracks:
         print(f"   ERROR: clip #{pos} no generat correctament (mida={mida})")
         print(f"   FFMPEG STDERR: {result.stderr[-2000:]}")
     clips_paths.append((pos, output_path))
+    time.sleep(4)  # pausa entre temes perque YouTube no vegi 10 peticions seguides des de la mateixa IP
 
 # ---------- MUNTATGE FINAL ----------
 clips_paths.sort(key=lambda x: x[0], reverse=True)
@@ -480,9 +521,76 @@ for i in range(2, n_clips):
     video_filters.append(f"[{prev_v}][{i}:v]xfade=transition=fade:duration={FADE_DURADA}:offset={offset:.3f}[{out_v}]")
     audio_filters.append(f"[{prev_a}][{i}:a]acrossfade=d={FADE_DURADA}[{out_a}]")
 
-filter_complex = ";".join(video_filters + audio_filters)
+overlay_filters = []
+extra_inputs = ""
+limit_durada = ""
+mapa_video = "[vfinal]"
+durada_final = sum(durades) - FADE_DURADA * (n_clips - 1)
+
+if PROVA_FOLLOW_MIG and (LOGO_ACTIU or STICKER_ACTIU):
+    idx = n_clips
+    cx_pantalla = 540
+    t0 = durada_final / 2                      # el Follow surt just a la meitat del video
+    seq_fi = t0 + FOLLOW_DURADA
+    if THANKS_MIG:
+        seq_fi = t0 + FOLLOW_DURADA - CTA_FADE + THANKS_DURADA
+    actual = "[vfinal]"
+
+    if LOGO_ACTIU:
+        extra_inputs += f' -loop 1 -framerate 30 -i "{LOGO_PATH}"'
+        logo_i = idx
+        idx += 1
+        if STICKER_ACTIU:
+            # el logo desapareix mentre dura el Follow/Thanks i torna a apareixer despres
+            overlay_filters.append(
+                f"[{logo_i}:v]scale={LOGO_CENTRE_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY},split=2[lga][lgb]")
+            overlay_filters.append(f"[lga]fade=t=out:st={t0:.3f}:d={CTA_FADE}:alpha=1[lgpre]")
+            overlay_filters.append(f"[lgb]fade=t=in:st={seq_fi - CTA_FADE:.3f}:d={CTA_FADE}:alpha=1[lgpost]")
+            overlay_filters.append(f"{actual}[lgpre]overlay=(W-w)/2:{LOGO_CENTRE_CY}-h/2[vl1]")
+            overlay_filters.append(f"[vl1][lgpost]overlay=(W-w)/2:{LOGO_CENTRE_CY}-h/2[vl2]")
+            actual = "[vl2]"
+        else:
+            overlay_filters.append(
+                f"[{logo_i}:v]scale={LOGO_CENTRE_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[lgone]")
+            overlay_filters.append(f"{actual}[lgone]overlay=(W-w)/2:{LOGO_CENTRE_CY}-h/2[vl2]")
+            actual = "[vl2]"
+
+    if STICKER_ACTIU:
+        emb = mesurar_emblema(STICKER_FOLLOW_PATH)
+        sw = round(LOGO_CENTRE_W / emb['bw'])          # l'emblema del sticker fa la mateixa amplada que el logo
+        sx = round(cx_pantalla - emb['cx'] * sw)
+        sy = round(LOGO_CENTRE_CY - emb['cy'] * sw * emb['aspect'])
+        print(f"   Follow mig: sticker {sw}px d'ample (abans {STICKER_W}), apareix a {t0:.1f}s de {durada_final:.1f}s")
+        extra_inputs += f' -loop 1 -framerate 30 -i "{STICKER_FOLLOW_PATH}"'
+        follow_i = idx
+        idx += 1
+        overlay_filters.append(
+            f"[{follow_i}:v]scale={sw}:-1,format=rgba,fade=t=in:st={t0:.3f}:d={CTA_FADE}:alpha=1,"
+            f"fade=t=out:st={t0 + FOLLOW_DURADA - CTA_FADE:.3f}:d={CTA_FADE}:alpha=1[stf]")
+        etiqueta = "[vl3]" if THANKS_MIG else "[vout]"
+        overlay_filters.append(
+            f"{actual}[stf]overlay={sx}:{sy}:enable='between(t,{t0:.3f},{t0 + FOLLOW_DURADA:.3f})'{etiqueta}")
+        actual = etiqueta
+        if THANKS_MIG:
+            t_th = t0 + FOLLOW_DURADA - CTA_FADE
+            extra_inputs += f' -loop 1 -framerate 30 -i "{STICKER_THANKS_PATH}"'
+            thanks_i = idx
+            idx += 1
+            overlay_filters.append(
+                f"[{thanks_i}:v]scale={sw}:-1,format=rgba,fade=t=in:st={t_th:.3f}:d={CTA_FADE}:alpha=1,"
+                f"fade=t=out:st={t_th + THANKS_DURADA - CTA_FADE:.3f}:d={CTA_FADE}:alpha=1[stt]")
+            overlay_filters.append(
+                f"{actual}[stt]overlay={sx}:{sy}:enable='between(t,{t_th:.3f},{t_th + THANKS_DURADA:.3f})'[vout]")
+            actual = "[vout]"
+    else:
+        overlay_filters.append(f"{actual}copy[vout]")
+        actual = "[vout]"
+    mapa_video = "[vout]"
+    limit_durada = f"-t {durada_final + 0.05:.3f}"
+
+filter_complex = ";".join(video_filters + overlay_filters + audio_filters)
 output_final = f"{OUTPUT}/chart_final.mp4"
-cmd = f'ffmpeg {inputs_str} -filter_complex "{filter_complex}" -map "[vfinal]" -map "[afinal]" {VIDEO_OPTS} -c:a aac -b:a 192k "{output_final}" -y -loglevel error'
+cmd = f'ffmpeg {inputs_str}{extra_inputs} -filter_complex "{filter_complex}" -map "{mapa_video}" -map "[afinal]" {VIDEO_OPTS} -c:a aac -b:a 192k {limit_durada} "{output_final}" -y -loglevel error'
 ret_final = os.system(cmd)
 if ret_final != 0 or not os.path.exists(output_final) or os.path.getsize(output_final) < 10000:
     print(f"ERROR: muntatge final ha fallat (codi {ret_final})")
