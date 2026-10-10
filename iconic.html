@@ -39,7 +39,7 @@
 <body>
 <div class="container">
     <h1>@onedayonevibe</h1>
-    <p class="subtitle">Iconic 5 Generator</p>
+    <p class="subtitle">Iconic 5 Generator · v3 (imatge per tema)</p>
 
     <div class="card">
         <h2>⚙️ Configuració del títol</h2>
@@ -60,7 +60,7 @@
         </select>
         <label>Vídeo genèric de fons (opcional)</label>
         <input type="text" id="fons_url" placeholder="https://youtu.be/... (buit = el vídeo de cada tema)" onchange="alCanviarFons()" />
-        <p style="font-size:11px;color:#666;margin-top:-10px;">En omplir-lo es marquen tots els temes, i després pots desmarcar el que vulguis que usi el seu propi videoclip (casella a cada tema). Cada tema marcat agafa un tram diferent i aleatori. L'àudio segueix sent sempre el del tema real.</p>
+        <p style="font-size:11px;color:#666;margin-top:-10px;">En omplir-lo, tots els temes passen a usar-lo, i després pots triar a cada tema si vols el seu propi videoclip. Cada tema marcat agafa un tram diferent i aleatori. L'àudio segueix sent sempre el del tema real.</p>
     </div>
 
     <div id="status" class="status">
@@ -193,9 +193,12 @@ function renderTracks() {
             <div class="track-full">
                 <input type="text" placeholder="URL YouTube" value="${t.yt_url||''}" onchange="actualitzar(${i}, 'yt', this.value)" />
             </div>
-            <div style="display:flex;align-items:center;gap:8px;margin-top:10px;">
-                <input type="checkbox" id="vg-${i}" style="width:auto;margin-bottom:0;" ${t.visual_general ? 'checked' : ''} onchange="actualitzar(${i}, 'visual_general', this.checked)" />
-                <label for="vg-${i}" style="margin-bottom:0;font-size:13px;color:#ccc;">Imatge del vídeo genèric de fons (en lloc del videoclip propi)</label>
+            <div class="track-full">
+                <label style="margin-top:8px;">🖼️ Imatge del vídeo d'aquest tema</label>
+                <select onchange="actualitzar(${i}, 'visual_general', this.value === 'general')">
+                    <option value="propi" ${t.visual_general ? '' : 'selected'}>🎬 El seu propi videoclip</option>
+                    <option value="general" ${t.visual_general ? 'selected' : ''}>🎞️ Vídeo genèric de fons</option>
+                </select>
             </div>
             <div class="track-full">
                 <label style="margin-top:6px;">🖼️ Portada pròpia (opcional, sobreescriu el selector global)</label>
@@ -287,7 +290,7 @@ function eliminarTrack(i) {
 
 function alCanviarFons() {
     const hiHaFons = !!document.getElementById('fons_url').value.trim();
-    // En omplir el camp es marquen tots els temes; en buidar-lo es desmarquen tots
+    // En omplir el camp tots els temes passen a usar-lo; en buidar-lo tornen al seu videoclip
     if (hiHaFons && !tracksActuals.some(t => t.visual_general)) tracksActuals.forEach(t => { t.visual_general = true; });
     if (!hiHaFons) tracksActuals.forEach(t => { t.visual_general = false; });
     renderTracks();
