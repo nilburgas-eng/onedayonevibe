@@ -55,6 +55,12 @@
                 <input type="text" id="fi" placeholder="1:41" inputmode="text" oninput="actualitzarResum()" />
             </div>
         </div>
+        <label>Nom del tema (opcional, surt en petit)</label>
+        <input type="text" id="tema" placeholder="Ex: Dragonborn" />
+        <label>Artista (opcional, surt a sota)</label>
+        <input type="text" id="artista" placeholder="Ex: Headhunterz" />
+        <p class="hint">Apareixen als 2-3 segons i es queden fins al final, una mica per sota del mig perquè el teu hook de TikTok tingui l'espai de dalt. Si els deixes buits, no surt res.</p>
+
         <div id="resum" class="resum">Omple l'inici i el final del tram.</div>
     </div>
 
@@ -232,13 +238,19 @@ async function generarVideo() {
         return;
     }
     mostrarStatus('⏳ Generant vídeo...', 'info');
-    const res = await dispararWorkflow('hook.yml', {
+    const entrades = {
         url: url,
         inici: String(tram.a),
         fi: String(tram.b),
         mode: document.getElementById('mode').value,
         follow: document.getElementById('follow').value
-    });
+    };
+    // Opcionals: si són buits no s'envien
+    const tema = document.getElementById('tema').value.trim();
+    const artista = document.getElementById('artista').value.trim();
+    if (tema) entrades.tema = tema;
+    if (artista) entrades.artista = artista;
+    const res = await dispararWorkflow('hook.yml', entrades);
     if (res.status === 204) {
         mostrarStatus('✅ Generació iniciada!<br>⏳ Tarda 2-4 minuts. Després "Descarregar vídeo final".', 'ok');
     } else {
