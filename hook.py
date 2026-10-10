@@ -45,15 +45,16 @@ FOLLOW_DURADA  = 2.1
 THANKS_DURADA  = 1.8
 CTA_FADE       = 0.3
 FOLLOW_MIN_CLIP = 12.0   # si el clip dura menys, no es posa el Follow
+FOLLOW_POS      = 0.6    # el Follow surt al 60% del video (abans a la meitat), per deixar mes temps el tema/artista
 
 # --- nom del tema (a dalt) i artista (a sota), en petit, opcionals ---
 INFO_T_INICI   = 2.5     # segons: apareix despres del hook, per retenir
 INFO_FADE      = 0.4
-INFO_Y_TEMA    = 960     # una mica per sota del mig, deixant l'espai de dalt lliure pel hook de TikTok
-INFO_Y_ARTISTA = 1020
+INFO_CENTRE_DEF = 1309  # centre vertical per defecte (el de l'espai on surt el Follow, just sobre el logo)
 INFO_MIDA_TEMA    = 44
 INFO_MIDA_ARTISTA = 32
-INFO_AMPLE_MAX    = 840  # evita els botons de la dreta de TikTok
+INFO_AMPLE_MAX    = 760  # evita els botons de la dreta de TikTok
+INFO_FADE_OUT     = 0.3  # fade de sortida quan arriba el Follow
 DEF_FOLLOW = (0.47413, 0.78764, 1295 / 1215)
 DEF_THANKS = (0.49807, 0.70039, 1295 / 1215)
 
@@ -266,8 +267,8 @@ if LOGO_ACTIU:
 else:
     print("AVIS: no trobo logo.png, el video sortira sense logo")
 
-# Follow (i Thanks) a la meitat, just sobre el logo
-t0 = out_dur / 2
+# Follow (i Thanks) al 60% del video, just sobre el logo. Sempre acaba abans de l'outro.
+t0 = min(out_dur * FOLLOW_POS, out_dur - (FOLLOW_DURADA + THANKS_DURADA - CTA_FADE) - 0.3)
 follow_actiu = FOLLOW and STICKER_ACTIU and out_dur >= FOLLOW_MIN_CLIP
 if FOLLOW and not STICKER_ACTIU:
     print("AVIS: no trobo sticker_follow.png / sticker_thanks.png, el video sortira sense Follow")
@@ -300,28 +301,43 @@ if follow_actiu:
     filtres.append(f"{actual}[stt]overlay=(W-w)/2:{sy}:enable='between(t,{t_th:.3f},{t_th + THANKS_DURADA:.3f})'[vt]")
     actual = "[vt]"
 
-# nom del tema (dalt) + artista (sota), en petit, amb fade a partir dels 2-3 s
+# nom del tema + artista, en petit, a l'espai on despres surt el Follow:
+# apareix als 2-3 s i desapareix just quan surt el Follow (si no hi ha Follow, es queda fins al final)
 if TEMA or ARTISTA:
     t_info = min(INFO_T_INICI, out_dur * 0.4)
-    alfa_info = f"if(lt(t,{t_info:.3f}),0,min(1,(t-{t_info:.3f})/{INFO_FADE}))"
+    if follow_actiu:
+        t_fi = t0
+        centre = sy + alt_boto / 2
+        alfa_info = (f"if(lt(t,{t_info:.3f}),0,if(lt(t,{t_fi - INFO_FADE_OUT:.3f}),min(1,(t-{t_info:.3f})/{INFO_FADE}),"
+                     f"max(0,1-(t-{t_fi - INFO_FADE_OUT:.3f})/{INFO_FADE_OUT})))")
+        enable_info = f"between(t,{t_info:.3f},{t_fi:.3f})"
+    else:
+        t_fi = None
+        centre = INFO_CENTRE_DEF
+        alfa_info = f"if(lt(t,{t_info:.3f}),0,min(1,(t-{t_info:.3f})/{INFO_FADE}))"
+        enable_info = f"gte(t,{t_info:.3f})"
+    # posicions: dues linies centrades al voltant de 'centre'; una sola linia, centrada
+    if TEMA and ARTISTA:
+        y_tema, y_art = round(centre - 52), round(centre + 8)
+    else:
+        y_tema = y_art = round(centre - 20)
     linies_info = []
-    y_actual = INFO_Y_TEMA
     if TEMA:
         mida = mida_que_hi_cap(TEMA, FONT_SEMIBOLD, INFO_MIDA_TEMA, INFO_AMPLE_MAX)
         f_tema = escriure_text(os.path.expanduser("~/videos/info_tema.txt"), TEMA)
         linies_info.append(
             f"drawtext=fontfile='{FONT_SEMIBOLD}':textfile='{f_tema}':expansion=none:fontsize={mida}:fontcolor=white@0.95:"
-            f"borderw=2:bordercolor=black@0.7:x=(w-text_w)/2:y={y_actual}:alpha='{alfa_info}':enable='gte(t,{t_info:.3f})'")
-        y_actual = INFO_Y_ARTISTA
+            f"borderw=2:bordercolor=black@0.7:x=(w-text_w)/2:y={y_tema}:alpha='{alfa_info}':enable='{enable_info}'")
     if ARTISTA:
         mida = mida_que_hi_cap(ARTISTA, FONT_MEDIUM, INFO_MIDA_ARTISTA, INFO_AMPLE_MAX)
         f_art = escriure_text(os.path.expanduser("~/videos/info_artista.txt"), ARTISTA)
         linies_info.append(
             f"drawtext=fontfile='{FONT_MEDIUM}':textfile='{f_art}':expansion=none:fontsize={mida}:fontcolor={COLOR_ACCENT}@0.95:"
-            f"borderw=2:bordercolor=black@0.7:x=(w-text_w)/2:y={y_actual}:alpha='{alfa_info}':enable='gte(t,{t_info:.3f})'")
+            f"borderw=2:bordercolor=black@0.7:x=(w-text_w)/2:y={y_art}:alpha='{alfa_info}':enable='{enable_info}'")
     filtres.append(f"{actual}" + ",".join(linies_info) + "[vinfo]")
     actual = "[vinfo]"
-    print(f"   Info del tema: '{TEMA}' / '{ARTISTA}' (apareix a {t_info:.1f}s)")
+    fi_txt = f"fins als {t_fi:.1f}s (surt el Follow)" if t_fi is not None else "fins al final"
+    print(f"   Info del tema: '{TEMA}' / '{ARTISTA}' dels {t_info:.1f}s {fi_txt}, centre y={centre:.0f}")
 
 # outro: @compte + tagline els darrers segons
 dur_outro = min(DURADA_OUTRO, out_dur / 2)
