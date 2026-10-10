@@ -20,6 +20,14 @@ on:
         description: 'si o no'
         required: false
         default: 'si'
+      tema:
+        description: 'Nom del tema (opcional)'
+        required: false
+        default: ''
+      artista:
+        description: 'Artista (opcional)'
+        required: false
+        default: ''
 
 jobs:
   generar:
@@ -88,6 +96,8 @@ jobs:
           FI: ${{ github.event.inputs.fi }}
           MODE: ${{ github.event.inputs.mode }}
           FOLLOW: ${{ github.event.inputs.follow }}
+          TEMA: ${{ github.event.inputs.tema }}
+          ARTISTA: ${{ github.event.inputs.artista }}
         run: python3 hook.py
 
       - name: Pujar video final a GitHub Releases
