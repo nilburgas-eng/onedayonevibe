@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>onedayonevibe — Hook (vídeo lliure)</title>
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0d0d0d; color: #fff; min-height: 100vh; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px 0; }
+    h1 { font-size: 28px; font-weight: 800; color: #00BFFF; margin-bottom: 4px; }
+    .subtitle { font-size: 14px; color: #666; margin-bottom: 30px; }
+    .card { background: #1a1a1a; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+    .card h2 { font-size: 14px; font-weight: 600; color: #00BFFF; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
+    label { display: block; font-size: 13px; color: #999; margin-bottom: 6px; }
+    input, select { width: 100%; background: #2a2a2a; border: 1px solid #333; border-radius: 8px; padding: 12px; color: #fff; font-size: 15px; margin-bottom: 14px; outline: none; font-family: inherit; }
+    input:focus, select:focus { border-color: #00BFFF; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .hint { font-size: 12px; color: #666; margin-top: -8px; margin-bottom: 14px; line-height: 1.5; }
+    .resum { background: #222; border-left: 4px solid #00BFFF; border-radius: 8px; padding: 12px 14px; font-size: 14px; line-height: 1.6; margin-bottom: 4px; }
+    .resum.error { border-left-color: #ff4444; color: #ff8888; }
+    .btn { width: 100%; padding: 16px; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; border: none; margin-bottom: 12px; }
+    .btn:active { opacity: 0.8; }
+    .btn-green { background: #1DB954; color: #000; }
+    .btn-blue { background: #00BFFF; color: #000; }
+    .btn-secondary { background: #2a2a2a; color: #fff; border: 1px solid #444; }
+    .btn-danger { background: #ff4444; color: #fff; }
+    .status { background: #1a1a1a; border-radius: 12px; padding: 16px; margin-bottom: 16px; display: none; }
+    .status.visible { display: block; }
+    .status-text { font-size: 14px; line-height: 1.6; }
+    .status-ok { color: #00ff88; }
+    .status-error { color: #ff4444; }
+    .status-info { color: #00BFFF; }
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>@onedayonevibe</h1>
+    <p class="subtitle">Hook — vídeo lliure: talla un tram de YouTube i hi posa la marca ODOV</p>
+
+    <div class="card">
+        <h2>El tram</h2>
+
+        <label>Enllaç de YouTube</label>
+        <input type="text" id="url" placeholder="https://youtu.be/..." oninput="alUrlCanviat()" />
+        <button class="btn btn-blue" onclick="obrirYoutube()" style="margin-top:-4px;">🎬 Obrir YouTube (per mirar els minuts)</button>
+
+        <div class="row">
+            <div>
+                <label>Des de (mm:ss)</label>
+                <input type="text" id="inici" placeholder="1:23" inputmode="text" oninput="actualitzarResum()" />
+            </div>
+            <div>
+                <label>Fins a (mm:ss)</label>
+                <input type="text" id="fi" placeholder="1:41" inputmode="text" oninput="actualitzarResum()" />
+            </div>
+        </div>
+        <div id="resum" class="resum">Omple l'inici i el final del tram.</div>
+    </div>
+
+    <div class="card">
+        <h2>Aspecte</h2>
+
+        <label>Format de la imatge</label>
+        <select id="mode">
+            <option value="omplir">Omplir tota la pantalla (retalla els costats)</option>
+            <option value="difuminat">Vídeo sencer + fons difuminat (no es retalla res)</option>
+        </select>
+
+        <label>Botó Follow a la meitat</label>
+        <select id="follow">
+            <option value="si">Sí (només si el clip dura 12 s o més)</option>
+            <option value="no">No</option>
+        </select>
+
+        <p class="hint">El vídeo surt amb el logo a baix, el Follow just a sobre a la meitat, i el @onedayonevibe al final. El hook (text o veu) l'afegeixes tu a TikTok.</p>
+    </div>
+
+    <div id="status" class="status">
+        <div id="status-text" class="status-text"></div>
+    </div>
+
+    <button class="btn btn-green" onclick="generarVideo()">🎬 Generar vídeo</button>
+
+    <div class="card">
+        <h2>⬇️ Descarregar / Esborrar</h2>
+        <button class="btn btn-secondary" onclick="veureEstat()">📊 Consultar estat</button>
+        <button class="btn btn-secondary" onclick="descarregarFinal()">⬇️ Descarregar vídeo final</button>
+        <button class="btn btn-danger" onclick="esborrarRelease()">🗑️ Esborrar Release</button>
+        <button class="btn btn-secondary" onclick="canviarToken()">🔑 Canviar token</button>
+    </div>
+</div>
+
+<script>
+const GITHUB_REPO = "nilburgas-eng/onedayonevibe";
+const TAG = "hook_generat";
+const FITXER = "hook_final.mp4";
+const MAX_SEGONS = 180;
+const MIN_FOLLOW = 12;
+const VELOCITAT = 1.03;
+let GITHUB_TOKEN = localStorage.getItem('github_token') || '';
+
+window.onload = function() {
+    if (!GITHUB_TOKEN) {
+        GITHUB_TOKEN = prompt('Introdueix el teu GitHub Token:');
+        if (GITHUB_TOKEN) localStorage.setItem('github_token', GITHUB_TOKEN);
+    }
+}
+
+function canviarToken() {
+    const nou = prompt('Introdueix el nou GitHub Token:');
+    if (nou) {
+        GITHUB_TOKEN = nou;
+        localStorage.setItem('github_token', nou);
+        mostrarStatus('✅ Token actualitzat!', 'ok');
+    }
+}
+
+function mostrarStatus(text, tipus) {
+    const el = document.getElementById('status');
+    const textEl = document.getElementById('status-text');
+    el.classList.add('visible');
+    textEl.innerHTML = `<span class="status-${tipus}">${text}</span>`;
+}
+
+// mm:ss, h:mm:ss o segons (admet decimals). Retorna null si no es valid.
+function parseTemps(ts) {
+    if (ts === null || ts === undefined) return null;
+    const s = String(ts).trim().replace(',', '.');
+    if (!s) return null;
+    const parts = s.split(':');
+    if (parts.length > 3) return null;
+    let total = 0;
+    for (const p of parts) {
+        if (!/^\d+(\.\d+)?$/.test(p.trim())) return null;
+        total = total * 60 + parseFloat(p);
+    }
+    return total;
+}
+
+function segonsAStr(s) {
+    const t = Math.round(s * 10) / 10;
+    const h = Math.floor(t / 3600);
+    const m = Math.floor((t % 3600) / 60);
+    const seg = t % 60;
+    const segStr = (Number.isInteger(seg) ? String(seg) : seg.toFixed(1)).padStart(Number.isInteger(seg) ? 2 : 4, '0');
+    return h > 0 ? `${h}:${String(m).padStart(2, '0')}:${segStr}` : `${m}:${segStr}`;
+}
+
+// Si l'enllac porta ?t=83 o &t=1m23s, omple l'inici automaticament
+function alUrlCanviat() {
+    const url = document.getElementById('url').value.trim();
+    const iniciEl = document.getElementById('inici');
+    const m = url.match(/[?&#]t=([0-9hms]+)/i);
+    if (m && !iniciEl.value.trim()) {
+        const v = m[1];
+        let segons = null;
+        if (/^\d+$/.test(v)) segons = parseInt(v);
+        else {
+            const mm = v.match(/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$/i);
+            if (mm) segons = (parseInt(mm[1] || 0) * 3600) + (parseInt(mm[2] || 0) * 60) + parseInt(mm[3] || 0);
+        }
+        if (segons !== null) iniciEl.value = segonsAStr(segons);
+    }
+    actualitzarResum();
+}
+
+function actualitzarResum() {
+    const el = document.getElementById('resum');
+    const a = parseTemps(document.getElementById('inici').value);
+    const b = parseTemps(document.getElementById('fi').value);
+    el.className = 'resum';
+    if (a === null || b === null) {
+        el.textContent = "Omple l'inici i el final del tram.";
+        return null;
+    }
+    if (b <= a) {
+        el.className = 'resum error';
+        el.textContent = "El final ha de ser posterior a l'inici.";
+        return null;
+    }
+    const dur = b - a;
+    if (dur > MAX_SEGONS) {
+        el.className = 'resum error';
+        el.textContent = `El tram dura ${Math.round(dur)} s: el màxim és ${MAX_SEGONS} s (3 minuts).`;
+        return null;
+    }
+    const finalDur = dur / VELOCITAT;
+    let txt = `Tram de ${dur.toFixed(1)} s → vídeo final de ~${finalDur.toFixed(1)} s (amb la lleugera acceleració ×${VELOCITAT}).`;
+    if (finalDur < MIN_FOLLOW) txt += `<br>⚠️ Dura menys de ${MIN_FOLLOW} s: no hi sortirà el Follow.`;
+    el.innerHTML = txt;
+    return { a, b };
+}
+
+async function dispararWorkflow(workflow, inputs) {
+    const r = await fetch(
+        `https://api.github.com/repos/${GITHUB_REPO}/actions/workflows/${workflow}/dispatches`,
+        {
+            method: 'POST',
+            headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ref: 'main', inputs })
+        }
+    );
+    let detall = '';
+    if (r.status !== 204) {
+        try { detall = (await r.json()).message || ''; } catch(e) {}
+    }
+    return { status: r.status, detall };
+}
+
+function obrirYoutube() {
+    const url = document.getElementById('url').value.trim();
+    const desti = /^https?:\/\//i.test(url) ? url : 'https://www.youtube.com/';
+    const a = document.createElement('a');
+    a.href = desti;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+
+async function generarVideo() {
+    const url = document.getElementById('url').value.trim();
+    if (!/^https?:\/\/(www\.|m\.|music\.)?(youtube\.com|youtu\.be)\//i.test(url)) {
+        mostrarStatus('❌ Enganxa un enllaç de YouTube vàlid', 'error');
+        return;
+    }
+    const tram = actualitzarResum();
+    if (!tram) {
+        mostrarStatus('❌ Revisa l\'inici i el final del tram', 'error');
+        return;
+    }
+    mostrarStatus('⏳ Generant vídeo...', 'info');
+    const res = await dispararWorkflow('hook.yml', {
+        url: url,
+        inici: String(tram.a),
+        fi: String(tram.b),
+        mode: document.getElementById('mode').value,
+        follow: document.getElementById('follow').value
+    });
+    if (res.status === 204) {
+        mostrarStatus('✅ Generació iniciada!<br>⏳ Tarda 2-4 minuts. Després "Descarregar vídeo final".', 'ok');
+    } else {
+        mostrarStatus(`❌ Error ${res.status}: ${res.detall}`, 'error');
+    }
+}
+
+async function veureEstat() {
+    mostrarStatus('⏳ Consultant estat...', 'info');
+    const r = await fetch(
+        `https://api.github.com/repos/${GITHUB_REPO}/actions/runs?per_page=5`,
+        { headers: { 'Authorization': `token ${GITHUB_TOKEN}` } }
+    );
+    const data = await r.json();
+    const runs = data.workflow_runs;
+    if (!runs || runs.length === 0) { mostrarStatus('❌ No hi ha workflows recents', 'error'); return; }
+    let html = '<b>Últims workflows:</b><br><br>';
+    for (const run of runs) {
+        const icon = run.status === 'completed' ? (run.conclusion === 'success' ? '✅' : '❌') : '⏳';
+        html += `${icon} <b>${run.name}</b> — ${run.conclusion || run.status}<br>`;
+        html += `&nbsp;&nbsp;&nbsp;${new Date(run.created_at).toLocaleString()}<br><br>`;
+    }
+    mostrarStatus(html, 'info');
+}
+
+async function descarregarFinal() {
+    const r = await fetch(
+        `https://api.github.com/repos/${GITHUB_REPO}/releases/tags/${TAG}`,
+        { headers: { 'Authorization': `token ${GITHUB_TOKEN}` } }
+    );
+    if (r.status !== 200) { mostrarStatus('❌ Release no trobat', 'error'); return; }
+    const release = await r.json();
+    const asset = release.assets.find(a => a.name === FITXER);
+    if (asset) window.open(asset.browser_download_url, '_blank');
+    else mostrarStatus('❌ Vídeo final no trobat encara', 'error');
+}
+
+async function esborrarRelease() {
+    mostrarStatus('⏳ Esborrant...', 'info');
+    const r = await fetch(
+        `https://api.github.com/repos/${GITHUB_REPO}/releases/tags/${TAG}`,
+        { headers: { 'Authorization': `token ${GITHUB_TOKEN}` } }
+    );
+    if (r.status !== 200) { mostrarStatus('❌ Release no trobat', 'error'); return; }
+    const release = await r.json();
+    await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/${release.id}`,
+        { method: 'DELETE', headers: { 'Authorization': `token ${GITHUB_TOKEN}` } });
+    await fetch(`https://api.github.com/repos/${GITHUB_REPO}/git/refs/tags/${TAG}`,
+        { method: 'DELETE', headers: { 'Authorization': `token ${GITHUB_TOKEN}` } });
+    mostrarStatus('✅ Release esborrat!', 'ok');
+}
+</script>
+</body>
+</html>
