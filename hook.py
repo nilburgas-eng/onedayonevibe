@@ -45,6 +45,15 @@ FOLLOW_DURADA  = 2.1
 THANKS_DURADA  = 1.8
 CTA_FADE       = 0.3
 FOLLOW_MIN_CLIP = 12.0   # si el clip dura menys, no es posa el Follow
+
+# --- nom del tema (a dalt) i artista (a sota), en petit, opcionals ---
+INFO_T_INICI   = 2.5     # segons: apareix despres del hook, per retenir
+INFO_FADE      = 0.4
+INFO_Y_TEMA    = 960     # una mica per sota del mig, deixant l'espai de dalt lliure pel hook de TikTok
+INFO_Y_ARTISTA = 1020
+INFO_MIDA_TEMA    = 44
+INFO_MIDA_ARTISTA = 32
+INFO_AMPLE_MAX    = 840  # evita els botons de la dreta de TikTok
 DEF_FOLLOW = (0.47413, 0.78764, 1295 / 1215)
 DEF_THANKS = (0.49807, 0.70039, 1295 / 1215)
 
@@ -95,6 +104,28 @@ def mesurar_cta(path, per_defecte):
     except Exception as e:
         print(f"   AVIS: no s'ha pogut mesurar el sticker ({e}), uso mides per defecte")
         return per_defecte
+
+
+def mida_que_hi_cap(text, font_path, mida_max, ample_max, mida_min=20):
+    """Redueix la mida de la lletra fins que el text cap a l'amplada indicada."""
+    try:
+        from PIL import ImageFont
+        mida = mida_max
+        while mida > mida_min:
+            bb = ImageFont.truetype(font_path, mida).getbbox(text)
+            if bb[2] - bb[0] <= ample_max:
+                break
+            mida -= 1
+        return mida
+    except Exception:
+        # sense Pillow: estimacio grollera (~0.6 de la mida per caracter)
+        return max(mida_min, min(mida_max, int(ample_max / (0.6 * max(1, len(text))))))
+
+
+def escriure_text(path, text):
+    with open(path, 'w', encoding='utf-8') as f:
+        f.write(text)
+    return path
 
 
 def parse_temps(valor, nom):
@@ -155,6 +186,8 @@ def baixar_tram(url, inici, fi, path):
 URL    = os.environ.get('URL', '').strip()
 MODE   = os.environ.get('MODE', 'omplir').strip().lower()
 FOLLOW = os.environ.get('FOLLOW', 'si').strip().lower() not in ('no', 'false', '0')
+TEMA   = os.environ.get('TEMA', '').strip()
+ARTISTA = os.environ.get('ARTISTA', '').strip()
 
 if not URL:
     print("ERROR: falta l'enllac de YouTube (URL)")
@@ -266,6 +299,29 @@ if follow_actiu:
         f"fade=t=out:st={t_th + THANKS_DURADA - CTA_FADE:.3f}:d={CTA_FADE}:alpha=1[stt]")
     filtres.append(f"{actual}[stt]overlay=(W-w)/2:{sy}:enable='between(t,{t_th:.3f},{t_th + THANKS_DURADA:.3f})'[vt]")
     actual = "[vt]"
+
+# nom del tema (dalt) + artista (sota), en petit, amb fade a partir dels 2-3 s
+if TEMA or ARTISTA:
+    t_info = min(INFO_T_INICI, out_dur * 0.4)
+    alfa_info = f"if(lt(t,{t_info:.3f}),0,min(1,(t-{t_info:.3f})/{INFO_FADE}))"
+    linies_info = []
+    y_actual = INFO_Y_TEMA
+    if TEMA:
+        mida = mida_que_hi_cap(TEMA, FONT_SEMIBOLD, INFO_MIDA_TEMA, INFO_AMPLE_MAX)
+        f_tema = escriure_text(os.path.expanduser("~/videos/info_tema.txt"), TEMA)
+        linies_info.append(
+            f"drawtext=fontfile='{FONT_SEMIBOLD}':textfile='{f_tema}':expansion=none:fontsize={mida}:fontcolor=white@0.95:"
+            f"borderw=2:bordercolor=black@0.7:x=(w-text_w)/2:y={y_actual}:alpha='{alfa_info}':enable='gte(t,{t_info:.3f})'")
+        y_actual = INFO_Y_ARTISTA
+    if ARTISTA:
+        mida = mida_que_hi_cap(ARTISTA, FONT_MEDIUM, INFO_MIDA_ARTISTA, INFO_AMPLE_MAX)
+        f_art = escriure_text(os.path.expanduser("~/videos/info_artista.txt"), ARTISTA)
+        linies_info.append(
+            f"drawtext=fontfile='{FONT_MEDIUM}':textfile='{f_art}':expansion=none:fontsize={mida}:fontcolor={COLOR_ACCENT}@0.95:"
+            f"borderw=2:bordercolor=black@0.7:x=(w-text_w)/2:y={y_actual}:alpha='{alfa_info}':enable='gte(t,{t_info:.3f})'")
+    filtres.append(f"{actual}" + ",".join(linies_info) + "[vinfo]")
+    actual = "[vinfo]"
+    print(f"   Info del tema: '{TEMA}' / '{ARTISTA}' (apareix a {t_info:.1f}s)")
 
 # outro: @compte + tagline els darrers segons
 dur_outro = min(DURADA_OUTRO, out_dur / 2)
