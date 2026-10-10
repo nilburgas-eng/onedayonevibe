@@ -59,8 +59,8 @@
             <option value="youtube">🎬 Miniatura de YouTube</option>
         </select>
         <label>Vídeo genèric de fons (opcional)</label>
-        <input type="text" id="fons_url" placeholder="https://youtu.be/... (buit = el vídeo de cada tema)" />
-        <p style="font-size:11px;color:#666;margin-top:-10px;">Si l'omples, cada tema agafa un tram diferent i aleatori d'aquest vídeo com a imatge. L'àudio segueix sent sempre el del tema real.</p>
+        <input type="text" id="fons_url" placeholder="https://youtu.be/... (buit = el vídeo de cada tema)" onchange="alCanviarFons()" />
+        <p style="font-size:11px;color:#666;margin-top:-10px;">En omplir-lo es marquen tots els temes, i després pots desmarcar el que vulguis que usi el seu propi videoclip (casella a cada tema). Cada tema marcat agafa un tram diferent i aleatori. L'àudio segueix sent sempre el del tema real.</p>
     </div>
 
     <div id="status" class="status">
@@ -112,7 +112,7 @@ window.onload = function() {
             pos: i, nom: '', artista: '',
             timestamp_manual: null, nom_manual: null, yt_url: null,
             nivell: NIVELL_DEFAULT[i],
-            cover_manual: null, cover_none: false
+            cover_manual: null, cover_none: false, visual_general: false
         });
     }
     renderTracks();
@@ -193,6 +193,10 @@ function renderTracks() {
             <div class="track-full">
                 <input type="text" placeholder="URL YouTube" value="${t.yt_url||''}" onchange="actualitzar(${i}, 'yt', this.value)" />
             </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:10px;">
+                <input type="checkbox" id="vg-${i}" style="width:auto;margin-bottom:0;" ${t.visual_general ? 'checked' : ''} onchange="actualitzar(${i}, 'visual_general', this.checked)" />
+                <label for="vg-${i}" style="margin-bottom:0;font-size:13px;color:#ccc;">Imatge del vídeo genèric de fons (en lloc del videoclip propi)</label>
+            </div>
             <div class="track-full">
                 <label style="margin-top:6px;">🖼️ Portada pròpia (opcional, sobreescriu el selector global)</label>
                 <input type="file" accept="image/*" onchange="pujarPortadaManual(${i}, this)" />
@@ -212,6 +216,7 @@ function actualitzar(i, camp, valor) {
     else if (camp === 'artista') tracksActuals[i].artista = valor.trim();
     else if (camp === 'yt') tracksActuals[i].yt_url = valor.trim() || null;
     else if (camp === 'nivell') tracksActuals[i].nivell = valor;
+    else if (camp === 'visual_general') tracksActuals[i].visual_general = valor;
 }
 
 async function pujarPortadaManual(i, inputEl) {
@@ -280,6 +285,14 @@ function eliminarTrack(i) {
     renderTracks();
 }
 
+function alCanviarFons() {
+    const hiHaFons = !!document.getElementById('fons_url').value.trim();
+    // En omplir el camp es marquen tots els temes; en buidar-lo es desmarquen tots
+    if (hiHaFons && !tracksActuals.some(t => t.visual_general)) tracksActuals.forEach(t => { t.visual_general = true; });
+    if (!hiHaFons) tracksActuals.forEach(t => { t.visual_general = false; });
+    renderTracks();
+}
+
 function omplirDesDeLlista() {
     const raw = document.getElementById('llista-paste').value;
     let linies = raw.split('\n').map(l => l.trim()).filter(l => l.length > 0);
@@ -302,7 +315,7 @@ function omplirDesDeLlista() {
         if (!nom) return;
         if (!tracksActuals[i]) {
             const p = tracksActuals.length + 1;
-            tracksActuals.push({ pos: p, nivell: NIVELL_DEFAULT[p] || 'MEDIUM' });
+            tracksActuals.push({ pos: p, nivell: NIVELL_DEFAULT[p] || 'MEDIUM', visual_general: !!document.getElementById('fons_url').value.trim() });
         }
         const t = tracksActuals[i];
         t.nom = nom;
@@ -324,7 +337,8 @@ function afegirTrack() {
         pos: p, nom: '', artista: '',
         timestamp_manual: null, nom_manual: null, yt_url: null,
         nivell: NIVELL_DEFAULT[p] || 'MEDIUM',
-        cover_manual: null, cover_none: false
+        cover_manual: null, cover_none: false,
+        visual_general: !!document.getElementById('fons_url').value.trim()
     });
     renderTracks();
 }
@@ -346,6 +360,7 @@ function netejarTracks() {
         if (t.yt_url) o.yt_url = t.yt_url;
         if (t.cover_manual) o.cover_manual = t.cover_manual;
         if (t.cover_none) o.cover_none = true;
+        if (t.visual_general) o.visual_general = true;
         return o;
     });
 }
