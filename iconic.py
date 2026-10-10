@@ -292,13 +292,24 @@ titol_l2 = f"YOU\u2019RE A REAL {FANOF.upper()} FAN"
 subtitol = f"PART {PART}"
 
 # ---------- Video generic de fons (opcional): cada clip agafa un tram diferent i aleatori ----------
+# Per a cada tema es pot triar (checkbox "visual_general") si la imatge surt del video generic o del seu propi video.
+# Compatibilitat: si cap tema porta aquest camp (web app antiga), tots usen el video generic.
+if not any('visual_general' in t for t in tracks):
+    for t in tracks:
+        t['visual_general'] = True
+tracks_generics = [t for t in tracks if t.get('visual_general')]
+
 offsets_fons = {}
+if FONS_URL and not tracks_generics:
+    print("\nVideo generic de fons indicat pero cap tema l'utilitza (cap checkbox marcat): s'ignora")
+    FONS_URL = ''
 if FONS_URL:
     print(f"\nVideo generic de fons (nomes visual): {FONS_URL}")
+    print(f"   Temes amb imatge del video generic: {', '.join('#' + str(t['pos']) for t in sorted(tracks_generics, key=lambda t: -t['pos']))}")
     durada_fons_total = get_durada_video_remot(FONS_URL)
     if durada_fons_total:
         print(f"   Durada total: {int(durada_fons_total//60):02d}:{int(durada_fons_total%60):02d}")
-        n = len(tracks)
+        n = len(tracks_generics)
         usable_inici = MARGE_FONS
         usable_fi = max(MARGE_FONS, durada_fons_total - MARGE_FONS)
         usable = max(0, usable_fi - usable_inici)
@@ -306,7 +317,7 @@ if FONS_URL:
             usable_inici = 0
             usable = durada_fons_total
         bucket = usable / n
-        for i, track in enumerate(sorted(tracks, key=lambda t: t['pos'])):
+        for i, track in enumerate(sorted(tracks_generics, key=lambda t: t['pos'])):
             durada_track = DURADA_TOP1 if track['pos'] == 1 else DURADA_CLIP
             marge_bucket = max(0, bucket - durada_track)
             inici_bucket = usable_inici + i * bucket
@@ -456,7 +467,7 @@ for track in tracks:
     has_thumb = os.path.exists(thumb_path) and os.path.getsize(thumb_path) > 1000
 
     # Imatge: video generic de fons (si s'ha indicat); l'audio sempre surt del tema real
-    usar_fons = bool(FONS_URL) and pos in offsets_fons
+    usar_fons = bool(FONS_URL) and track.get('visual_general', False) and pos in offsets_fons
     fons_path = None
     if usar_fons:
         fons_path = os.path.expanduser(f"~/videos/{pos:02d}_fons.mp4")
