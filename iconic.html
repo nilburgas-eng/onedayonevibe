@@ -13,8 +13,8 @@
     .card { background: #1a1a1a; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
     .card h2 { font-size: 14px; font-weight: 600; color: #00BFFF; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
     label { display: block; font-size: 13px; color: #999; margin-bottom: 6px; }
-    input, select { width: 100%; background: #2a2a2a; border: 1px solid #333; border-radius: 8px; padding: 12px; color: #fff; font-size: 15px; margin-bottom: 14px; outline: none; }
-    input:focus, select:focus { border-color: #00BFFF; }
+    input, select, textarea { width: 100%; background: #2a2a2a; border: 1px solid #333; border-radius: 8px; padding: 12px; color: #fff; font-size: 15px; margin-bottom: 14px; outline: none; font-family: inherit; }
+    input:focus, select:focus, textarea:focus { border-color: #00BFFF; }
     .btn { width: 100%; padding: 16px; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; border: none; margin-bottom: 12px; }
     .btn:active { opacity: 0.8; }
     .btn-primary { background: #00BFFF; color: #000; }
@@ -70,6 +70,16 @@
     <div class="card">
         <h2>🎬 Els 5 temes</h2>
         <p style="font-size:12px;color:#666;margin-bottom:14px;">Ordre #5→#1 (l'#1 és el clímax). El nivell ja ve predeterminat però el pots canviar. El botó 🎬 obre YouTube per marcar el moment.</p>
+        <label>Omplir des d'una llista (una per línia, "Nom - Artista")</label>
+        <textarea id="llista-paste" rows="5" placeholder="Dragonborn - Headhunterz&#10;The Vandal - Da Tweekaz&#10;Reload - Sebastian Ingrosso &amp; Tommy Trash"></textarea>
+        <label>La primera línia de la llista és...</label>
+        <select id="llista-ordre">
+            <option value="1">el #1 (la primera fila de baix)</option>
+            <option value="5">el #5 (el primer que surt al vídeo)</option>
+        </select>
+        <button class="btn btn-secondary" onclick="omplirDesDeLlista()">📋 Omplir des de la llista</button>
+        <p style="font-size:11px;color:#666;margin-top:-4px;margin-bottom:14px;">Omple noms i artistes, i buida el timestamp, la URL i la portada pròpia d'aquestes files perquè no quedin dades del tema anterior. El nivell es manté. Els números del principi ("1.", "2)") s'ignoren.</p>
+
         <div id="tracks-list"></div>
         <button class="btn btn-secondary" onclick="afegirTrack()">➕ Afegir tema</button>
         <button class="btn btn-green" onclick="generarVideo()">🎬 Generar vídeo</button>
@@ -270,6 +280,44 @@ function eliminarTrack(i) {
     renderTracks();
 }
 
+function omplirDesDeLlista() {
+    const raw = document.getElementById('llista-paste').value;
+    let linies = raw.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    if (linies.length === 0) {
+        mostrarStatus('❌ La llista és buida', 'error');
+        return;
+    }
+    // Les files estan ordenades #1, #2, #3... Si la llista comença pel #5, la girem.
+    if (document.getElementById('llista-ordre').value === '5') linies.reverse();
+    let comptador = 0;
+    linies.forEach((linia, i) => {
+        const neta = linia.replace(/^\s*\d+\s*[\.\)\:]\s*/, '').trim();
+        let nom = neta;
+        let artista = '';
+        const m = neta.match(/\s[-–—]\s/);
+        if (m) {
+            nom = neta.slice(0, m.index).trim();
+            artista = neta.slice(m.index + m[0].length).trim();
+        }
+        if (!nom) return;
+        if (!tracksActuals[i]) {
+            const p = tracksActuals.length + 1;
+            tracksActuals.push({ pos: p, nivell: NIVELL_DEFAULT[p] || 'MEDIUM' });
+        }
+        const t = tracksActuals[i];
+        t.nom = nom;
+        t.artista = artista;
+        t.timestamp_manual = null;
+        t.nom_manual = null;
+        t.yt_url = null;
+        t.cover_manual = null;
+        t.cover_none = false;
+        comptador++;
+    });
+    renderTracks();
+    mostrarStatus(`✅ ${comptador} temes omplerts des de la llista. Ara posa els timestamps (🎬 per buscar-los).`, 'ok');
+}
+
 function afegirTrack() {
     const p = tracksActuals.length + 1;
     tracksActuals.push({
@@ -314,12 +362,13 @@ async function generarVideo() {
     const coverFont = document.getElementById('cover_font').value;
     const fonsUrl = document.getElementById('fons_url').value.trim();
     mostrarStatus('⏳ Generant vídeo...', 'info');
-    const res = await dispararWorkflow('iconic.yml', {
+    const entrades = {
         fanof, part, estil,
         cover_font: coverFont,
-        fons_url: fonsUrl,
         tracks: JSON.stringify(netejarTracks())
-    });
+    };
+    if (fonsUrl) entrades.fons_url = fonsUrl;   // opcional: si és buit no s'envia
+    const res = await dispararWorkflow('iconic.yml', entrades);
     if (res.status === 204) {
         mostrarStatus('✅ Generació iniciada!<br>⏳ Tarda 15-20 min. Després "Descarregar vídeo final".', 'ok');
     } else {
