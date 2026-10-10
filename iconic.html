@@ -58,6 +58,9 @@
             <option value="spotify">🎧 Spotify (per defecte)</option>
             <option value="youtube">🎬 Miniatura de YouTube</option>
         </select>
+        <label>Vídeo genèric de fons (opcional)</label>
+        <input type="text" id="fons_url" placeholder="https://youtu.be/... (buit = el vídeo de cada tema)" />
+        <p style="font-size:11px;color:#666;margin-top:-10px;">Si l'omples, cada tema agafa un tram diferent i aleatori d'aquest vídeo com a imatge. L'àudio segueix sent sempre el del tema real.</p>
     </div>
 
     <div id="status" class="status">
@@ -309,10 +312,12 @@ async function generarVideo() {
     const part = document.getElementById('part').value.trim() || '1';
     const estil = document.getElementById('estil').value;
     const coverFont = document.getElementById('cover_font').value;
+    const fonsUrl = document.getElementById('fons_url').value.trim();
     mostrarStatus('⏳ Generant vídeo...', 'info');
     const res = await dispararWorkflow('iconic.yml', {
         fanof, part, estil,
         cover_font: coverFont,
+        fons_url: fonsUrl,
         tracks: JSON.stringify(netejarTracks())
     });
     if (res.status === 204) {
