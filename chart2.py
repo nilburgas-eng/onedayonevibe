@@ -26,6 +26,7 @@ GENERE            = os.environ.get('GENERE', 'electronica')
 SPOTIFY_CLIENT_ID = os.environ.get('SPOTIFY_CLIENT_ID', '')
 SPOTIFY_SECRET    = os.environ.get('SPOTIFY_CLIENT_SECRET', '')
 COMPTE            = "@onedayonevibe"
+SUBTITOL          = "Hard Dance"   # subtitol sota l'@ al final del video (abans: "Electronic Vibes Daily")
 DURADA_CLIP       = 8
 DURADA_TOP1       = 12
 DURADA_OUTRO      = 2.0
@@ -55,43 +56,49 @@ STICKER_ACTIU = os.path.exists(STICKER_FOLLOW_PATH) and os.path.exists(STICKER_T
 STICKER_W = 220
 STICKER_Y = 1180
 
-# ---------- PROVA SETMANAL: logo fix a baix + boto FOLLOW a la meitat del video ----------
-# True  = el logo surt sempre a baix, just sobre del @compte del final, a tots els clips. A la meitat del
-#         video apareix el boto FOLLOW (gran) just a sobre del logo, i despres el Thanks.
+# ---------- PROVA: logo fix a baix + boto FOLLOW a la meitat del video (igual que chart2) ----------
+# True  = el logo surt sempre a baix, just sobre del @compte del final. A la meitat del video apareix el
+#         boto FOLLOW (gran) just a sobre del logo, i despres el Thanks.
 # False = comportament anterior (logo a la cantonada + Follow/Thanks al principi).
 PROVA_FOLLOW_MIG = True
-LOGO_CENTRE_W    = 120    # amplada del logo (abans: 90 a la cantonada)
+LOGO_CENTRE_W    = 120    # amplada del logo
 LOGO_CENTRE_CY   = 1488   # centre vertical del logo: a baix, just sobre del @compte del final (y=1560)
-FOLLOW_W         = 437    # amplada total del sticker (el boto visible en fa ~77%). Abans: 220
+FOLLOW_W         = 437    # amplada total del sticker (el boto visible en fa ~77%)
 FOLLOW_GAP       = 14     # separacio entre el boto i el logo
-THANKS_MIG       = True   # despres del Follow, mostrar el Thanks (com abans)
+THANKS_MIG       = True   # despres del Follow, mostrar el Thanks
 FOLLOW_DURADA    = 2.1
 THANKS_DURADA    = 1.8
 CTA_FADE         = 0.3
 LOGO_PER_CLIP    = LOGO_ACTIU and not PROVA_FOLLOW_MIG
 STICKER_PER_CLIP = STICKER_ACTIU and not PROVA_FOLLOW_MIG
+# valors per defecte (stickers de 1215x1295) per si no es pot llegir la imatge
+DEF_FOLLOW = (0.47413, 0.78764, 1295 / 1215)
+DEF_THANKS = (0.49807, 0.70039, 1295 / 1215)
 
-def mesurar_cta(path):
+def mesurar_cta(path, per_defecte):
     """Prepara un sticker per quedar-nos nomes amb el boto, sense l'emblema de dalt.
     Torna (y0, y1, aspect): primera fila despres de l'emblema, ultima fila visible (fraccions de l'alcada)
-    i alcada/amplada de la imatge."""
+    i alcada/amplada de la imatge. Si no es pot llegir (p. ex. sense Pillow), torna 'per_defecte'."""
     try:
         from PIL import Image
-        a = np.array(Image.open(path).convert('RGBA'))[:, :, 3] > 20
-        h, w = a.shape
-        ys = np.where(a.any(axis=1))[0]
+        alfa = Image.open(path).convert('RGBA').getchannel('A')
+        w, h = alfa.size
+        dades = alfa.tobytes()
+        files = [dades[y * w:(y + 1) * w] for y in range(h)]
+        visibles = [y for y in range(h) if max(files[y]) > 20]
         c0, c1 = int(w * 0.40), int(w * 0.60)          # franja central, per on baixa l'emblema
         y0 = None
-        for y in range(int(ys[0]), h):
-            if not a[y, c0:c1].any():                   # primera fila amb el centre buit: l'emblema ja ha acabat
+        for y in range(visibles[0], h):
+            if max(files[y][c0:c1]) <= 20:              # primera fila amb el centre buit: l'emblema ja ha acabat
                 y0 = y
                 break
-        if y0 is None or y0 >= ys[-1]:
-            y0 = int(ys[0] + 0.45 * (ys[-1] - ys[0]))
-        return y0 / h, (int(ys[-1]) + 1) / h, h / w
+        if y0 is None or y0 >= visibles[-1]:
+            y0 = int(visibles[0] + 0.45 * (visibles[-1] - visibles[0]))
+        return y0 / h, (visibles[-1] + 1) / h, h / w
     except Exception as e:
         print(f"   AVIS: no s'ha pogut mesurar el sticker ({e}), uso mides per defecte")
-        return 0.4826, 0.7869, 1295 / 1215
+        return per_defecte
+
 
 COVER_W  = 280
 COVER_H  = 280
@@ -239,7 +246,7 @@ clips_paths = []
 
 max_pos = max(t['pos'] for t in tracks)
 if PROVA_FOLLOW_MIG:
-    print("\nPROVA ACTIVA: logo al centre + Follow/Thanks a la meitat del video")
+    print("\nPROVA ACTIVA: logo a baix + Follow/Thanks a la meitat del video")
 elif STICKER_ACTIU:
     print(f"\nStickers Follow/Thanks actius, apareixeran al primer clip (#{max_pos})")
 
@@ -406,7 +413,7 @@ for track in tracks:
         compte_text = COMPTE.replace("'", "")
         t_aparicio = durada - DURADA_OUTRO + 0.3
         txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{compte_text}':fontsize=50:fontcolor=white@0.82:borderw=2:bordercolor=black@0.6:x=(w-text_w)/2:y={Y_OUTRO}:enable='gte(t,{t_aparicio})'")
-        txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='Electronic Vibes Daily':fontsize=30:fontcolor={COLOR_ACCENT}@0.70:borderw=1:bordercolor=black@0.5:x=(w-text_w)/2:y={Y_OUTRO2}:enable='gte(t,{t_aparicio})'")
+        txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='{SUBTITOL}':fontsize=30:fontcolor={COLOR_ACCENT}@0.70:borderw=1:bordercolor=black@0.5:x=(w-text_w)/2:y={Y_OUTRO2}:enable='gte(t,{t_aparicio})'")
 
     txt_str = ",".join(txt)
     has_thumb = os.path.exists(thumb_path) and os.path.getsize(thumb_path) > 1000
@@ -551,8 +558,8 @@ if PROVA_FOLLOW_MIG and (LOGO_ACTIU or STICKER_ACTIU):
 
     # --- boto FOLLOW (i despres THANKS) just a sobre del logo, sense l'emblema del sticker ---
     if STICKER_ACTIU:
-        y0f, y1f, asp_f = mesurar_cta(STICKER_FOLLOW_PATH)
-        y0t, y1t, asp_t = mesurar_cta(STICKER_THANKS_PATH)
+        y0f, y1f, asp_f = mesurar_cta(STICKER_FOLLOW_PATH, DEF_FOLLOW)
+        y0t, y1t, asp_t = mesurar_cta(STICKER_THANKS_PATH, DEF_THANKS)
         alt_boto = (y1f - y0f) * FOLLOW_W * asp_f              # alcada visible del boto Follow, en pixels
         sy = round(logo_top - FOLLOW_GAP - alt_boto)           # el Thanks va a la mateixa alcada
         print(f"   Follow mig: boto de {FOLLOW_W}px just sobre el logo (y={sy}), apareix a {t0:.1f}s de {durada_final:.1f}s")
