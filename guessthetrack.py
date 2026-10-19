@@ -30,6 +30,7 @@ PADDING_FONS      = 1.0
 SPOTIFY_SECRET    = os.environ.get('SPOTIFY_CLIENT_SECRET', '')
 TITOL_X           = os.environ.get('TITOL_X', '').strip()
 COMPTE            = "@onedayonevibe"
+SUBTITOL          = "Hard Dance"   # subtitol sota l'@ a la pantalla final (abans: "One Day One Vibe")
 GUESS_DURADA      = 3.3
 TRANSICIO_DURADA  = 0.4
 REVEAL_DURADA     = 1.3
@@ -38,9 +39,12 @@ DURADA_RONDA      = GUESS_DURADA + TRANSICIO_DURADA + REVEAL_DURADA   # 5.0s
 BLUR_INICIAL        = 26
 BLUR_PASSOS_REVEAL  = [15, 8, 3]
 # El nom/artista es desenfoca menys que la portada: si no, s'esborraria del tot i perdria l'efecte d'alguna cosa amagada
-BLUR_TEXT_INICIAL       = 12
+BLUR_TEXT_INICIAL       = 12            # ARTISTA (sense canvis)
 BLUR_TEXT_PASSOS_REVEAL = [7, 4, 2]
-RECAP_DURADA      = 1.0
+# NOM DEL TEMA: mes desenfocat que l'artista perque no es pugui llegir (amb 12 encara es endevinava)
+BLUR_NOM_INICIAL        = 18
+BLUR_NOM_PASSOS_REVEAL  = [11, 6, 3]
+RECAP_DURADA      = 1.5   # abans 1.0; el crossfade d'entrada se'n menja 0.3
 FADE_DURADA       = 0.3
 
 VIDEO_OPTS = "-c:v libx264 -preset slow -crf 18 -pix_fmt yuv420p"
@@ -470,35 +474,47 @@ for track in tracks:
     fc_parts.append(f"[{current}]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored]")
     fc_parts.append(f"[colored]{txt_str}[txbase]")
 
-    # ---- Capa del nom + artista: desenfocada igual que la portada i es revela amb ella ----
+    # ---- Capes del nom i de l'artista: cadascuna amb el seu desenfocament, i es revelen a l'hora ----
     mida_nom = mida_que_hi_cap(resultat1, FONT_EXTRABOLD, 56, 30, 980, factor_estimat=0.62)
     mida_art = mida_que_hi_cap(resultat2, FONT_SEMIBOLD, 44, 26, 980, factor_estimat=0.60)
-    y_nom_capa = 12
-    y_art_capa = y_nom_capa + mida_nom + 14
-    capa_h = y_art_capa + mida_art + 22
-    y_capa = Y_RESULTAT1 - y_nom_capa
-    n_nivells_t = 2 + len(BLUR_TEXT_PASSOS_REVEAL)
-    raws_t = [f"txraw{j}" for j in range(n_nivells_t)]
-    fc_parts.append(
-        f"color=c=black@0.0:s=1080x{capa_h}:r=30:d={durada + 1},format=rgba,"
-        f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{resultat1}':fontsize={mida_nom}:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=2:x=(w-text_w)/2:y={y_nom_capa},"
-        f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{resultat2}':fontsize={mida_art}:fontcolor={COLOR_ACCENT}:borderw=2:bordercolor=black@0.8:x=(w-text_w)/2:y={y_art_capa},"
-        f"split={n_nivells_t}" + "".join(f"[{r}]" for r in raws_t)
-    )
-    sigmes_t = [BLUR_TEXT_INICIAL] + BLUR_TEXT_PASSOS_REVEAL
-    for j, sg in enumerate(sigmes_t):
-        fc_parts.append(f"[{raws_t[j]}]gblur=sigma={sg}:steps=3[tl{j}]")
-    fc_parts.append(f"[{raws_t[-1]}]copy[tlsharp]")
+    y_nom_abs = Y_RESULTAT1
+    y_art_abs = Y_RESULTAT1 + mida_nom + 14
+    capes_text = [
+        # (id, text, font, mida, estil drawtext, y absolut, sigma inicial, passos)
+        ("nom", resultat1, FONT_EXTRABOLD, mida_nom,
+         "fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=2",
+         y_nom_abs, BLUR_NOM_INICIAL, BLUR_NOM_PASSOS_REVEAL),
+        ("art", resultat2, FONT_SEMIBOLD, mida_art,
+         f"fontcolor={COLOR_ACCENT}:borderw=2:bordercolor=black@0.8",
+         y_art_abs, BLUR_TEXT_INICIAL, BLUR_TEXT_PASSOS_REVEAL),
+    ]
+    base_text = "txbase"
+    for cid, text_c, font_c, mida_c, estil_c, y_abs, sig_ini, passos in capes_text:
+        pad = int(sig_ini * 3) + 6                       # marge perque el desenfocament no es talli als vores
+        capa_h = mida_c + 2 * pad
+        n_nivells_t = 2 + len(passos)
+        raws_t = [f"tx{cid}raw{j}" for j in range(n_nivells_t)]
+        fc_parts.append(
+            f"color=c=black@0.0:s=1080x{capa_h}:r=30:d={durada + 1},format=rgba,"
+            f"drawtext=fontfile='{font_c}':text='{text_c}':fontsize={mida_c}:{estil_c}:x=(w-text_w)/2:y={pad},"
+            f"split={n_nivells_t}" + "".join(f"[{r}]" for r in raws_t)
+        )
+        for j, sg in enumerate([sig_ini] + passos):
+            fc_parts.append(f"[{raws_t[j]}]gblur=sigma={sg}:steps=3[t{cid}l{j}]")
+        fc_parts.append(f"[{raws_t[-1]}]copy[t{cid}sharp]")
 
-    pas_dur_t = TRANSICIO_DURADA / len(BLUR_TEXT_PASSOS_REVEAL)
-    fc_parts.append(f"[txbase][tl0]overlay=0:{y_capa}:enable='lt(t,{reveal_t})'[tlo0]")
-    anterior_t = "tlo0"
-    for j in range(len(BLUR_TEXT_PASSOS_REVEAL)):
-        t0 = reveal_t + j * pas_dur_t
-        t1 = t0 + pas_dur_t
-        fc_parts.append(f"[{anterior_t}][tl{j+1}]overlay=0:{y_capa}:enable='gte(t,{t0:.3f})*lt(t,{t1:.3f})'[tlo{j+1}]")
-        anterior_t = f"tlo{j+1}"
-    fc_parts.append(f"[{anterior_t}][tlsharp]overlay=0:{y_capa}:enable='gte(t,{reveal_t + TRANSICIO_DURADA:.3f})'[txlay]")
+        y_capa = y_abs - pad
+        pas_dur_t = TRANSICIO_DURADA / len(passos)
+        fc_parts.append(f"[{base_text}][t{cid}l0]overlay=0:{y_capa}:enable='lt(t,{reveal_t})'[t{cid}o0]")
+        anterior_t = f"t{cid}o0"
+        for j in range(len(passos)):
+            t0 = reveal_t + j * pas_dur_t
+            t1 = t0 + pas_dur_t
+            fc_parts.append(f"[{anterior_t}][t{cid}l{j+1}]overlay=0:{y_capa}:enable='gte(t,{t0:.3f})*lt(t,{t1:.3f})'[t{cid}o{j+1}]")
+            anterior_t = f"t{cid}o{j+1}"
+        fc_parts.append(f"[{anterior_t}][t{cid}sharp]overlay=0:{y_capa}:enable='gte(t,{reveal_t + TRANSICIO_DURADA:.3f})'[t{cid}done]")
+        base_text = f"t{cid}done"
+    fc_parts.append(f"[{base_text}]copy[txlay]")
     fc_parts.append(f"[txlay]setpts=PTS/{SPEED_FACTOR}[txted]")
 
     fc_parts.append(f"[{audio_idx}:a]atempo={SPEED_FACTOR}[aout]")
@@ -544,7 +560,7 @@ txt_recap.append(f"drawtext=fontfile='{FONT_BEBAS}':text='__/{N_TOTAL}':fontsize
 txt_recap.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='COMMENT YOUR SCORE':fontsize=40:fontcolor=white@0.85:borderw=2:bordercolor=black@0.7:x=(w-text_w)/2:y=1080")
 compte_text = COMPTE.replace("'", "")
 txt_recap.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{compte_text}':fontsize=40:fontcolor=white@0.85:borderw=2:bordercolor=black@0.6:x=(w-text_w)/2:y=1550")
-txt_recap.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='One Day One Vibe':fontsize=28:fontcolor={COLOR_ACCENT}@0.75:borderw=1:bordercolor=black@0.5:x=(w-text_w)/2:y=1608")
+txt_recap.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='{SUBTITOL}':fontsize=28:fontcolor={COLOR_ACCENT}@0.75:borderw=1:bordercolor=black@0.5:x=(w-text_w)/2:y=1608")
 txt_recap_str = ",".join(txt_recap)
 
 input_parts_recap = [f'-f lavfi -i color=c=0x0d0d0d:s=1080x1920:d={RECAP_DURADA}', '-f lavfi -i anullsrc=r=44100:cl=stereo']
