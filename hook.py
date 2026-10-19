@@ -25,7 +25,7 @@ if not os.path.exists(FONT_MEDIUM) or os.path.getsize(FONT_MEDIUM) < 1000:
     FONT_MEDIUM = FONT_FALLBACK
 
 COMPTE       = "@onedayonevibe"
-TAGLINE      = "One Day One Vibe"
+TAGLINE      = "Hard Dance"   # subtitol sota l'@ al final (abans: "One Day One Vibe")
 COLOR_ACCENT = "0x00BFFF"
 
 SPEED_FACTOR  = 1.03     # mateixa acceleracio subtil que la resta de formats (1.0 = desactivat)
