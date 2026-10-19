@@ -22,6 +22,7 @@ for font_path in [FONT_BEBAS, FONT_SEMIBOLD, FONT_EXTRABOLD, FONT_MEDIUM]:
 SET_URL      = os.environ.get('SET_URL', '').strip()
 DJ           = os.environ.get('DJ', '')
 COMPTE       = "@onedayonevibe"
+SUBTITOL          = "Hard Dance"   # subtitol sota l'@ al final del video (abans: "Electronic Vibes Daily")
 TOP_N        = 5
 DURADA_CLIP  = 10
 DURADA_OUTRO = 2.0
@@ -203,7 +204,7 @@ for i, track in enumerate(tracks_ordenats):
     if numero == 1:
         t_aparicio = durada_base - 0.3
         filtres.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{compte_text}':fontsize=54:fontcolor=white@0.85:shadowcolor=black@0.25:shadowx=0:shadowy=2:x=(w-text_w)/2:y=(h/2)+180:enable='gte(t,{t_aparicio})'")
-        filtres.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='Electronic Vibes Daily':fontsize=30:fontcolor=0x00BFFF@0.75:shadowcolor=black@0.20:shadowx=0:shadowy=1:x=(w-text_w)/2:y=(h/2)+248:enable='gte(t,{t_aparicio})'")
+        filtres.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='{SUBTITOL}':fontsize=30:fontcolor=0x00BFFF@0.75:shadowcolor=black@0.20:shadowx=0:shadowy=1:x=(w-text_w)/2:y=(h/2)+248:enable='gte(t,{t_aparicio})'")
 
     vf = ",".join(filtres)
     fc_base = f'[0:v]crop=ih*9/16:ih:(iw-ih*9/16)/2:0,scale=1080:1920,setsar=1,colorchannelmixer=ra=0.85:ga=0.85:ba=0.85,{vf}[txted]'
