@@ -1,307 +1,377 @@
-<!DOCTYPE html>
-<html lang="ca">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>onedayonevibe — Hook (vídeo lliure)</title>
-<style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0d0d0d; color: #fff; min-height: 100vh; padding: 20px; }
-    .container { max-width: 600px; margin: 0 auto; padding: 20px 0; }
-    h1 { font-size: 28px; font-weight: 800; color: #00BFFF; margin-bottom: 4px; }
-    .subtitle { font-size: 14px; color: #666; margin-bottom: 30px; }
-    .card { background: #1a1a1a; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
-    .card h2 { font-size: 14px; font-weight: 600; color: #00BFFF; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
-    label { display: block; font-size: 13px; color: #999; margin-bottom: 6px; }
-    input, select { width: 100%; background: #2a2a2a; border: 1px solid #333; border-radius: 8px; padding: 12px; color: #fff; font-size: 15px; margin-bottom: 14px; outline: none; font-family: inherit; }
-    input:focus, select:focus { border-color: #00BFFF; }
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .hint { font-size: 12px; color: #666; margin-top: -8px; margin-bottom: 14px; line-height: 1.5; }
-    .resum { background: #222; border-left: 4px solid #00BFFF; border-radius: 8px; padding: 12px 14px; font-size: 14px; line-height: 1.6; margin-bottom: 4px; }
-    .resum.error { border-left-color: #ff4444; color: #ff8888; }
-    .btn { width: 100%; padding: 16px; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; border: none; margin-bottom: 12px; }
-    .btn:active { opacity: 0.8; }
-    .btn-green { background: #1DB954; color: #000; }
-    .btn-blue { background: #00BFFF; color: #000; }
-    .btn-secondary { background: #2a2a2a; color: #fff; border: 1px solid #444; }
-    .btn-danger { background: #ff4444; color: #fff; }
-    .status { background: #1a1a1a; border-radius: 12px; padding: 16px; margin-bottom: 16px; display: none; }
-    .status.visible { display: block; }
-    .status-text { font-size: 14px; line-height: 1.6; }
-    .status-ok { color: #00ff88; }
-    .status-error { color: #ff4444; }
-    .status-info { color: #00BFFF; }
-</style>
-</head>
-<body>
-<div class="container">
-    <h1>@onedayonevibe</h1>
-    <p class="subtitle">Hook — vídeo lliure: talla un tram de YouTube i hi posa la marca ODOV</p>
+import os, re, subprocess, json, sys
 
-    <div class="card">
-        <h2>El tram</h2>
+# ============================================================
+#  HOOK - video lliure: tram de YouTube + marca ODOV
+#  (el hook de text/veu l'afegeixes tu a TikTok)
+#
+#  Entrades (variables d'entorn):
+#    URL    enllac de YouTube
+#    INICI  inici del tram  (mm:ss, h:mm:ss o segons)
+#    FI     final del tram  (mm:ss, h:mm:ss o segons)
+#    MODE   omplir (defecte, omple els 9:16 retallant)  |  difuminat (video sencer + fons difuminat)
+#    FOLLOW si (defecte) | no
+# ============================================================
 
-        <label>Enllaç de YouTube</label>
-        <input type="text" id="url" placeholder="https://youtu.be/..." oninput="alUrlCanviat()" />
-        <button class="btn btn-blue" onclick="obrirYoutube()" style="margin-top:-4px;">🎬 Obrir YouTube (per mirar els minuts)</button>
+OUTPUT = os.path.expanduser("~/output")
+FONTS  = os.path.expanduser("~/fonts")
+os.makedirs(OUTPUT, exist_ok=True)
 
-        <div class="row">
-            <div>
-                <label>Des de (mm:ss)</label>
-                <input type="text" id="inici" placeholder="1:23" inputmode="text" oninput="actualitzarResum()" />
-            </div>
-            <div>
-                <label>Fins a (mm:ss)</label>
-                <input type="text" id="fi" placeholder="1:41" inputmode="text" oninput="actualitzarResum()" />
-            </div>
-        </div>
-        <label>Nom del tema (opcional, surt en petit)</label>
-        <input type="text" id="tema" placeholder="Ex: Dragonborn" />
-        <label>Artista (opcional, surt a sota)</label>
-        <input type="text" id="artista" placeholder="Ex: Headhunterz" />
-        <p class="hint">Apareixen als 2-3 segons a l'espai on després surt el Follow, i desapareixen just quan surt el Follow (que ara surt cap al 60% del vídeo). Si els deixes buits, no surt res.</p>
+FONT_SEMIBOLD = f"{FONTS}/Montserrat-SemiBold.ttf"
+FONT_MEDIUM   = f"{FONTS}/Montserrat-Medium.ttf"
+FONT_FALLBACK = f"{FONTS}/Montserrat-Bold.ttf"
+if not os.path.exists(FONT_SEMIBOLD) or os.path.getsize(FONT_SEMIBOLD) < 1000:
+    FONT_SEMIBOLD = FONT_FALLBACK
+if not os.path.exists(FONT_MEDIUM) or os.path.getsize(FONT_MEDIUM) < 1000:
+    FONT_MEDIUM = FONT_FALLBACK
 
-        <div id="resum" class="resum">Omple l'inici i el final del tram.</div>
-    </div>
+COMPTE       = "@onedayonevibe"
+TAGLINE      = "Hard Dance"   # subtitol sota l'@ al final (abans: "One Day One Vibe")
+COLOR_ACCENT = "0x00BFFF"
 
-    <div class="card">
-        <h2>Aspecte</h2>
+SPEED_FACTOR  = 1.03     # mateixa acceleracio subtil que la resta de formats (1.0 = desactivat)
+PADDING       = 2.0      # segons extra que es baixen abans/despres del tram per tallar be
+DURADA_OUTRO  = 2.0
+OUTRO_FADE    = 0.3
 
-        <label>Format de la imatge</label>
-        <select id="mode">
-            <option value="omplir">Omplir tota la pantalla (retalla els costats)</option>
-            <option value="difuminat">Vídeo sencer + fons difuminat (no es retalla res)</option>
-        </select>
+VIDEO_OPTS = "-c:v libx264 -preset slow -crf 18 -pix_fmt yuv420p"
 
-        <label>Botó Follow a la meitat</label>
-        <select id="follow">
-            <option value="si">Sí (només si el clip dura 12 s o més)</option>
-            <option value="no">No</option>
-        </select>
+# --- logo fix a baix + Follow just a sobre a la meitat (igual que la resta de formats) ---
+LOGO_CENTRE_W  = 120
+LOGO_CENTRE_CY = 1488
+LOGO_OPACITY   = 0.85
+FOLLOW_W       = 437
+FOLLOW_GAP     = 14
+FOLLOW_DURADA  = 2.1
+THANKS_DURADA  = 1.8
+CTA_FADE       = 0.3
+FOLLOW_MIN_CLIP = 12.0   # si el clip dura menys, no es posa el Follow
+FOLLOW_POS      = 0.6    # el Follow surt al 60% del video (abans a la meitat), per deixar mes temps el tema/artista
 
-        <p class="hint">El vídeo surt amb el logo a baix, el Follow just a sobre a la meitat, i el @onedayonevibe al final. El hook (text o veu) l'afegeixes tu a TikTok.</p>
-    </div>
+# --- nom del tema (a dalt) i artista (a sota), en petit, opcionals ---
+INFO_T_INICI   = 2.5     # segons: apareix despres del hook, per retenir
+INFO_FADE      = 0.4
+INFO_CENTRE_DEF = 1309  # centre vertical per defecte (el de l'espai on surt el Follow, just sobre el logo)
+INFO_MIDA_TEMA    = 44
+INFO_MIDA_ARTISTA = 32
+INFO_AMPLE_MAX    = 760  # evita els botons de la dreta de TikTok
+INFO_FADE_OUT     = 0.3  # fade de sortida quan arriba el Follow
+DEF_FOLLOW = (0.47413, 0.78764, 1295 / 1215)
+DEF_THANKS = (0.49807, 0.70039, 1295 / 1215)
 
-    <div id="status" class="status">
-        <div id="status-text" class="status-text"></div>
-    </div>
 
-    <button class="btn btn-green" onclick="generarVideo()">🎬 Generar vídeo</button>
+def trobar_fitxer(prefix, extensions=(".png",)):
+    """Busca un fitxer a l'arrel sense distingir majuscules. Accepta 'sticker_follow.png', 'Sticker_Follow.PNG'
+    i tambe la doble extensio 'sticker_follow.png.PNG'."""
+    prefix = prefix.lower()
+    candidats = []
+    for f in os.listdir('.'):
+        fl = f.lower()
+        if not fl.startswith(prefix):
+            continue
+        if any(fl.endswith(e) for e in extensions):
+            candidats.append(f)
+    if not candidats:
+        return None
+    candidats.sort(key=lambda n: (len(n), n))      # el nom mes curt (el mes "net") primer
+    return candidats[0]
 
-    <div class="card">
-        <h2>⬇️ Descarregar / Esborrar</h2>
-        <button class="btn btn-secondary" onclick="veureEstat()">📊 Consultar estat</button>
-        <button class="btn btn-secondary" onclick="descarregarFinal()">⬇️ Descarregar vídeo final</button>
-        <button class="btn btn-danger" onclick="esborrarRelease()">🗑️ Esborrar Release</button>
-        <button class="btn btn-secondary" onclick="canviarToken()">🔑 Canviar token</button>
-    </div>
-</div>
 
-<script>
-const GITHUB_REPO = "nilburgas-eng/onedayonevibe";
-const TAG = "hook_generat";
-const FITXER = "hook_final.mp4";
-const MAX_SEGONS = 180;
-const MIN_FOLLOW = 12;
-const VELOCITAT = 1.03;
-let GITHUB_TOKEN = localStorage.getItem('github_token') || '';
+LOGO_PATH = trobar_fitxer("logo") or "logo.png"
+LOGO_ACTIU = os.path.exists(LOGO_PATH)
+STICKER_FOLLOW_PATH = trobar_fitxer("sticker_follow") or "sticker_follow.png"
+STICKER_THANKS_PATH = trobar_fitxer("sticker_thanks") or "sticker_thanks.png"
+STICKER_ACTIU = os.path.exists(STICKER_FOLLOW_PATH) and os.path.exists(STICKER_THANKS_PATH)
 
-window.onload = function() {
-    if (!GITHUB_TOKEN) {
-        GITHUB_TOKEN = prompt('Introdueix el teu GitHub Token:');
-        if (GITHUB_TOKEN) localStorage.setItem('github_token', GITHUB_TOKEN);
-    }
-}
 
-function canviarToken() {
-    const nou = prompt('Introdueix el nou GitHub Token:');
-    if (nou) {
-        GITHUB_TOKEN = nou;
-        localStorage.setItem('github_token', nou);
-        mostrarStatus('✅ Token actualitzat!', 'ok');
-    }
-}
+def mesurar_cta(path, per_defecte):
+    """Mesura on acaba l'emblema del sticker per quedar-nos nomes amb el boto.
+    Torna (y0, y1, aspect) en fraccions de l'alcada."""
+    try:
+        from PIL import Image
+        alfa = Image.open(path).convert('RGBA').getchannel('A')
+        w, h = alfa.size
+        dades = alfa.tobytes()
+        files = [dades[y * w:(y + 1) * w] for y in range(h)]
+        visibles = [y for y in range(h) if max(files[y]) > 20]
+        c0, c1 = int(w * 0.40), int(w * 0.60)
+        y0 = None
+        for y in range(visibles[0], h):
+            if max(files[y][c0:c1]) <= 20:
+                y0 = y
+                break
+        if y0 is None or y0 >= visibles[-1]:
+            y0 = int(visibles[0] + 0.45 * (visibles[-1] - visibles[0]))
+        return y0 / h, (visibles[-1] + 1) / h, h / w
+    except Exception as e:
+        print(f"   AVIS: no s'ha pogut mesurar el sticker ({e}), uso mides per defecte")
+        return per_defecte
 
-function mostrarStatus(text, tipus) {
-    const el = document.getElementById('status');
-    const textEl = document.getElementById('status-text');
-    el.classList.add('visible');
-    textEl.innerHTML = `<span class="status-${tipus}">${text}</span>`;
-}
 
-// mm:ss, h:mm:ss o segons (admet decimals). Retorna null si no es valid.
-function parseTemps(ts) {
-    if (ts === null || ts === undefined) return null;
-    const s = String(ts).trim().replace(',', '.');
-    if (!s) return null;
-    const parts = s.split(':');
-    if (parts.length > 3) return null;
-    let total = 0;
-    for (const p of parts) {
-        if (!/^\d+(\.\d+)?$/.test(p.trim())) return null;
-        total = total * 60 + parseFloat(p);
-    }
-    return total;
-}
+def mida_que_hi_cap(text, font_path, mida_max, ample_max, mida_min=20):
+    """Redueix la mida de la lletra fins que el text cap a l'amplada indicada."""
+    try:
+        from PIL import ImageFont
+        mida = mida_max
+        while mida > mida_min:
+            bb = ImageFont.truetype(font_path, mida).getbbox(text)
+            if bb[2] - bb[0] <= ample_max:
+                break
+            mida -= 1
+        return mida
+    except Exception:
+        # sense Pillow: estimacio grollera (~0.6 de la mida per caracter)
+        return max(mida_min, min(mida_max, int(ample_max / (0.6 * max(1, len(text))))))
 
-function segonsAStr(s) {
-    const t = Math.round(s * 10) / 10;
-    const h = Math.floor(t / 3600);
-    const m = Math.floor((t % 3600) / 60);
-    const seg = t % 60;
-    const segStr = (Number.isInteger(seg) ? String(seg) : seg.toFixed(1)).padStart(Number.isInteger(seg) ? 2 : 4, '0');
-    return h > 0 ? `${h}:${String(m).padStart(2, '0')}:${segStr}` : `${m}:${segStr}`;
-}
 
-// Si l'enllac porta ?t=83 o &t=1m23s, omple l'inici automaticament
-function alUrlCanviat() {
-    const url = document.getElementById('url').value.trim();
-    const iniciEl = document.getElementById('inici');
-    const m = url.match(/[?&#]t=([0-9hms]+)/i);
-    if (m && !iniciEl.value.trim()) {
-        const v = m[1];
-        let segons = null;
-        if (/^\d+$/.test(v)) segons = parseInt(v);
-        else {
-            const mm = v.match(/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$/i);
-            if (mm) segons = (parseInt(mm[1] || 0) * 3600) + (parseInt(mm[2] || 0) * 60) + parseInt(mm[3] || 0);
-        }
-        if (segons !== null) iniciEl.value = segonsAStr(segons);
-    }
-    actualitzarResum();
-}
+def escriure_text(path, text):
+    with open(path, 'w', encoding='utf-8') as f:
+        f.write(text)
+    return path
 
-function actualitzarResum() {
-    const el = document.getElementById('resum');
-    const a = parseTemps(document.getElementById('inici').value);
-    const b = parseTemps(document.getElementById('fi').value);
-    el.className = 'resum';
-    if (a === null || b === null) {
-        el.textContent = "Omple l'inici i el final del tram.";
-        return null;
-    }
-    if (b <= a) {
-        el.className = 'resum error';
-        el.textContent = "El final ha de ser posterior a l'inici.";
-        return null;
-    }
-    const dur = b - a;
-    if (dur > MAX_SEGONS) {
-        el.className = 'resum error';
-        el.textContent = `El tram dura ${Math.round(dur)} s: el màxim és ${MAX_SEGONS} s (3 minuts).`;
-        return null;
-    }
-    const finalDur = dur / VELOCITAT;
-    let txt = `Tram de ${dur.toFixed(1)} s → vídeo final de ~${finalDur.toFixed(1)} s (amb la lleugera acceleració ×${VELOCITAT}).`;
-    if (finalDur < MIN_FOLLOW) txt += `<br>⚠️ Dura menys de ${MIN_FOLLOW} s: no hi sortirà el Follow.`;
-    el.innerHTML = txt;
-    return { a, b };
-}
 
-async function dispararWorkflow(workflow, inputs) {
-    const r = await fetch(
-        `https://api.github.com/repos/${GITHUB_REPO}/actions/workflows/${workflow}/dispatches`,
-        {
-            method: 'POST',
-            headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ref: 'main', inputs })
-        }
-    );
-    let detall = '';
-    if (r.status !== 204) {
-        try { detall = (await r.json()).message || ''; } catch(e) {}
-    }
-    return { status: r.status, detall };
-}
+def parse_temps(valor, nom):
+    s = str(valor).strip().replace(',', '.')
+    if not s:
+        print(f"ERROR: falta {nom}")
+        sys.exit(1)
+    try:
+        if ':' in s:
+            total = 0.0
+            for part in s.split(':'):
+                total = total * 60 + float(part)
+            return total
+        return float(s)
+    except ValueError:
+        print(f"ERROR: {nom} no es un temps valid: '{valor}' (usa mm:ss, per exemple 1:23)")
+        sys.exit(1)
 
-function obrirYoutube() {
-    const url = document.getElementById('url').value.trim();
-    const desti = /^https?:\/\//i.test(url) ? url : 'https://www.youtube.com/';
-    const a = document.createElement('a');
-    a.href = desti;
-    a.target = '_blank';
-    a.rel = 'noopener noreferrer';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-}
 
-async function generarVideo() {
-    const url = document.getElementById('url').value.trim();
-    if (!/^https?:\/\/(www\.|m\.|music\.)?(youtube\.com|youtu\.be)\//i.test(url)) {
-        mostrarStatus('❌ Enganxa un enllaç de YouTube vàlid', 'error');
-        return;
-    }
-    const tram = actualitzarResum();
-    if (!tram) {
-        mostrarStatus('❌ Revisa l\'inici i el final del tram', 'error');
-        return;
-    }
-    mostrarStatus('⏳ Generant vídeo...', 'info');
-    const entrades = {
-        url: url,
-        inici: String(tram.a),
-        fi: String(tram.b),
-        mode: document.getElementById('mode').value,
-        follow: document.getElementById('follow').value
-    };
-    // Opcionals: si són buits no s'envien
-    const tema = document.getElementById('tema').value.trim();
-    const artista = document.getElementById('artista').value.trim();
-    if (tema) entrades.tema = tema;
-    if (artista) entrades.artista = artista;
-    const res = await dispararWorkflow('hook.yml', entrades);
-    if (res.status === 204) {
-        mostrarStatus('✅ Generació iniciada!<br>⏳ Tarda 2-4 minuts. Després "Descarregar vídeo final".', 'ok');
-    } else {
-        mostrarStatus(`❌ Error ${res.status}: ${res.detall}`, 'error');
-    }
-}
+def durada_fitxer(path):
+    r = subprocess.run(["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", "-show_streams", path],
+                       capture_output=True, text=True)
+    try:
+        d = json.loads(r.stdout)
+        dur = float(d['format']['duration'])
+        te_audio = any(s.get('codec_type') == 'audio' for s in d.get('streams', []))
+        return dur, te_audio
+    except Exception:
+        return 0.0, False
 
-async function veureEstat() {
-    mostrarStatus('⏳ Consultant estat...', 'info');
-    const r = await fetch(
-        `https://api.github.com/repos/${GITHUB_REPO}/actions/runs?per_page=5`,
-        { headers: { 'Authorization': `token ${GITHUB_TOKEN}` } }
-    );
-    const data = await r.json();
-    const runs = data.workflow_runs;
-    if (!runs || runs.length === 0) { mostrarStatus('❌ No hi ha workflows recents', 'error'); return; }
-    let html = '<b>Últims workflows:</b><br><br>';
-    for (const run of runs) {
-        const icon = run.status === 'completed' ? (run.conclusion === 'success' ? '✅' : '❌') : '⏳';
-        html += `${icon} <b>${run.name}</b> — ${run.conclusion || run.status}<br>`;
-        html += `&nbsp;&nbsp;&nbsp;${new Date(run.created_at).toLocaleString()}<br><br>`;
-    }
-    mostrarStatus(html, 'info');
-}
 
-async function descarregarFinal() {
-    const r = await fetch(
-        `https://api.github.com/repos/${GITHUB_REPO}/releases/tags/${TAG}`,
-        { headers: { 'Authorization': `token ${GITHUB_TOKEN}` } }
-    );
-    if (r.status !== 200) { mostrarStatus('❌ Release no trobat', 'error'); return; }
-    const release = await r.json();
-    const asset = release.assets.find(a => a.name === FITXER);
-    if (asset) window.open(asset.browser_download_url, '_blank');
-    else mostrarStatus('❌ Vídeo final no trobat encara', 'error');
-}
+FORMATS = [
+    "bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[ext=mp4]/best",
+    "best",
+]
 
-async function esborrarRelease() {
-    mostrarStatus('⏳ Esborrant...', 'info');
-    const r = await fetch(
-        `https://api.github.com/repos/${GITHUB_REPO}/releases/tags/${TAG}`,
-        { headers: { 'Authorization': `token ${GITHUB_TOKEN}` } }
-    );
-    if (r.status !== 200) { mostrarStatus('❌ Release no trobat', 'error'); return; }
-    const release = await r.json();
-    await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/${release.id}`,
-        { method: 'DELETE', headers: { 'Authorization': `token ${GITHUB_TOKEN}` } });
-    await fetch(`https://api.github.com/repos/${GITHUB_REPO}/git/refs/tags/${TAG}`,
-        { method: 'DELETE', headers: { 'Authorization': `token ${GITHUB_TOKEN}` } });
-    mostrarStatus('✅ Release esborrat!', 'ok');
-}
-</script>
-</body>
-</html>
+
+def baixar_tram(url, inici, fi, path):
+    """Baixa nomes el tram [inici, fi] del video, sense baixar-lo sencer."""
+    for fmt in FORMATS:
+        if os.path.exists(path):
+            os.remove(path)
+        cmd = ["yt-dlp", "-4", "-f", fmt,
+               "--download-sections", f"*{inici:.2f}-{fi:.2f}", "--force-keyframes-at-cuts",
+               "--merge-output-format", "mp4",
+               "--cookies", "cookies.txt", "--js-runtime", "node", "--remote-components", "ejs:github",
+               "--no-playlist", "-o", path, url]
+        r = subprocess.run(cmd, capture_output=True, text=True)
+        if r.returncode == 0 and os.path.exists(path) and os.path.getsize(path) > 10000:
+            return True
+        print(f"   YT-DLP STDERR: {r.stderr[-1500:]}")
+        print(f"   YT-DLP STDOUT: {r.stdout[-500:]}")
+        print("   Provo amb un altre format...")
+    return False
+
+
+# ---------------- entrada ----------------
+URL    = os.environ.get('URL', '').strip()
+MODE   = os.environ.get('MODE', 'omplir').strip().lower()
+FOLLOW = os.environ.get('FOLLOW', 'si').strip().lower() not in ('no', 'false', '0')
+TEMA   = os.environ.get('TEMA', '').strip()
+ARTISTA = os.environ.get('ARTISTA', '').strip()
+
+if not URL:
+    print("ERROR: falta l'enllac de YouTube (URL)")
+    sys.exit(1)
+
+INICI = parse_temps(os.environ.get('INICI', ''), 'INICI')
+FI    = parse_temps(os.environ.get('FI', ''), 'FI')
+if FI <= INICI:
+    print(f"ERROR: el final ({FI:.1f}s) ha de ser posterior a l'inici ({INICI:.1f}s)")
+    sys.exit(1)
+if FI - INICI > 180:
+    print(f"ERROR: el tram dura {FI - INICI:.0f}s; el maxim son 180s (3 minuts)")
+    sys.exit(1)
+
+print(f"URL: {URL}")
+print(f"Tram: {INICI:.2f}s -> {FI:.2f}s ({FI - INICI:.2f}s) | mode: {MODE} | follow: {FOLLOW}")
+
+# ---------------- descarrega ----------------
+os.makedirs(os.path.expanduser("~/videos"), exist_ok=True)
+brut = os.path.expanduser("~/videos/hook_brut.mp4")
+
+dl_start = max(0.0, INICI - PADDING)
+dl_end   = FI + PADDING
+seek_in  = INICI - dl_start
+
+print("\nBaixant el tram...")
+if not baixar_tram(URL, dl_start, dl_end, brut):
+    print("ERROR: no s'ha pogut baixar el tram de YouTube")
+    sys.exit(1)
+
+dur_real, te_audio = durada_fitxer(brut)
+print(f"   Tram baixat: {dur_real:.2f}s, audio: {'si' if te_audio else 'no'}")
+if dur_real <= seek_in + 0.5:
+    print("ERROR: el tram baixat es massa curt (comprova que el final no passa de la durada del video)")
+    sys.exit(1)
+
+clip_dur = min(FI - INICI, dur_real - seek_in)
+if clip_dur < FI - INICI - 0.2:
+    print(f"   AVIS: el video acaba abans del previst; el clip dura {clip_dur:.1f}s")
+out_dur = clip_dur / SPEED_FACTOR
+print(f"   Durada final del video: {out_dur:.2f}s")
+
+# ---------------- filtres ----------------
+filtres = []
+if MODE.startswith('dif'):
+    filtres.append(f"[0:v]fps=30,setpts=PTS/{SPEED_FACTOR},split=2[va][vb]")
+    filtres.append("[va]scale=216:384:force_original_aspect_ratio=increase,crop=216:384,gblur=sigma=3,"
+                   "scale=1080:1920:flags=bicubic,setsar=1,eq=brightness=-0.10[bg]")
+    filtres.append("[vb]scale=1080:1920:force_original_aspect_ratio=decrease,setsar=1[fg]")
+    filtres.append("[bg][fg]overlay=(W-w)/2:(H-h)/2[base]")
+else:
+    filtres.append(f"[0:v]fps=30,setpts=PTS/{SPEED_FACTOR},scale=1080:1920:force_original_aspect_ratio=increase,"
+                   "crop=1080:1920,setsar=1[base]")
+
+# franja fosca molt suau a baix perque el logo i el compte es llegeixin sobre qualsevol imatge
+filtres.append("[base]drawbox=x=0:y=1580:w=1080:h=340:color=black@0.18:t=fill[vb0]")
+actual = "[vb0]"
+
+extra_inputs = ""
+idx = 1    # l'input 0 es el video
+
+# logo fix a baix
+logo_top = LOGO_CENTRE_CY - 49
+if LOGO_ACTIU:
+    try:
+        from PIL import Image
+        lw, lh = Image.open(LOGO_PATH).size
+        logo_top = LOGO_CENTRE_CY - (LOGO_CENTRE_W * lh / lw) / 2
+    except Exception:
+        pass
+    extra_inputs += f' -loop 1 -framerate 30 -i "{LOGO_PATH}"'
+    filtres.append(f"[{idx}:v]scale={LOGO_CENTRE_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[lg]")
+    filtres.append(f"{actual}[lg]overlay=(W-w)/2:{LOGO_CENTRE_CY}-h/2[vl]")
+    actual = "[vl]"
+    idx += 1
+else:
+    print("AVIS: no trobo logo.png, el video sortira sense logo")
+
+# Follow (i Thanks) al 60% del video, just sobre el logo. Sempre acaba abans de l'outro.
+t0 = min(out_dur * FOLLOW_POS, out_dur - (FOLLOW_DURADA + THANKS_DURADA - CTA_FADE) - 0.3)
+follow_actiu = FOLLOW and STICKER_ACTIU and out_dur >= FOLLOW_MIN_CLIP
+if FOLLOW and not STICKER_ACTIU:
+    print("AVIS: no trobo sticker_follow.png / sticker_thanks.png, el video sortira sense Follow")
+elif FOLLOW and out_dur < FOLLOW_MIN_CLIP:
+    print(f"   Clip de {out_dur:.1f}s (< {FOLLOW_MIN_CLIP:.0f}s): no poso el Follow")
+
+if follow_actiu:
+    y0f, y1f, asp_f = mesurar_cta(STICKER_FOLLOW_PATH, DEF_FOLLOW)
+    y0t, y1t, asp_t = mesurar_cta(STICKER_THANKS_PATH, DEF_THANKS)
+    alt_boto = (y1f - y0f) * FOLLOW_W * asp_f
+    sy = round(logo_top - FOLLOW_GAP - alt_boto)
+    print(f"   Follow: y={sy}, apareix a {t0:.1f}s de {out_dur:.1f}s")
+
+    extra_inputs += f' -loop 1 -framerate 30 -i "{STICKER_FOLLOW_PATH}"'
+    fi_ = idx; idx += 1
+    filtres.append(
+        f"[{fi_}:v]scale={FOLLOW_W}:-1,format=rgba,crop=iw:ih*{y1f - y0f:.5f}:0:ih*{y0f:.5f},"
+        f"fade=t=in:st={t0:.3f}:d={CTA_FADE}:alpha=1,"
+        f"fade=t=out:st={t0 + FOLLOW_DURADA - CTA_FADE:.3f}:d={CTA_FADE}:alpha=1[stf]")
+    filtres.append(f"{actual}[stf]overlay=(W-w)/2:{sy}:enable='between(t,{t0:.3f},{t0 + FOLLOW_DURADA:.3f})'[vf]")
+    actual = "[vf]"
+
+    t_th = t0 + FOLLOW_DURADA - CTA_FADE
+    extra_inputs += f' -loop 1 -framerate 30 -i "{STICKER_THANKS_PATH}"'
+    ti_ = idx; idx += 1
+    filtres.append(
+        f"[{ti_}:v]scale={FOLLOW_W}:-1,format=rgba,crop=iw:ih*{y1t - y0t:.5f}:0:ih*{y0t:.5f},"
+        f"fade=t=in:st={t_th:.3f}:d={CTA_FADE}:alpha=1,"
+        f"fade=t=out:st={t_th + THANKS_DURADA - CTA_FADE:.3f}:d={CTA_FADE}:alpha=1[stt]")
+    filtres.append(f"{actual}[stt]overlay=(W-w)/2:{sy}:enable='between(t,{t_th:.3f},{t_th + THANKS_DURADA:.3f})'[vt]")
+    actual = "[vt]"
+
+# nom del tema + artista, en petit, a l'espai on despres surt el Follow:
+# apareix als 2-3 s i desapareix just quan surt el Follow (si no hi ha Follow, es queda fins al final)
+if TEMA or ARTISTA:
+    t_info = min(INFO_T_INICI, out_dur * 0.4)
+    if follow_actiu:
+        t_fi = t0
+        centre = sy + alt_boto / 2
+        alfa_info = (f"if(lt(t,{t_info:.3f}),0,if(lt(t,{t_fi - INFO_FADE_OUT:.3f}),min(1,(t-{t_info:.3f})/{INFO_FADE}),"
+                     f"max(0,1-(t-{t_fi - INFO_FADE_OUT:.3f})/{INFO_FADE_OUT})))")
+        enable_info = f"between(t,{t_info:.3f},{t_fi:.3f})"
+    else:
+        t_fi = None
+        centre = INFO_CENTRE_DEF
+        alfa_info = f"if(lt(t,{t_info:.3f}),0,min(1,(t-{t_info:.3f})/{INFO_FADE}))"
+        enable_info = f"gte(t,{t_info:.3f})"
+    # posicions: dues linies centrades al voltant de 'centre'; una sola linia, centrada
+    if TEMA and ARTISTA:
+        y_tema, y_art = round(centre - 52), round(centre + 8)
+    else:
+        y_tema = y_art = round(centre - 20)
+    linies_info = []
+    if TEMA:
+        mida = mida_que_hi_cap(TEMA, FONT_SEMIBOLD, INFO_MIDA_TEMA, INFO_AMPLE_MAX)
+        f_tema = escriure_text(os.path.expanduser("~/videos/info_tema.txt"), TEMA)
+        linies_info.append(
+            f"drawtext=fontfile='{FONT_SEMIBOLD}':textfile='{f_tema}':expansion=none:fontsize={mida}:fontcolor=white@0.95:"
+            f"borderw=2:bordercolor=black@0.7:x=(w-text_w)/2:y={y_tema}:alpha='{alfa_info}':enable='{enable_info}'")
+    if ARTISTA:
+        mida = mida_que_hi_cap(ARTISTA, FONT_MEDIUM, INFO_MIDA_ARTISTA, INFO_AMPLE_MAX)
+        f_art = escriure_text(os.path.expanduser("~/videos/info_artista.txt"), ARTISTA)
+        linies_info.append(
+            f"drawtext=fontfile='{FONT_MEDIUM}':textfile='{f_art}':expansion=none:fontsize={mida}:fontcolor={COLOR_ACCENT}@0.95:"
+            f"borderw=2:bordercolor=black@0.7:x=(w-text_w)/2:y={y_art}:alpha='{alfa_info}':enable='{enable_info}'")
+    filtres.append(f"{actual}" + ",".join(linies_info) + "[vinfo]")
+    actual = "[vinfo]"
+    fi_txt = f"fins als {t_fi:.1f}s (surt el Follow)" if t_fi is not None else "fins al final"
+    print(f"   Info del tema: '{TEMA}' / '{ARTISTA}' dels {t_info:.1f}s {fi_txt}, centre y={centre:.0f}")
+
+# outro: @compte + tagline els darrers segons
+dur_outro = min(DURADA_OUTRO, out_dur / 2)
+t_out = out_dur - dur_outro
+alfa = f"if(lt(t,{t_out:.3f}),0,min(1,(t-{t_out:.3f})/{OUTRO_FADE}))"
+filtres.append(
+    f"{actual}"
+    f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{COMPTE}':fontsize=50:fontcolor=white@0.82:"
+    f"borderw=2:bordercolor=black@0.6:x=(w-text_w)/2:y=1560:alpha='{alfa}':enable='gte(t,{t_out:.3f})',"
+    f"drawtext=fontfile='{FONT_MEDIUM}':text='{TAGLINE}':fontsize=30:fontcolor={COLOR_ACCENT}@0.70:"
+    f"borderw=1:bordercolor=black@0.5:x=(w-text_w)/2:y=1618:alpha='{alfa}':enable='gte(t,{t_out:.3f})'[vout]")
+
+# audio
+if te_audio:
+    fade_out = min(0.4, out_dur / 4)
+    filtres.append(f"[0:a]atempo={SPEED_FACTOR},afade=t=in:st=0:d=0.12,"
+                   f"afade=t=out:st={out_dur - fade_out:.3f}:d={fade_out:.3f}[afinal]")
+    mapa_audio = '-map "[afinal]" -c:a aac -b:a 192k'
+else:
+    mapa_audio = '-an'
+
+filter_complex = ";".join(filtres)
+output_final = f"{OUTPUT}/hook_final.mp4"
+if os.path.exists(output_final):
+    os.remove(output_final)
+
+cmd = (f'ffmpeg -ss {seek_in:.3f} -t {clip_dur:.3f} -i "{brut}"{extra_inputs} '
+       f'-filter_complex "{filter_complex}" -map "[vout]" {mapa_audio} '
+       f'{VIDEO_OPTS} -r 30 -t {out_dur:.3f} -movflags +faststart "{output_final}" -y -loglevel error')
+print("\nMuntant el video final...")
+ret = os.system(cmd)
+if ret != 0 or not os.path.exists(output_final) or os.path.getsize(output_final) < 10000:
+    print(f"ERROR: muntatge final ha fallat (codi {ret})")
+    sys.exit(1)
+
+dur_fin, _ = durada_fitxer(output_final)
+print(f"\nVideo final OK: {os.path.getsize(output_final) / 1024 / 1024:.1f} MB, {dur_fin:.1f}s")
