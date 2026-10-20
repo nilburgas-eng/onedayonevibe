@@ -1,4 +1,10 @@
 import os, re, subprocess, json, sys
+try:
+    from portada import genera_portada
+except Exception as _e:      # si falta portada.py al repo, el video es fa igualment sense portada
+    print(f"AVIS: no es pot carregar portada.py ({_e}); no es generara la portada")
+    def genera_portada(*a, **k):
+        return None
 
 # ============================================================
 #  HOOK - video lliure: tram de YouTube + marca ODOV
@@ -375,3 +381,17 @@ if ret != 0 or not os.path.exists(output_final) or os.path.getsize(output_final)
 
 dur_fin, _ = durada_fitxer(output_final)
 print(f"\nVideo final OK: {os.path.getsize(output_final) / 1024 / 1024:.1f} MB, {dur_fin:.1f}s")
+
+# ---------------- portada de TikTok (extra; si falla, el video ja esta fet) ----------------
+PORTADA = f"{OUTPUT}/hook_portada.png"
+if os.path.exists(PORTADA):
+    os.remove(PORTADA)
+if TEMA or ARTISTA:
+    print("\nGenerant la portada...")
+    genera_portada(video=brut,
+                   kicker=ARTISTA if TEMA else "",
+                   titol=TEMA or ARTISTA,
+                   sortida=PORTADA,
+                   t_ini=seek_in + clip_dur * 0.12, t_fi=seek_in + clip_dur * 0.88)
+else:
+    print("\nPortada: no hi ha tema ni artista, no se'n genera")
