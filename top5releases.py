@@ -126,8 +126,17 @@ def preparar_botons(p1, p2):
         print(f"   AVIS: no s'han pogut preparar els botons ({type(e).__name__}: {e})")
         return None
 
-_PL_PLAYLIST = trobar_fitxer_sense_distingir_majuscules("sticker_playlist.png")
-_PL_SAVE     = trobar_fitxer_sense_distingir_majuscules("sticker_save.png")
+def trobar_sticker_tolerant(prefix):
+    """Busca 'sticker_playlist...' sense distingir majuscules i amb qualsevol extensio .png/.PNG (tambe 'x.png.PNG')."""
+    cands = [f for f in os.listdir('.') if f.lower().startswith(prefix) and '.png' in f.lower()]
+    cands.sort(key=lambda n: (len(n), n))
+    return cands[0] if cands else None
+
+_PL_PLAYLIST = trobar_sticker_tolerant("sticker_playlist")
+_PL_SAVE     = trobar_sticker_tolerant("sticker_save")
+print(f"Stickers nous trobats: playlist={_PL_PLAYLIST}, save={_PL_SAVE}")
+if not (_PL_PLAYLIST and _PL_SAVE):
+    print("   Imatges a l'arrel del repo: " + ", ".join(sorted(f for f in os.listdir('.') if f.lower().endswith('.png'))))
 _PL_PREP     = preparar_botons(_PL_PLAYLIST, _PL_SAVE) if (_PL_PLAYLIST and _PL_SAVE) else None
 if _PL_PREP:
     STICKER_FOLLOW_PATH, STICKER_THANKS_PATH = _PL_PREP
