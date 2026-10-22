@@ -8,6 +8,7 @@ except Exception as _e:      # si falta portada.py al repo, el video es fa igual
     def separa_titol_event(t):
         return (t, "")
 PORTADA_SRCS = {}            # pos -> (video, t_ini, t_fi): d'on es treu el fotograma de la portada
+
 import requests
 
 OUTPUT = os.path.expanduser("~/output")
@@ -80,7 +81,7 @@ def trobar_fitxer_sense_distingir_majuscules(nom_base):
     return None
 
 # Aquest format fa servir "PLAYLIST IN BIO!" (primer) i "SAVE PLAYLIST" (despres) en lloc del Follow/Thanks.
-# Si falta algun dels dos fitxers nous, es fan servir els Follow/Thanks de sempre.
+# Fitxers a l'arrel del repo: sticker_playlist.png i sticker_save.png. Si en falta algun, es fan servir Follow/Thanks.
 _PL_PLAYLIST = trobar_fitxer_sense_distingir_majuscules("sticker_playlist.png")
 _PL_SAVE     = trobar_fitxer_sense_distingir_majuscules("sticker_save.png")
 if _PL_PLAYLIST and _PL_SAVE:
@@ -104,8 +105,8 @@ LOGO_CENTRE_CY   = 1488   # centre vertical del logo: a baix, just sobre del @co
 FOLLOW_W         = 437    # amplada total del sticker (el boto visible en fa ~77%)
 FOLLOW_GAP       = 14     # separacio entre el boto i el logo
 THANKS_MIG       = True   # despres del Follow, mostrar el Thanks
-FOLLOW_DURADA    = 2.1
-THANKS_DURADA    = 1.8
+FOLLOW_DURADA    = 3.2   # "Playlist in bio" (abans 2.1)
+THANKS_DURADA    = 2.4   # "Save playlist" (abans 1.8)
 CTA_FADE         = 0.3
 LOGO_PER_CLIP    = LOGO_ACTIU and not PROVA_FOLLOW_MIG
 STICKER_PER_CLIP = STICKER_ACTIU and not PROVA_FOLLOW_MIG
@@ -121,8 +122,8 @@ def mesurar_cta(path, per_defecte):
         from PIL import Image
         alfa = Image.open(path).convert('RGBA').getchannel('A')
         w, h = alfa.size
-        if os.path.basename(path).lower().startswith(('sticker_playlist', 'sticker_save')):
-            return 0.0, 1.0, h / w              # ja venen retallats nomes amb el boto: s'usen sencers
+        if h / w < 0.8:                          # imatge molt ampla = ja es nomes el boto (sense emblema): s'usa sencera
+            return 0.0, 1.0, h / w
         dades = alfa.tobytes()
         files = [dades[y * w:(y + 1) * w] for y in range(h)]
         visibles = [y for y in range(h) if max(files[y]) > 20]
