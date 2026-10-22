@@ -1,324 +1,644 @@
-<!DOCTYPE html>
-<html lang="ca">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>onedayonevibe — Top 5 Releases</title>
-<style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0d0d0d; color: #fff; min-height: 100vh; padding: 20px; }
-    .container { max-width: 600px; margin: 0 auto; padding: 20px 0; }
-    h1 { font-size: 28px; font-weight: 800; color: #00BFFF; margin-bottom: 4px; }
-    .subtitle { font-size: 14px; color: #666; margin-bottom: 30px; }
-    .card { background: #1a1a1a; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
-    .card h2 { font-size: 14px; font-weight: 600; color: #00BFFF; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
-    label { display: block; font-size: 13px; color: #999; margin-bottom: 6px; }
-    input, select, textarea { width: 100%; background: #2a2a2a; border: 1px solid #333; border-radius: 8px; padding: 12px; color: #fff; font-size: 15px; margin-bottom: 14px; outline: none; font-family: inherit; }
-    input:focus, select:focus, textarea:focus { border-color: #00BFFF; }
-    .btn { width: 100%; padding: 16px; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; border: none; margin-bottom: 12px; }
-    .btn:active { opacity: 0.8; }
-    .btn-green { background: #1DB954; color: #000; }
-    .btn-secondary { background: #2a2a2a; color: #fff; border: 1px solid #444; }
-    .btn-danger { background: #ff4444; color: #fff; }
-    .status { background: #1a1a1a; border-radius: 12px; padding: 16px; margin-bottom: 16px; display: none; }
-    .status.visible { display: block; }
-    .status-text { font-size: 14px; line-height: 1.6; }
-    .status-ok { color: #00ff88; }
-    .status-error { color: #ff4444; }
-    .status-info { color: #00BFFF; }
-    .track { background: #222; border-radius: 10px; padding: 14px; margin-bottom: 12px; border-left: 4px solid #00BFFF; }
-    .track-head { font-size: 15px; font-weight: 700; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-    .track-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .track-grid input { margin-bottom: 0; font-size: 13px; padding: 10px; }
-    .track-full { margin-top: 8px; }
-    .track-full input { margin-bottom: 0; font-size: 13px; padding: 10px; }
-    .check-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
-    .check-row label { margin-bottom: 0; font-size: 13px; color: #ccc; }
-    .check-row input[type="checkbox"] { width: auto; margin-bottom: 0; }
-</style>
-</head>
-<body>
-<div class="container">
-    <h1>@onedayonevibe</h1>
-    <p class="subtitle">Top 5 Releases — Generador setmanal</p>
+import os, json, re, subprocess, base64, shutil, random
+try:
+    from portada import genera_portada, separa_titol_event
+except Exception as _e:      # si falta portada.py al repo, el video es fa igualment sense portada
+    print(f"AVIS: no es pot carregar portada.py ({_e}); no es generara la portada")
+    def genera_portada(*a, **k):
+        return None
+    def separa_titol_event(t):
+        return (t, "")
+PORTADA_SRCS = {}            # pos -> (video, t_ini, t_fi): d'on es treu el fotograma de la portada
 
-    <div class="card">
-        <h2>✏️ Pas 1 — Configuració</h2>
-        <label>Gènere</label>
-        <select id="genere">
-            <option value="electronic">🎧 Electronic Dance</option>
-            <option value="hard">🔥 Hard (hardcore, hard techno...)</option>
-        </select>
-        <label>Text de la setmana (opcional)</label>
-        <input type="text" id="setmana_text" placeholder="Week of September 20" />
-        <label>Estil de detecció (només per temes sense timestamp)</label>
-        <select id="estil">
-            <option value="energetic">⚡ Energètic</option>
-            <option value="melodic">🎵 Melòdic</option>
-            <option value="vocal">🎤 Vocal</option>
-        </select>
-        <label>🔗 Link general de reserva (opcional — per temes sense videoclip propi)</label>
-        <input type="text" id="fons_url" placeholder="https://youtu.be/..." />
-    </div>
+import requests
 
-    <div id="status" class="status">
-        <div id="status-text" class="status-text"></div>
-    </div>
+OUTPUT = os.path.expanduser("~/output")
+FONTS  = os.path.expanduser("~/fonts")
+os.makedirs(OUTPUT, exist_ok=True)
 
-    <div class="card">
-        <h2>🎵 Pas 2 — Els 5 llançaments</h2>
-        <label>📋 O enganxa la llista sencera (una per línia, "Nom - Artista")</label>
-        <textarea id="llista-paste" rows="5" placeholder="Dragonborn - Headhunterz&#10;The Vandal - Da Tweekaz&#10;Reload - Sebastian Ingrosso &amp; Tommy Trash"></textarea>
-        <button class="btn btn-secondary" onclick="omplirDesDeLlista()">📋 Omplir des de la llista</button>
+FONT_BEBAS     = f"{FONTS}/BebasNeue.ttf"
+FONT_SEMIBOLD  = f"{FONTS}/Montserrat-SemiBold.ttf"
+FONT_EXTRABOLD = f"{FONTS}/Montserrat-ExtraBold.ttf"
+FONT_MEDIUM    = f"{FONTS}/Montserrat-Medium.ttf"
+FONT_FALLBACK  = f"{FONTS}/Montserrat-Bold.ttf"
 
-        <div id="tracks-list"></div>
-    </div>
+for font_path in [FONT_BEBAS, FONT_SEMIBOLD, FONT_EXTRABOLD, FONT_MEDIUM]:
+    if not os.path.exists(font_path) or os.path.getsize(font_path) < 1000:
+        if font_path == FONT_BEBAS: FONT_BEBAS = FONT_FALLBACK
+        elif font_path == FONT_SEMIBOLD: FONT_SEMIBOLD = FONT_FALLBACK
+        elif font_path == FONT_EXTRABOLD: FONT_EXTRABOLD = FONT_FALLBACK
+        elif font_path == FONT_MEDIUM: FONT_MEDIUM = FONT_FALLBACK
 
-    <button class="btn btn-green" onclick="generarVideo()">🎬 Generar vídeo</button>
+ESTIL             = os.environ.get('ESTIL', 'energetic')
+GENERE            = os.environ.get('GENERE', 'electronic')   # 'hard' o 'electronic'
+SETMANA_TEXT      = os.environ.get('SETMANA_TEXT', '').strip()
+FONS_URL          = os.environ.get('FONS_URL', '').strip()    # link general de reserva (nomes visual)
+MARGE_FONS        = 15.0
+PADDING_FONS      = 1.0
+SPOTIFY_CLIENT_ID = os.environ.get('SPOTIFY_CLIENT_ID', '')
+SPOTIFY_SECRET    = os.environ.get('SPOTIFY_CLIENT_SECRET', '')
+COMPTE            = "@onedayonevibe"
+SUBTITOL          = "Hard Dance"   # subtitol sota l'@ al final del video (abans: "Electronic Vibes Daily")
+TOP_N             = 5
+DURADA_CLIP       = 8
+DURADA_TOP1       = 12
+DURADA_OUTRO      = 2.0
+FADE_DURADA       = 0.3
 
-    <div class="card">
-        <h2>⬇️ Descarregar / Esborrar</h2>
-        <button class="btn btn-secondary" onclick="veureEstat()">📊 Consultar estat</button>
-        <button class="btn btn-secondary" onclick="descarregarFinal()">⬇️ Descarregar vídeo final</button>
-        <button class="btn btn-danger" onclick="esborrarRelease()">🗑️ Esborrar Release</button>
-        <button class="btn btn-secondary" onclick="canviarToken()">🔑 Canviar token</button>
-    </div>
-</div>
+VIDEO_OPTS = "-c:v libx264 -preset slow -crf 18 -pix_fmt yuv420p"
 
-<script>
-const GITHUB_REPO = "nilburgas-eng/onedayonevibe";
-let GITHUB_TOKEN = localStorage.getItem('github_token') || '';
-let tracksActuals = [];
+SPEED_FACTOR = 1.03
 
-window.onload = function() {
-    if (!GITHUB_TOKEN) {
-        GITHUB_TOKEN = prompt('Introdueix el teu GitHub Token:');
-        if (GITHUB_TOKEN) localStorage.setItem('github_token', GITHUB_TOKEN);
-    }
-    for (let i = 0; i < 5; i++) afegirTrack();
-}
+COLOR_ACCENT = "0x00BFFF"
 
-function canviarToken() {
-    const nou = prompt('Introdueix el nou GitHub Token:');
-    if (nou) {
-        GITHUB_TOKEN = nou;
-        localStorage.setItem('github_token', nou);
-        mostrarStatus('✅ Token actualitzat!', 'ok');
-    }
-}
+COVER_W  = 280
+COVER_H  = 280
+COVER_X  = 90
+COVER_Y  = 500
+X_INFO   = 410
+Y_NUM    = 500
+Y_NOM1   = 640
+Y_NOM2   = 710
+Y_TITOL1  = 260
+Y_TITOL1B = 330
+Y_TITOL2  = 400
+Y_ARTISTA = 790
+Y_BAR    = 870
+BAR_X    = 90
+BAR_W    = 980
+Y_OUTRO  = 1560
+Y_OUTRO2 = 1618
 
-function mostrarStatus(text, tipus) {
-    const el = document.getElementById('status');
-    const textEl = document.getElementById('status-text');
-    el.classList.add('visible');
-    textEl.innerHTML = `<span class="status-${tipus}">${text}</span>`;
-}
+LOGO_PATH    = "logo.png"
+LOGO_W       = 90
+LOGO_OPACITY = 0.85
+LOGO_MARGIN  = 30
+LOGO_ACTIU   = os.path.exists(LOGO_PATH)
 
-function parseTimestamp(ts) {
-    if (!ts || ts.trim() === '') return null;
-    const parts = ts.split(':');
-    if (parts.length === 2) return parseInt(parts[0]) * 60 + parseInt(parts[1]);
-    if (parts.length === 3) return parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseInt(parts[2]);
-    return null;
-}
+def trobar_fitxer_sense_distingir_majuscules(nom_base):
+    for f in os.listdir('.'):
+        if f.lower() == nom_base.lower():
+            return f
+    return None
 
-function segonsAStr(s) {
-    if (s === null || s === undefined) return '';
-    const m = Math.floor(s / 60);
-    const seg = Math.floor(s % 60);
-    return `${m}:${seg.toString().padStart(2,'0')}`;
-}
+# Aquest format fa servir "PLAYLIST IN BIO!" (primer) i "SAVE PLAYLIST" (despres) en lloc del Follow/Thanks.
+# Fitxers a l'arrel del repo: sticker_playlist.png i sticker_save.png. Si en falta algun, es fan servir Follow/Thanks.
+_PL_PLAYLIST = trobar_fitxer_sense_distingir_majuscules("sticker_playlist.png")
+_PL_SAVE     = trobar_fitxer_sense_distingir_majuscules("sticker_save.png")
+if _PL_PLAYLIST and _PL_SAVE:
+    STICKER_FOLLOW_PATH, STICKER_THANKS_PATH = _PL_PLAYLIST, _PL_SAVE
+    print("Stickers: Playlist in bio + Save playlist")
+else:
+    STICKER_FOLLOW_PATH = trobar_fitxer_sense_distingir_majuscules("sticker_follow.png") or "sticker_follow.png"
+    STICKER_THANKS_PATH = trobar_fitxer_sense_distingir_majuscules("sticker_thanks.png") or "sticker_thanks.png"
+    print("Stickers: Follow + Thanks (no trobo sticker_playlist.png / sticker_save.png)")
+STICKER_ACTIU = os.path.exists(STICKER_FOLLOW_PATH) and os.path.exists(STICKER_THANKS_PATH)
+STICKER_W = 220
+STICKER_Y = 1180
 
-async function dispararWorkflow(workflow, inputs) {
-    const r = await fetch(
-        `https://api.github.com/repos/${GITHUB_REPO}/actions/workflows/${workflow}/dispatches`,
-        {
-            method: 'POST',
-            headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ref: 'main', inputs })
-        }
-    );
-    let detall = '';
-    if (r.status !== 204) {
-        try { detall = (await r.json()).message || ''; } catch(e) {}
-    }
-    return { status: r.status, detall };
-}
+# ---------- PROVA: logo fix a baix + boto FOLLOW a la meitat del video (igual que chart2) ----------
+# True  = el logo surt sempre a baix, just sobre del @compte del final. A la meitat del video apareix el
+#         boto FOLLOW (gran) just a sobre del logo, i despres el Thanks.
+# False = comportament anterior (logo a la cantonada + Follow/Thanks al principi).
+PROVA_FOLLOW_MIG = True
+LOGO_CENTRE_W    = 120    # amplada del logo
+LOGO_CENTRE_CY   = 1488   # centre vertical del logo: a baix, just sobre del @compte del final (y=1560)
+FOLLOW_W         = 437    # amplada total del sticker (el boto visible en fa ~77%)
+FOLLOW_GAP       = 14     # separacio entre el boto i el logo
+THANKS_MIG       = True   # despres del Follow, mostrar el Thanks
+FOLLOW_DURADA    = 3.2   # "Playlist in bio" (abans 2.1)
+THANKS_DURADA    = 2.4   # "Save playlist" (abans 1.8)
+CTA_FADE         = 0.3
+LOGO_PER_CLIP    = LOGO_ACTIU and not PROVA_FOLLOW_MIG
+STICKER_PER_CLIP = STICKER_ACTIU and not PROVA_FOLLOW_MIG
+# valors per defecte (stickers de 1215x1295) per si no es pot llegir la imatge
+DEF_FOLLOW = (0.47413, 0.78764, 1295 / 1215)
+DEF_THANKS = (0.49807, 0.70039, 1295 / 1215)
 
-function renderTracks() {
-    const cont = document.getElementById('tracks-list');
-    cont.innerHTML = '';
-    tracksActuals.forEach((t, i) => {
-        const div = document.createElement('div');
-        div.className = 'track';
-        div.innerHTML = `
-            <div class="track-head">
-                <span>#${t.pos}</span>
-                <button onclick="obrirYoutube(${i})" style="background:#00BFFF;color:#000;border:none;border-radius:5px;padding:3px 10px;font-size:14px;font-weight:700;cursor:pointer;">🎬</button>
-            </div>
-            <div class="track-full">
-                <input type="text" placeholder="Nom cançó" value="${(t.nom||'').replace(/"/g,'&quot;')}" onchange="actualitzar(${i}, 'nom', this.value)" />
-            </div>
-            <div class="track-full">
-                <input type="text" placeholder="Artista" value="${(t.artista||'').replace(/"/g,'&quot;')}" onchange="actualitzar(${i}, 'artista', this.value)" />
-            </div>
-            <div class="track-grid">
-                <input type="text" placeholder="Timestamp (mm:ss, opcional)" value="${segonsAStr(t.timestamp_manual)}" onchange="actualitzar(${i}, 'ts', this.value)" />
-                <input type="text" placeholder="URL YouTube (opcional)" value="${t.yt_url||''}" onchange="actualitzar(${i}, 'yt', this.value)" />
-            </div>
-            <div class="check-row">
-                <input type="checkbox" id="vg-${i}" ${t.visual_general ? 'checked' : ''} onchange="actualitzar(${i}, 'visual_general', this.checked)" />
-                <label for="vg-${i}">Usar imatge del link general (videoclip estàtic o no m'agrada)</label>
-            </div>
-        `;
-        cont.appendChild(div);
-    });
-}
+def mesurar_cta(path, per_defecte):
+    """Prepara un sticker per quedar-nos nomes amb el boto, sense l'emblema de dalt.
+    Torna (y0, y1, aspect): primera fila despres de l'emblema, ultima fila visible (fraccions de l'alcada)
+    i alcada/amplada de la imatge. Si no es pot llegir (p. ex. sense Pillow), torna 'per_defecte'."""
+    try:
+        from PIL import Image
+        alfa = Image.open(path).convert('RGBA').getchannel('A')
+        w, h = alfa.size
+        if h / w < 0.8:                          # imatge molt ampla = ja es nomes el boto (sense emblema): s'usa sencera
+            return 0.0, 1.0, h / w
+        dades = alfa.tobytes()
+        files = [dades[y * w:(y + 1) * w] for y in range(h)]
+        visibles = [y for y in range(h) if max(files[y]) > 20]
+        c0, c1 = int(w * 0.40), int(w * 0.60)          # franja central, per on baixa l'emblema
+        y0 = None
+        for y in range(visibles[0], h):
+            if max(files[y][c0:c1]) <= 20:              # primera fila amb el centre buit: l'emblema ja ha acabat
+                y0 = y
+                break
+        if y0 is None or y0 >= visibles[-1]:
+            y0 = int(visibles[0] + 0.45 * (visibles[-1] - visibles[0]))
+        return y0 / h, (visibles[-1] + 1) / h, h / w
+    except Exception as e:
+        print(f"   AVIS: no s'ha pogut mesurar el sticker ({e}), uso mides per defecte")
+        return per_defecte
 
-function obrirYoutube(i) {
-    const t = tracksActuals[i];
-    const url = t.yt_url
-        ? t.yt_url
-        : `https://www.youtube.com/results?search_query=${encodeURIComponent(`${t.artista} ${t.nom} official video`)}`;
-    const a = document.createElement('a');
-    a.href = url;
-    a.target = '_blank';
-    a.rel = 'noopener noreferrer';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-}
 
-function actualitzar(i, camp, valor) {
-    if (camp === 'ts') tracksActuals[i].timestamp_manual = parseTimestamp(valor);
-    else if (camp === 'nom') tracksActuals[i].nom = valor.trim();
-    else if (camp === 'artista') tracksActuals[i].artista = valor.trim();
-    else if (camp === 'yt') tracksActuals[i].yt_url = valor.trim() || null;
-    else if (camp === 'visual_general') tracksActuals[i].visual_general = valor;
-}
 
-function omplirDesDeLlista() {
-    const raw = document.getElementById('llista-paste').value;
-    const linies = raw.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-    if (linies.length === 0) {
-        mostrarStatus('❌ La llista és buida', 'error');
-        return;
-    }
-    let comptador = 0;
-    linies.forEach((linia, i) => {
-        const neta = linia.replace(/^\s*\d+\s*[\.\)\:]\s*/, '').trim();
-        let nom = neta;
-        let artista = '';
-        const idx = neta.indexOf(' - ');
-        if (idx !== -1) {
-            nom = neta.slice(0, idx).trim();
-            artista = neta.slice(idx + 3).trim();
-        }
-        if (!nom) return;
-        if (tracksActuals[i]) {
-            tracksActuals[i].nom = nom;
-            tracksActuals[i].artista = artista;
-        } else {
-            tracksActuals.push({
-                pos: tracksActuals.length + 1,
-                nom, artista,
-                timestamp_manual: null, yt_url: null, visual_general: false
-            });
-        }
-        comptador++;
-    });
-    renderTracks();
-    mostrarStatus(`✅ ${comptador} llançaments omplerts des de la llista.`, 'ok');
-}
+def get_spotify_token():
+    try:
+        creds = base64.b64encode(f"{SPOTIFY_CLIENT_ID}:{SPOTIFY_SECRET}".encode()).decode()
+        r = requests.post("https://accounts.spotify.com/api/token",
+            headers={"Authorization": f"Basic {creds}"},
+            data={"grant_type": "client_credentials"})
+        return r.json().get('access_token')
+    except:
+        return None
 
-function afegirTrack() {
-    tracksActuals.push({
-        pos: tracksActuals.length + 1,
-        nom: '', artista: '',
-        timestamp_manual: null, yt_url: null, visual_general: false
-    });
-    renderTracks();
-}
+def get_spotify_cover(nom_canco, artista, token):
+    try:
+        headers = {"Authorization": f"Bearer {token}"}
+        query = f"track:{nom_canco} artist:{artista}"
+        r = requests.get(f"https://api.spotify.com/v1/search?q={requests.utils.quote(query)}&type=track&limit=1", headers=headers)
+        items = r.json().get('tracks', {}).get('items', [])
+        if items:
+            return requests.get(items[0]['album']['images'][0]['url']).content
+    except:
+        pass
+    return None
 
-function netejarTracks() {
-    return tracksActuals.map(t => {
-        const o = { pos: t.pos, nom: t.nom, artista: t.artista };
-        if (t.timestamp_manual !== null && t.timestamp_manual !== undefined) o.timestamp_manual = t.timestamp_manual;
-        if (t.yt_url) o.yt_url = t.yt_url;
-        if (t.visual_general) o.visual_general = true;
-        return o;
-    });
-}
+def get_spotify_artist_image(artista, token):
+    if not artista:
+        return None
+    try:
+        headers = {"Authorization": f"Bearer {token}"}
+        r = requests.get(f"https://api.spotify.com/v1/search?q={requests.utils.quote(artista)}&type=artist&limit=1", headers=headers)
+        items = r.json().get('artists', {}).get('items', [])
+        if items and items[0].get('images'):
+            return requests.get(items[0]['images'][0]['url']).content
+    except:
+        pass
+    return None
 
-async function generarVideo() {
-    const tracksValids = tracksActuals.filter(t => t.nom && t.nom.trim());
-    if (tracksValids.length < 2) {
-        mostrarStatus('❌ Omple com a mínim 2 llançaments (nom i artista)', 'error');
-        return;
-    }
-    const genere = document.getElementById('genere').value;
-    const setmanaText = document.getElementById('setmana_text').value.trim();
-    const estil = document.getElementById('estil').value;
-    const fonsUrl = document.getElementById('fons_url').value.trim();
-    mostrarStatus('⏳ Generant vídeo...', 'info');
-    const res = await dispararWorkflow('top5releases.yml', {
-        genere,
-        setmana_text: setmanaText,
-        estil,
-        fons_url: fonsUrl,
-        tracks: JSON.stringify(netejarTracks())
-    });
-    if (res.status === 204) {
-        mostrarStatus('✅ Generació iniciada!<br>⏳ Tarda uns minuts. Després "Descarregar vídeo final".', 'ok');
-    } else {
-        mostrarStatus(`❌ Error ${res.status}: ${res.detall}`, 'error');
-    }
-}
+def get_youtube_thumbnail(yt_url):
+    if not yt_url:
+        return None
+    m = re.search(r'(?:v=|youtu\.be/|shorts/|embed/)([A-Za-z0-9_-]{11})', yt_url)
+    if not m:
+        return None
+    vid = m.group(1)
+    for qualitat in ['maxresdefault', 'hqdefault']:
+        try:
+            r = requests.get(f"https://img.youtube.com/vi/{vid}/{qualitat}.jpg", timeout=15)
+            if r.status_code == 200 and len(r.content) > 2000:
+                return r.content
+        except:
+            pass
+    return None
 
-async function veureEstat() {
-    mostrarStatus('⏳ Consultant estat...', 'info');
-    const r = await fetch(
-        `https://api.github.com/repos/${GITHUB_REPO}/actions/runs?per_page=5`,
-        { headers: { 'Authorization': `token ${GITHUB_TOKEN}` } }
-    );
-    const data = await r.json();
-    const runs = data.workflow_runs;
-    if (!runs || runs.length === 0) { mostrarStatus('❌ No hi ha workflows recents', 'error'); return; }
-    let html = '<b>Últims workflows:</b><br><br>';
-    for (const run of runs) {
-        const icon = run.status === 'completed' ? (run.conclusion === 'success' ? '✅' : '❌') : '⏳';
-        html += `${icon} <b>${run.name}</b> — ${run.conclusion || run.status}<br>`;
-        html += `&nbsp;&nbsp;&nbsp;${new Date(run.created_at).toLocaleString()}<br><br>`;
-    }
-    mostrarStatus(html, 'info');
-}
+def get_durada_video_remot(url):
+    try:
+        r = subprocess.run(
+            ['yt-dlp', '--dump-json', '--no-download', '--cookies', 'cookies.txt',
+             '--js-runtime', 'node', '--remote-components', 'ejs:github', url],
+            capture_output=True, text=True, timeout=60
+        )
+        if r.returncode != 0 or not r.stdout:
+            return None
+        info = json.loads(r.stdout.splitlines()[0])
+        durada = info.get('duration')
+        return float(durada) if durada else None
+    except Exception as e:
+        print(f"   ERROR consultant durada del link general: {e}")
+        return None
 
-async function descarregarFinal() {
-    const r = await fetch(
-        `https://api.github.com/repos/${GITHUB_REPO}/releases/tags/top5releases_generat`,
-        { headers: { 'Authorization': `token ${GITHUB_TOKEN}` } }
-    );
-    if (r.status !== 200) { mostrarStatus('❌ Release no trobat', 'error'); return; }
-    const release = await r.json();
-    const asset = release.assets.find(a => a.name === 'top5releases_final.mp4');
-    if (asset) window.open(asset.browser_download_url, '_blank');
-    else mostrarStatus('❌ Vídeo final no trobat encara', 'error');
-}
+def baixar_tros_fons(url, inici, durada_tros, output_path):
+    fi = inici + durada_tros
+    cmd = (
+        f'yt-dlp -f "bestvideo[height<=1440][ext=mp4]/best[ext=mp4]/best" '
+        f'--download-sections "*{inici:.2f}-{fi:.2f}" --force-keyframes-at-cuts '
+        f'--merge-output-format mp4 --cookies cookies.txt --js-runtime node '
+        f'--remote-components ejs:github -o "{output_path}" "{url}" -q'
+    )
+    ret = os.system(cmd)
+    return ret == 0 and os.path.exists(output_path) and os.path.getsize(output_path) > 10000
 
-async function esborrarRelease() {
-    mostrarStatus('⏳ Esborrant...', 'info');
-    const r = await fetch(
-        `https://api.github.com/repos/${GITHUB_REPO}/releases/tags/top5releases_generat`,
-        { headers: { 'Authorization': `token ${GITHUB_TOKEN}` } }
-    );
-    if (r.status !== 200) { mostrarStatus('❌ Release no trobat', 'error'); return; }
-    const release = await r.json();
-    await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/${release.id}`,
-        { method: 'DELETE', headers: { 'Authorization': `token ${GITHUB_TOKEN}` } });
-    await fetch(`https://api.github.com/repos/${GITHUB_REPO}/git/refs/tags/top5releases_generat`,
-        { method: 'DELETE', headers: { 'Authorization': `token ${GITHUB_TOKEN}` } });
-    mostrarStatus('✅ Release esborrat!', 'ok');
-}
-</script>
-</body>
-</html>
+def partir_nom(nom, max_chars=22):
+    if len(nom) <= max_chars:
+        return nom, ""
+    idx = nom.rfind(' ', 0, max_chars)
+    if idx == -1:
+        idx = max_chars
+    return nom[:idx].strip(), nom[idx:].strip()
+
+
+TRACKS_RAW = os.environ.get('TRACKS', '')
+print("Carregant tracks rebuts...")
+tracks = json.loads(TRACKS_RAW)
+for t in tracks:
+    if t.get('timestamp_manual') not in (None, '', 0):
+        t['timestamp_manual'] = float(t['timestamp_manual'])
+    else:
+        t['timestamp_manual'] = None
+
+if not tracks:
+    print("ERROR: No s'han trobat tracks")
+    exit(1)
+
+print(f"\nTracks ({len(tracks)}):")
+for t in tracks:
+    print(f"  #{t['pos']}: {t['nom']} - {t['artista']}" + (" [imatge del link general]" if t.get('visual_general') else ""))
+
+print("\nObtenint token de Spotify...")
+spotify_token = get_spotify_token()
+print("Token OK" if spotify_token else "Sense token Spotify")
+
+if GENERE == 'hard':
+    titol_l1 = "TOP 5 HARD"
+else:
+    titol_l1 = "TOP 5 EDM"
+titol_l2 = "RELEASES THIS WEEK"
+subtitol_setmana = SETMANA_TEXT if SETMANA_TEXT else "NEW THIS WEEK"
+
+offsets_fons = {}
+if FONS_URL:
+    print(f"\nLink general de reserva (nomes visual): {FONS_URL}")
+    durada_fons_total = get_durada_video_remot(FONS_URL)
+    if durada_fons_total:
+        print(f"   Durada total: {int(durada_fons_total//60):02d}:{int(durada_fons_total%60):02d}")
+        n = len(tracks)
+        usable_inici = MARGE_FONS
+        usable_fi = max(MARGE_FONS, durada_fons_total - MARGE_FONS)
+        usable = max(0, usable_fi - usable_inici)
+        if usable <= 0:
+            usable_inici = 0
+            usable = durada_fons_total
+        bucket = usable / n
+        for i, track in enumerate(sorted(tracks, key=lambda t: t['pos'])):
+            durada_track = DURADA_TOP1 if track['pos'] == 1 else DURADA_CLIP
+            marge_bucket = max(0, bucket - durada_track)
+            inici_bucket = usable_inici + i * bucket
+            offset = inici_bucket + random.uniform(0, marge_bucket)
+            offsets_fons[track['pos']] = max(0, min(offset, durada_fons_total - durada_track - 0.5))
+    else:
+        print(f"   AVIS: no s'ha pogut consultar la durada, es descarta el link general")
+        FONS_URL = ''
+
+max_pos = max(t['pos'] for t in tracks)
+if PROVA_FOLLOW_MIG:
+    print("\nPROVA ACTIVA: logo a baix + Follow/Thanks a la meitat del video")
+elif STICKER_ACTIU:
+    print(f"\nStickers Follow/Thanks actius, apareixeran al primer clip (#{max_pos})")
+
+clips_paths = []
+
+for track in tracks:
+    pos              = track['pos']
+    nom              = track['nom']
+    artista          = track.get('artista', '')
+    yt_url           = track.get('yt_url')
+    timestamp_manual = track.get('timestamp_manual')
+    nom_manual       = track.get('nom_manual')
+    visual_general   = track.get('visual_general', False)
+    cover_manual     = track.get('cover_manual')
+    cover_none       = track.get('cover_none', False)
+
+    es_ultim  = (pos == 1)
+    es_primer = (pos == max_pos)
+    durada = DURADA_TOP1 if es_ultim else DURADA_CLIP
+
+    print(f"\nClip #{pos}: {nom} - {artista}")
+
+    video_path = os.path.expanduser(f"~/videos/{pos:02d}.mp4")
+    audio_path = os.path.expanduser(f"~/videos/{pos:02d}.wav")
+    thumb_path = os.path.expanduser(f"~/videos/{pos:02d}_thumb.jpg")
+    fons_path  = os.path.expanduser(f"~/videos/{pos:02d}_fons.mp4")
+    os.makedirs(os.path.expanduser("~/videos"), exist_ok=True)
+
+    # ---------- PORTADA (ordre fix: Spotify tema -> artista -> YouTube propi) ----------
+    if cover_manual and cover_manual.startswith('http'):
+        try:
+            cover_data = requests.get(cover_manual, timeout=30).content
+            if cover_data and len(cover_data) > 500:
+                with open(thumb_path, 'wb') as f:
+                    f.write(cover_data)
+                print(f"   Portada manual OK ({cover_manual})")
+        except Exception as e:
+            print(f"   ERROR descarregant portada manual: {e}")
+    elif cover_manual and os.path.exists(cover_manual) and os.path.getsize(cover_manual) > 1000:
+        shutil.copy(cover_manual, thumb_path)
+        print(f"   Portada manual OK ({cover_manual})")
+    elif not cover_none:
+        if spotify_token:
+            cover_data = get_spotify_cover(nom, artista, spotify_token)
+            if cover_data:
+                with open(thumb_path, 'wb') as f:
+                    f.write(cover_data)
+                print(f"   Portada Spotify OK")
+        if (not os.path.exists(thumb_path) or os.path.getsize(thumb_path) < 1000) and spotify_token:
+            cover_data = get_spotify_artist_image(artista, spotify_token)
+            if cover_data:
+                with open(thumb_path, 'wb') as f:
+                    f.write(cover_data)
+                print(f"   Portada Spotify artista OK (fallback)")
+        if not os.path.exists(thumb_path) or os.path.getsize(thumb_path) < 1000:
+            cover_data = get_youtube_thumbnail(yt_url)
+            if cover_data:
+                with open(thumb_path, 'wb') as f:
+                    f.write(cover_data)
+                print(f"   Portada YouTube OK (fallback)")
+        if not os.path.exists(thumb_path) or os.path.getsize(thumb_path) < 1000:
+            print(f"   AVIS: cap portada trobada per aquest track")
+    else:
+        print(f"   Sense portada (marcat manualment)")
+
+    # ---------- CANCO (audio SEMPRE d'aqui, i visual per defecte tambe) ----------
+    if yt_url:
+        print(f"   URL manual: {yt_url}")
+        ret = os.system(f'yt-dlp -f "bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[ext=mp4]/best" --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{yt_url}" --no-playlist -q')
+    else:
+        font_cerca = f"ytsearch1:{artista} {nom} official audio"
+        print(f"   Cerca: {artista} {nom}")
+        ret = os.system(f'yt-dlp -f "bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[ext=mp4]/best" --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{font_cerca}" --no-playlist -q')
+
+    if ret != 0 or not os.path.exists(video_path) or os.path.getsize(video_path) < 10000:
+        print(f"   No s'ha trobat cap font d'audio - usant portada")
+        output_path = f"{OUTPUT}/clip_{pos:02d}.mp4"
+        if os.path.exists(thumb_path):
+            os.system(f'ffmpeg -loop 1 -i "{thumb_path}" -f lavfi -i anullsrc=r=44100:cl=stereo -t {durada} -vf "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,fps=30" {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 -shortest "{output_path}" -y -loglevel error')
+        else:
+            os.system(f'ffmpeg -f lavfi -i color=c=black:s=1080x1920:d={durada} -f lavfi -i anullsrc=r=44100:cl=stereo -t {durada} -r 30 {VIDEO_OPTS} -c:a aac -b:a 192k -ar 44100 -shortest "{output_path}" -y -loglevel error')
+        clips_paths.append((pos, output_path))
+        continue
+
+    r = subprocess.run(["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", "-show_streams", video_path], capture_output=True, text=True)
+    info = json.loads(r.stdout)
+    duracio_total = float(info['format']['duration'])
+    for s in info.get('streams', []):
+        if s.get('codec_type') == 'video':
+            print(f"   RESOLUCIO BAIXADA: {s.get('width')}x{s.get('height')}")
+            break
+
+    if timestamp_manual is not None:
+        inici = float(timestamp_manual)
+        print(f"   Timestamp manual: {int(inici//60):02d}:{int(inici%60):02d}")
+    else:
+        inici = 30.0
+    inici = max(0, min(inici, duracio_total - durada - 0.5))
+
+    # ---------- VISUAL: per defecte el mateix video de la canco; si es marca, tram del link general ----------
+    usar_fons_visual = False
+    if visual_general and FONS_URL and pos in offsets_fons:
+        offset_fons = offsets_fons[pos]
+        inici_baixada = max(0, offset_fons - PADDING_FONS)
+        durada_baixada = durada + 2 * PADDING_FONS
+        print(f"   Imatge del link general seleccionada ({int(offset_fons//60):02d}:{int(offset_fons%60):02d})")
+        ok_fons = baixar_tros_fons(FONS_URL, inici_baixada, durada_baixada, fons_path)
+        if ok_fons:
+            usar_fons_visual = True
+        else:
+            print(f"   AVIS: no s'ha pogut baixar el tram del link general, s'usa la imatge propia")
+
+    PORTADA_SRCS[pos] = ((fons_path, PADDING_FONS + 0.1 * durada, PADDING_FONS + 0.9 * durada) if usar_fons_visual
+                         else (video_path, inici + 0.1 * durada, inici + 0.9 * durada))
+
+    output_path = f"{OUTPUT}/clip_{pos:02d}.mp4"
+
+    nom = nom_manual if nom_manual else nom
+    nom_net = nom.replace("'", "").replace('"', '').replace(':', '-')
+    nom_linia1, nom_linia2 = partir_nom(nom_net, max_chars=22)
+    artista_net = artista.replace("'", "").replace('"', '').replace(':', '-')[:34]
+
+    n_total = len(tracks)
+    bar_progress = int(BAR_W * (n_total - pos + 1) / n_total)
+
+    txt = []
+    txt.append(f"drawbox=x=0:y=0:w=1080:h=440:color=black@0.24:t=fill")
+    txt.append(f"drawbox=x=0:y=1580:w=1080:h=340:color=black@0.18:t=fill")
+    txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol_l1}':fontsize=68:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
+    txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol_l2}':fontsize=68:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1B}")
+    txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{subtitol_setmana}':fontsize=32:fontcolor={COLOR_ACCENT}:borderw=2:bordercolor=black@0.6:x=(w-text_w)/2:y={Y_TITOL2}")
+    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='#{pos}':fontsize=130:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=3:x={X_INFO}:y={Y_NUM}")
+    txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia1}':fontsize=56:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM1}")
+    if nom_linia2:
+        txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia2}':fontsize=56:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM2}")
+    txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='{artista_net}':fontsize=40:fontcolor=white@0.85:borderw=2:bordercolor=black@0.8:shadowx=0:shadowy=2:x={BAR_X}:y={Y_ARTISTA}")
+    txt.append(f"drawbox=x={BAR_X}:y={Y_BAR}:w={BAR_W}:h=5:color=white@0.15:t=fill")
+    txt.append(f"drawbox=x={BAR_X}:y={Y_BAR}:w={bar_progress}:h=5:color={COLOR_ACCENT}@0.9:t=fill")
+
+    if es_ultim:
+        compte_text = COMPTE.replace("'", "")
+        t_aparicio = durada - DURADA_OUTRO + 0.3
+        txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{compte_text}':fontsize=50:fontcolor=white@0.82:borderw=2:bordercolor=black@0.6:x=(w-text_w)/2:y={Y_OUTRO}:enable='gte(t,{t_aparicio})'")
+        txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='{SUBTITOL}':fontsize=30:fontcolor={COLOR_ACCENT}@0.70:borderw=1:bordercolor=black@0.5:x=(w-text_w)/2:y={Y_OUTRO2}:enable='gte(t,{t_aparicio})'")
+
+    txt_str = ",".join(txt)
+    has_thumb = os.path.exists(thumb_path) and os.path.getsize(thumb_path) > 1000
+
+    input_parts = [f'-ss {inici} -i "{video_path}"']
+    audio_idx = 0
+    visual_idx = 0
+    seguent_idx = 1
+
+    if usar_fons_visual:
+        offset_dins_tros = min(PADDING_FONS, offsets_fons[pos])
+        input_parts.append(f'-ss {offset_dins_tros:.2f} -i "{fons_path}"')
+        visual_idx = seguent_idx
+        seguent_idx += 1
+
+    thumb_idx = None
+    if has_thumb:
+        input_parts.append(f'-i "{thumb_path}"')
+        thumb_idx = seguent_idx
+        seguent_idx += 1
+
+    logo_idx = None
+    if LOGO_PER_CLIP:
+        input_parts.append(f'-i "{LOGO_PATH}"')
+        logo_idx = seguent_idx
+        seguent_idx += 1
+
+    sticker_follow_idx = None
+    sticker_thanks_idx = None
+    if es_primer and STICKER_PER_CLIP:
+        input_parts.append(f'-loop 1 -i "{STICKER_FOLLOW_PATH}"')
+        sticker_follow_idx = seguent_idx
+        seguent_idx += 1
+        input_parts.append(f'-loop 1 -i "{STICKER_THANKS_PATH}"')
+        sticker_thanks_idx = seguent_idx
+        seguent_idx += 1
+
+    inputs = " ".join(input_parts)
+
+    fc_parts = [
+        f"[{visual_idx}:v]scale=1080:1920:force_original_aspect_ratio=increase,"
+        f"crop=1080:1920:(iw-1080)/2:(ih-1920)/2[bg]"
+    ]
+    if has_thumb:
+        fc_parts.append(
+            f"[{thumb_idx}:v]scale={COVER_W}:{COVER_H}:force_original_aspect_ratio=decrease,"
+            f"pad={COVER_W}:{COVER_H}:(ow-iw)/2:(oh-ih)/2:color=black@0,setsar=1[cover]"
+        )
+        fc_parts.append(f"[bg][cover]overlay={COVER_X}:{COVER_Y}[withcover]")
+        fc_parts.append("[withcover]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored]")
+    else:
+        fc_parts.append("[bg]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored]")
+    fc_parts.append(f"[colored]{txt_str},setpts=PTS/{SPEED_FACTOR}[txted]")
+    fc_parts.append(f"[{audio_idx}:a]atempo={SPEED_FACTOR}[aout]")
+
+    if es_primer and STICKER_PER_CLIP:
+        fc_parts.append(
+            f"[{sticker_follow_idx}:v]scale={STICKER_W}:-1,format=rgba,"
+            f"fade=t=in:st=2.0:d=0.3:alpha=1,fade=t=out:st=3.8:d=0.3:alpha=1[stfollow]"
+        )
+        fc_parts.append(
+            f"[{sticker_thanks_idx}:v]scale={STICKER_W}:-1,format=rgba,"
+            f"fade=t=in:st=3.8:d=0.3:alpha=1,fade=t=out:st=5.3:d=0.3:alpha=1[stthanks]"
+        )
+        fc_parts.append(f"[txted][stfollow]overlay=(W-w)/2:{STICKER_Y}:enable='between(t,2.0,4.1)'[stk1]")
+        fc_parts.append(f"[stk1][stthanks]overlay=(W-w)/2:{STICKER_Y}:enable='between(t,3.8,5.6)'[out]")
+    else:
+        fc_parts.append("[txted]copy[out]")
+
+    if LOGO_PER_CLIP:
+        fc_parts.append(f"[{logo_idx}:v]scale={LOGO_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo]")
+        fc_parts.append(f"[out][logo]overlay=W-w-{LOGO_MARGIN}:{LOGO_MARGIN}[final]")
+        mapa_final = "[final]"
+    else:
+        mapa_final = "[out]"
+
+    fc = ";".join(fc_parts)
+    cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map "[aout]" {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
+
+    result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+    mida = os.path.getsize(output_path) if os.path.exists(output_path) else 0
+    if mida > 1000:
+        print(f"   OK clip generat ({mida//1024} KB)")
+    else:
+        print(f"   ERROR: clip #{pos} no generat correctament (mida={mida})")
+        print(f"   FFMPEG STDERR: {result.stderr[-1500:]}")
+    clips_paths.append((pos, output_path))
+
+clips_paths.sort(key=lambda x: x[0], reverse=True)
+clips_valids = []
+for pos, path in clips_paths:
+    if os.path.exists(path) and os.path.getsize(path) > 1000:
+        clips_valids.append(path)
+    else:
+        print(f"   Clip #{pos} descartat: {path}")
+
+if len(clips_valids) < 2:
+    print("ERROR: No hi ha prou clips valids")
+    exit(1)
+
+print(f"\nMuntant video final amb {len(clips_valids)} clips...")
+durades = []
+for path in clips_valids:
+    r = subprocess.run(["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", path], capture_output=True, text=True)
+    durades.append(float(json.loads(r.stdout)['format']['duration']))
+
+n_clips = len(clips_valids)
+inputs_str = " ".join([f"-i '{p}'" for p in clips_valids])
+video_filters = []
+audio_filters = []
+offset = durades[0] - FADE_DURADA
+
+if n_clips == 2:
+    video_filters.append(f"[0:v][1:v]xfade=transition=fade:duration={FADE_DURADA}:offset={offset}[vfinal]")
+    audio_filters.append(f"[0:a][1:a]acrossfade=d={FADE_DURADA}[afinal]")
+else:
+    video_filters.append(f"[0:v][1:v]xfade=transition=fade:duration={FADE_DURADA}:offset={offset}[v01]")
+    audio_filters.append(f"[0:a][1:a]acrossfade=d={FADE_DURADA}[a01]")
+    for i in range(2, n_clips):
+        prev_v = f"v0{i-1}"
+        prev_a = f"a0{i-1}"
+        out_v = f"v0{i}" if i < n_clips - 1 else "vfinal"
+        out_a = f"a0{i}" if i < n_clips - 1 else "afinal"
+        offset += durades[i-1] - FADE_DURADA
+        video_filters.append(f"[{prev_v}][{i}:v]xfade=transition=fade:duration={FADE_DURADA}:offset={offset:.3f}[{out_v}]")
+        audio_filters.append(f"[{prev_a}][{i}:a]acrossfade=d={FADE_DURADA}[{out_a}]")
+
+overlay_filters = []
+extra_inputs = ""
+limit_durada = ""
+mapa_video = "[vfinal]"
+durada_final = sum(durades) - FADE_DURADA * (n_clips - 1)
+
+if PROVA_FOLLOW_MIG and (LOGO_ACTIU or STICKER_ACTIU):
+    idx = n_clips
+    t0 = durada_final / 2                      # el Follow surt just a la meitat del video
+    actual = "[vfinal]"
+
+    # --- logo fix a baix, sempre visible ---
+    logo_top = LOGO_CENTRE_CY - 49             # valor per defecte si no es pot llegir el logo
+    if LOGO_ACTIU:
+        try:
+            from PIL import Image
+            lw, lh = Image.open(LOGO_PATH).size
+            logo_top = LOGO_CENTRE_CY - (LOGO_CENTRE_W * lh / lw) / 2
+        except Exception:
+            pass
+        extra_inputs += f' -loop 1 -framerate 30 -i "{LOGO_PATH}"'
+        logo_i = idx
+        idx += 1
+        overlay_filters.append(
+            f"[{logo_i}:v]scale={LOGO_CENTRE_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[lgone]")
+        overlay_filters.append(f"{actual}[lgone]overlay=(W-w)/2:{LOGO_CENTRE_CY}-h/2[vl2]")
+        actual = "[vl2]"
+
+    # --- boto FOLLOW (i despres THANKS) just a sobre del logo, sense l'emblema del sticker ---
+    if STICKER_ACTIU:
+        y0f, y1f, asp_f = mesurar_cta(STICKER_FOLLOW_PATH, DEF_FOLLOW)
+        y0t, y1t, asp_t = mesurar_cta(STICKER_THANKS_PATH, DEF_THANKS)
+        alt_boto = (y1f - y0f) * FOLLOW_W * asp_f              # alcada visible del boto Follow, en pixels
+        sy = round(logo_top - FOLLOW_GAP - alt_boto)           # el Thanks va a la mateixa alcada
+        print(f"   Follow mig: boto de {FOLLOW_W}px just sobre el logo (y={sy}), apareix a {t0:.1f}s de {durada_final:.1f}s")
+        extra_inputs += f' -loop 1 -framerate 30 -i "{STICKER_FOLLOW_PATH}"'
+        follow_i = idx
+        idx += 1
+        overlay_filters.append(
+            f"[{follow_i}:v]scale={FOLLOW_W}:-1,format=rgba,crop=iw:ih*{y1f - y0f:.5f}:0:ih*{y0f:.5f},"
+            f"fade=t=in:st={t0:.3f}:d={CTA_FADE}:alpha=1,"
+            f"fade=t=out:st={t0 + FOLLOW_DURADA - CTA_FADE:.3f}:d={CTA_FADE}:alpha=1[stf]")
+        etiqueta = "[vl3]" if THANKS_MIG else "[vout]"
+        overlay_filters.append(
+            f"{actual}[stf]overlay=(W-w)/2:{sy}:enable='between(t,{t0:.3f},{t0 + FOLLOW_DURADA:.3f})'{etiqueta}")
+        actual = etiqueta
+        if THANKS_MIG:
+            t_th = t0 + FOLLOW_DURADA - CTA_FADE
+            extra_inputs += f' -loop 1 -framerate 30 -i "{STICKER_THANKS_PATH}"'
+            thanks_i = idx
+            idx += 1
+            overlay_filters.append(
+                f"[{thanks_i}:v]scale={FOLLOW_W}:-1,format=rgba,crop=iw:ih*{y1t - y0t:.5f}:0:ih*{y0t:.5f},"
+                f"fade=t=in:st={t_th:.3f}:d={CTA_FADE}:alpha=1,"
+                f"fade=t=out:st={t_th + THANKS_DURADA - CTA_FADE:.3f}:d={CTA_FADE}:alpha=1[stt]")
+            overlay_filters.append(
+                f"{actual}[stt]overlay=(W-w)/2:{sy}:enable='between(t,{t_th:.3f},{t_th + THANKS_DURADA:.3f})'[vout]")
+            actual = "[vout]"
+    else:
+        overlay_filters.append(f"{actual}copy[vout]")
+        actual = "[vout]"
+    mapa_video = "[vout]"
+    limit_durada = f"-t {durada_final + 0.05:.3f}"
+
+filter_complex = ";".join(video_filters + overlay_filters + audio_filters)
+output_final = f"{OUTPUT}/top5releases_final.mp4"
+cmd = f'ffmpeg {inputs_str}{extra_inputs} -filter_complex "{filter_complex}" -map "{mapa_video}" -map "[afinal]" {VIDEO_OPTS} -c:a aac -b:a 192k {limit_durada} "{output_final}" -y -loglevel error'
+ret_final = os.system(cmd)
+if ret_final != 0 or not os.path.exists(output_final) or os.path.getsize(output_final) < 10000:
+    print(f"ERROR: muntatge final ha fallat (codi {ret_final})")
+else:
+    r = subprocess.run(["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", output_final], capture_output=True, text=True)
+    durada_total = float(json.loads(r.stdout)['format']['duration'])
+    print(f"Video final generat! Durada: {durada_total:.1f}s amb {n_clips} clips")
+
+# ---------------- portada de TikTok (extra; si falla, el video ja esta fet) ----------------
+try:
+    _src = PORTADA_SRCS.get(1) or (PORTADA_SRCS[min(PORTADA_SRCS)] if PORTADA_SRCS else None)
+    if _src and os.path.exists(output_final):
+        print("\nGenerant la portada...")
+        _k, _t, _s = subtitol_setmana, f"{titol_l1} {titol_l2}", ""
+        genera_portada(video=_src[0], t_ini=_src[1], t_fi=_src[2], kicker=_k, titol=_t, subtitol=_s,
+                       sortida=f"{OUTPUT}/top5releases_portada.png")
+    else:
+        print("\nPortada: no hi ha cap video d'on treure el fotograma")
+except Exception as _e:
+    print(f"AVIS: portada no generada ({type(_e).__name__}: {_e})")
