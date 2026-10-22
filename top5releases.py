@@ -1,4 +1,13 @@
 import os, json, re, subprocess, base64, shutil, random
+try:
+    from portada import genera_portada, separa_titol_event
+except Exception as _e:      # si falta portada.py al repo, el video es fa igualment sense portada
+    print(f"AVIS: no es pot carregar portada.py ({_e}); no es generara la portada")
+    def genera_portada(*a, **k):
+        return None
+    def separa_titol_event(t):
+        return (t, "")
+PORTADA_SRCS = {}            # pos -> (video, t_ini, t_fi): d'on es treu el fotograma de la portada
 import requests
 
 OUTPUT = os.path.expanduser("~/output")
@@ -70,8 +79,17 @@ def trobar_fitxer_sense_distingir_majuscules(nom_base):
             return f
     return None
 
-STICKER_FOLLOW_PATH = trobar_fitxer_sense_distingir_majuscules("sticker_follow.png") or "sticker_follow.png"
-STICKER_THANKS_PATH = trobar_fitxer_sense_distingir_majuscules("sticker_thanks.png") or "sticker_thanks.png"
+# Aquest format fa servir "PLAYLIST IN BIO!" (primer) i "SAVE PLAYLIST" (despres) en lloc del Follow/Thanks.
+# Si falta algun dels dos fitxers nous, es fan servir els Follow/Thanks de sempre.
+_PL_PLAYLIST = trobar_fitxer_sense_distingir_majuscules("sticker_playlist.png")
+_PL_SAVE     = trobar_fitxer_sense_distingir_majuscules("sticker_save.png")
+if _PL_PLAYLIST and _PL_SAVE:
+    STICKER_FOLLOW_PATH, STICKER_THANKS_PATH = _PL_PLAYLIST, _PL_SAVE
+    print("Stickers: Playlist in bio + Save playlist")
+else:
+    STICKER_FOLLOW_PATH = trobar_fitxer_sense_distingir_majuscules("sticker_follow.png") or "sticker_follow.png"
+    STICKER_THANKS_PATH = trobar_fitxer_sense_distingir_majuscules("sticker_thanks.png") or "sticker_thanks.png"
+    print("Stickers: Follow + Thanks (no trobo sticker_playlist.png / sticker_save.png)")
 STICKER_ACTIU = os.path.exists(STICKER_FOLLOW_PATH) and os.path.exists(STICKER_THANKS_PATH)
 STICKER_W = 220
 STICKER_Y = 1180
@@ -103,6 +121,8 @@ def mesurar_cta(path, per_defecte):
         from PIL import Image
         alfa = Image.open(path).convert('RGBA').getchannel('A')
         w, h = alfa.size
+        if os.path.basename(path).lower().startswith(('sticker_playlist', 'sticker_save')):
+            return 0.0, 1.0, h / w              # ja venen retallats nomes amb el boto: s'usen sencers
         dades = alfa.tobytes()
         files = [dades[y * w:(y + 1) * w] for y in range(h)]
         visibles = [y for y in range(h) if max(files[y]) > 20]
@@ -375,6 +395,9 @@ for track in tracks:
         else:
             print(f"   AVIS: no s'ha pogut baixar el tram del link general, s'usa la imatge propia")
 
+    PORTADA_SRCS[pos] = ((fons_path, PADDING_FONS + 0.1 * durada, PADDING_FONS + 0.9 * durada) if usar_fons_visual
+                         else (video_path, inici + 0.1 * durada, inici + 0.9 * durada))
+
     output_path = f"{OUTPUT}/clip_{pos:02d}.mp4"
 
     nom = nom_manual if nom_manual else nom
@@ -605,3 +628,16 @@ else:
     r = subprocess.run(["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", output_final], capture_output=True, text=True)
     durada_total = float(json.loads(r.stdout)['format']['duration'])
     print(f"Video final generat! Durada: {durada_total:.1f}s amb {n_clips} clips")
+
+# ---------------- portada de TikTok (extra; si falla, el video ja esta fet) ----------------
+try:
+    _src = PORTADA_SRCS.get(1) or (PORTADA_SRCS[min(PORTADA_SRCS)] if PORTADA_SRCS else None)
+    if _src and os.path.exists(output_final):
+        print("\nGenerant la portada...")
+        _k, _t, _s = subtitol_setmana, f"{titol_l1} {titol_l2}", ""
+        genera_portada(video=_src[0], t_ini=_src[1], t_fi=_src[2], kicker=_k, titol=_t, subtitol=_s,
+                       sortida=f"{OUTPUT}/top5releases_portada.png")
+    else:
+        print("\nPortada: no hi ha cap video d'on treure el fotograma")
+except Exception as _e:
+    print(f"AVIS: portada no generada ({type(_e).__name__}: {_e})")
