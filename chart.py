@@ -1,4 +1,4 @@
-import os, json, re, subprocess, base64
+import os, json, re, subprocess, base64, shutil, time
 import librosa, numpy as np
 from scipy.signal import find_peaks, butter, filtfilt
 import requests
@@ -20,9 +20,9 @@ for font_path in [FONT_BEBAS, FONT_SEMIBOLD, FONT_EXTRABOLD, FONT_MEDIUM]:
         elif font_path == FONT_EXTRABOLD: FONT_EXTRABOLD = FONT_FALLBACK
         elif font_path == FONT_MEDIUM: FONT_MEDIUM = FONT_FALLBACK
 
-SETMANA           = os.environ.get('SETMANA', '')
-SETMANA_TEXT_ENV  = os.environ.get('SETMANA_TEXT', '')
 ESTIL             = os.environ.get('ESTIL', 'energetic')
+SETMANA_TEXT_ENV  = os.environ.get('SETMANA_TEXT', '')
+GENERE            = os.environ.get('GENERE', 'electronica')
 SPOTIFY_CLIENT_ID = os.environ.get('SPOTIFY_CLIENT_ID', '')
 SPOTIFY_SECRET    = os.environ.get('SPOTIFY_CLIENT_SECRET', '')
 COMPTE            = "@onedayonevibe"
@@ -32,35 +32,188 @@ DURADA_TOP1       = 12
 DURADA_OUTRO      = 2.0
 FADE_DURADA       = 0.3
 
-COLOR_UP   = "0x1DB954"
-COLOR_DOWN = "0xFF4444"
-COLOR_NEW  = "0xFFD700"
-COLOR_SAME = "0x999999"
+VIDEO_OPTS = "-c:v libx264 -preset slow -crf 18 -pix_fmt yuv420p"
 
-COVER_W  = 280
-COVER_H  = 280
-COVER_X  = 90
-COVER_Y  = 470
-X_INFO   = 410
-Y_NUM    = 470
-Y_NOM1   = 610
-Y_NOM2   = 680
-Y_TITOL1 = 180
+SPEED_FACTOR = 1.03   # acceleracio subtil audio+video. 1.0 = desactivat
+
+COLOR_ACCENT = "0x00BFFF"
 
 LOGO_PATH    = "logo.png"
 LOGO_W       = 90
 LOGO_OPACITY = 0.85
 LOGO_MARGIN  = 30
 LOGO_ACTIU   = os.path.exists(LOGO_PATH)
-Y_TITOL2 = 258
-Y_SETMANA = 318
-Y_MOV    = 800
-Y_STATS  = 880
-Y_BAR    = 1010
+
+def trobar_fitxer_sense_distingir_majuscules(nom_base):
+    for f in os.listdir('.'):
+        if f.lower() == nom_base.lower():
+            return f
+    return None
+
+# Aquest format fa servir "PLAYLIST IN BIO!" (primer) i "SAVE PLAYLIST" (despres) en lloc del Follow/Thanks.
+# Fitxers a l'arrel del repo: sticker_playlist.png i sticker_save.png (valen les imatges originals, amb emblema i tot:
+# el programa treu l'emblema i deixa nomes el boto). Si en falta algun, es fan servir Follow/Thanks.
+def assegura_pillow():
+    """Si Pillow no esta instal.lat (el workflow no el demana), l'instal.la en aquest moment."""
+    try:
+        import PIL  # noqa
+        return True
+    except ImportError:
+        import sys as _sys
+        for extra in ([], ['--break-system-packages']):
+            r = subprocess.run([_sys.executable, '-m', 'pip', 'install', '-q', 'pillow'] + extra, capture_output=True, text=True)
+            if r.returncode == 0:
+                print("   Pillow instal.lat")
+                return True
+        print("   AVIS: no s'ha pogut instal.lar Pillow")
+        return False
+
+assegura_pillow()
+
+def preparar_botons(p1, p2):
+    """Deixa les dues imatges amb el mateix llenc, sense l'emblema de dalt i amb el boto alineat.
+    Torna (ruta1, ruta2) o None si no es pot."""
+    try:
+        from PIL import Image
+        dades = []
+        for path in (p1, p2):
+            im = Image.open(path).convert('RGBA')
+            w, h = im.size
+            px = im.getchannel('A').load()
+            xs = range(int(w * 0.25), int(w * 0.75), 3)
+            solid = [all(px[x, y] > 20 for x in xs) for y in range(h)]      # files on el boto es opac de punta a punta
+            runs, ini = [], None
+            for y, v in enumerate(solid + [False]):
+                if v and ini is None:
+                    ini = y
+                if not v and ini is not None:
+                    runs.append((ini, y - 1)); ini = None
+            if not runs:
+                return None
+            top, bot = max(runs, key=lambda r: r[1] - r[0])                 # el tros opac mes alt = el boto
+            clar = Image.new('RGBA', (int(w * 0.40), top), (0, 0, 0, 0))
+            im.paste(clar, (int(w * 0.30), 0))                                # esborra l'emblema que hi ha per sobre
+            bb = im.getchannel('A').point(lambda v: 255 if v > 20 else 0).getbbox()
+            dades.append((im, bb, (top + bot) / 2))
+        amp = max(d[1][2] - d[1][0] for d in dades) + 4
+        amunt = max(d[2] - d[1][1] for d in dades) + 2
+        avall = max(d[1][3] - d[2] for d in dades) + 2
+        sortides = []
+        for i, (im, bb, cy) in enumerate(dades):
+            llenc = Image.new('RGBA', (amp, int(amunt + avall)), (0, 0, 0, 0))
+            tros = im.crop(bb)
+            llenc.alpha_composite(tros, ((amp - tros.size[0]) // 2, int(amunt - (cy - bb[1]))))
+            os.makedirs(os.path.expanduser("~/videos"), exist_ok=True)
+            ruta = os.path.expanduser(f"~/videos/boto_playlist_{i + 1}.png")
+            llenc.save(ruta)
+            sortides.append(ruta)
+        print(f"   Botons preparats: {amp}x{int(amunt + avall)} px")
+        return tuple(sortides)
+    except Exception as e:
+        print(f"   AVIS: no s'han pogut preparar els botons ({type(e).__name__}: {e})")
+        return None
+
+def trobar_sticker_tolerant(prefix):
+    """Busca 'sticker_playlist...' sense distingir majuscules i amb qualsevol extensio .png/.PNG (tambe 'x.png.PNG').
+    Mira primer a l'arrel del repo i, si no hi es, dins de qualsevol carpeta."""
+    def valid(f):
+        return f.lower().startswith(prefix) and '.png' in f.lower()
+    cands = [f for f in os.listdir('.') if valid(f)]
+    cands.sort(key=lambda n: (len(n), n))
+    if cands:
+        return cands[0]
+    for arrel, dirs, fitxers in os.walk('.'):
+        dirs[:] = [d for d in dirs if not d.startswith('.')]
+        for f in sorted(fitxers, key=lambda n: (len(n), n)):
+            if valid(f):
+                return os.path.join(arrel, f)
+    return None
+
+_PL_PLAYLIST = trobar_sticker_tolerant("sticker_playlist")
+_PL_SAVE     = trobar_sticker_tolerant("sticker_save")
+print(f"Stickers nous trobats: playlist={_PL_PLAYLIST}, save={_PL_SAVE}")
+if not (_PL_PLAYLIST and _PL_SAVE):
+    _pngs = []
+    for _arrel, _dirs, _fitxers in os.walk('.'):
+        _dirs[:] = [d for d in _dirs if not d.startswith('.')]
+        _pngs += [os.path.join(_arrel, f) for f in _fitxers if f.lower().endswith('.png')]
+    print("   PNG que hi ha al repo: " + ", ".join(sorted(_pngs)))
+_PL_PREP     = preparar_botons(_PL_PLAYLIST, _PL_SAVE) if (_PL_PLAYLIST and _PL_SAVE) else None
+if _PL_PREP:
+    STICKER_FOLLOW_PATH, STICKER_THANKS_PATH = _PL_PREP
+    print("Stickers: Playlist in bio + Save playlist (v3)")
+else:
+    STICKER_FOLLOW_PATH = trobar_fitxer_sense_distingir_majuscules("sticker_follow.png") or "sticker_follow.png"
+    STICKER_THANKS_PATH = trobar_fitxer_sense_distingir_majuscules("sticker_thanks.png") or "sticker_thanks.png"
+    print("Stickers: Follow + Thanks (no trobo sticker_playlist.png / sticker_save.png)")
+STICKER_ACTIU = os.path.exists(STICKER_FOLLOW_PATH) and os.path.exists(STICKER_THANKS_PATH)
+STICKER_W = 220
+STICKER_Y = 1180
+
+# ---------- PROVA: logo fix a baix + boto FOLLOW a la meitat del video (igual que chart2) ----------
+# True  = el logo surt sempre a baix, just sobre del @compte del final. A la meitat del video apareix el
+#         boto FOLLOW (gran) just a sobre del logo, i despres el Thanks.
+# False = comportament anterior (logo a la cantonada + Follow/Thanks al principi).
+PROVA_FOLLOW_MIG = True
+LOGO_CENTRE_W    = 120    # amplada del logo
+LOGO_CENTRE_CY   = 1488   # centre vertical del logo: a baix, just sobre del @compte del final (y=1560)
+FOLLOW_W         = 437    # amplada total del sticker (el boto visible en fa ~77%)
+FOLLOW_GAP       = 14     # separacio entre el boto i el logo
+THANKS_MIG       = True   # despres del Follow, mostrar el Thanks
+FOLLOW_DURADA    = 3.2   # "Playlist in bio" (abans 2.1)
+THANKS_DURADA    = 2.4   # "Save playlist" (abans 1.8)
+CTA_FADE         = 0.3
+LOGO_PER_CLIP    = LOGO_ACTIU and not PROVA_FOLLOW_MIG
+STICKER_PER_CLIP = STICKER_ACTIU and not PROVA_FOLLOW_MIG
+# valors per defecte (stickers de 1215x1295) per si no es pot llegir la imatge
+DEF_FOLLOW = (0.47413, 0.78764, 1295 / 1215)
+DEF_THANKS = (0.49807, 0.70039, 1295 / 1215)
+
+def mesurar_cta(path, per_defecte):
+    """Prepara un sticker per quedar-nos nomes amb el boto, sense l'emblema de dalt.
+    Torna (y0, y1, aspect): primera fila despres de l'emblema, ultima fila visible (fraccions de l'alcada)
+    i alcada/amplada de la imatge. Si no es pot llegir (p. ex. sense Pillow), torna 'per_defecte'."""
+    try:
+        from PIL import Image
+        alfa = Image.open(path).convert('RGBA').getchannel('A')
+        w, h = alfa.size
+        if h / w < 0.8:                          # imatge molt ampla = ja es nomes el boto (sense emblema): s'usa sencera
+            return 0.0, 1.0, h / w
+        dades = alfa.tobytes()
+        files = [dades[y * w:(y + 1) * w] for y in range(h)]
+        visibles = [y for y in range(h) if max(files[y]) > 20]
+        c0, c1 = int(w * 0.40), int(w * 0.60)          # franja central, per on baixa l'emblema
+        y0 = None
+        for y in range(visibles[0], h):
+            if max(files[y][c0:c1]) <= 20:              # primera fila amb el centre buit: l'emblema ja ha acabat
+                y0 = y
+                break
+        if y0 is None or y0 >= visibles[-1]:
+            y0 = int(visibles[0] + 0.45 * (visibles[-1] - visibles[0]))
+        return y0 / h, (visibles[-1] + 1) / h, h / w
+    except Exception as e:
+        print(f"   AVIS: no s'ha pogut mesurar el sticker ({e}), uso mides per defecte")
+        return per_defecte
+
+
+COVER_W  = 280
+COVER_H  = 280
+COVER_X  = 90
+COVER_Y  = 500
+X_INFO   = 410
+Y_NUM    = 500
+Y_NOM1   = 640
+Y_NOM2   = 710
+Y_TITOL1  = 260
+Y_TITOL1B = 330
+Y_TITOL2  = 400
+Y_ARTISTA = 790
+Y_BAR    = 870
 BAR_X    = 90
 BAR_W    = 980
 Y_OUTRO  = 1560
 Y_OUTRO2 = 1618
+
 
 def get_spotify_token():
     try:
@@ -71,6 +224,7 @@ def get_spotify_token():
         return r.json().get('access_token')
     except:
         return None
+
 
 def get_spotify_cover(nom_canco, artista, token):
     try:
@@ -84,109 +238,23 @@ def get_spotify_cover(nom_canco, artista, token):
         pass
     return None
 
-def scrape_chart(setmana):
-    if setmana:
-        url = f"https://globaldancechart.com/charts/{setmana}/"
-    else:
-        url = "https://globaldancechart.com/charts/"
-    print(f"Scraping: {url}")
-    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
-    html = requests.get(url, headers=headers).text
 
-    net = re.sub(r'<[^>]+>', '\n', html)
-    net = re.sub(r'&amp;', '&', net)
-    net = re.sub(r'&#039;|&#39;', "'", net)
-    net = re.sub(r'&quot;', '"', net)
-    linies = [l.strip() for l in net.split('\n')]
-    linies = [l for l in linies if l]
+def get_youtube_thumbnail(yt_url):
+    if not yt_url:
+        return None
+    m = re.search(r'(?:v=|youtu\.be/|shorts/|embed/)([A-Za-z0-9_-]{11})', yt_url)
+    if not m:
+        return None
+    vid = m.group(1)
+    for qualitat in ['maxresdefault', 'hqdefault']:
+        try:
+            r = requests.get(f"https://img.youtube.com/vi/{vid}/{qualitat}.jpg", timeout=15)
+            if r.status_code == 200 and len(r.content) > 2000:
+                return r.content
+        except:
+            pass
+    return None
 
-    # Setmana: buscar patró "2026 Week 24 June 13" o "2026 Week 24"
-    setmana_text = ""
-    m_set = re.search(r'(\d{4})\s+Week\s+(\d+)\s+([A-Z][a-z]+\s+\d+)', net)
-    if m_set:
-        setmana_text = f"{m_set.group(1)} WEEK {m_set.group(2)} - {m_set.group(3).upper()}"
-    else:
-        m_set2 = re.search(r'(\d{4})\s+Week\s+(\d+)', net)
-        if m_set2:
-            setmana_text = f"{m_set2.group(1)} WEEK {m_set2.group(2)}"
-
-    tracks = []
-    i = 0
-    pos = 1
-    vistos = set()
-    while i < len(linies) and pos <= 10:
-        if linies[i].startswith('Last week:'):
-            lw_match = re.search(r'Last week:\s*([\d-]+)', linies[i])
-            last_week = lw_match.group(1).strip() if lw_match else '-'
-            peak = '-'
-            weeks = '-'
-            for k in range(i, min(i + 6, len(linies))):
-                pm = re.search(r'Peak position:\s*([\d-]+)', linies[k])
-                if pm:
-                    peak = pm.group(1).strip()
-                wm = re.search(r'Weeks on chart:\s*([\d-]+)', linies[k])
-                if wm:
-                    weeks = wm.group(1).strip()
-            candidates = []
-            j = i - 1
-            while j >= 0 and len(candidates) < 2:
-                l = linies[j]
-                if (l and not l.startswith('http') and not l.startswith('![')
-                    and not l.startswith('Last week') and not l.startswith('Peak position')
-                    and not l.startswith('Weeks on chart') and 'javascript' not in l
-                    and not re.match(r'^[\d\s.:\u2022\-]+$', l) and len(l) > 1):
-                    candidates.insert(0, l)
-                j -= 1
-            if len(candidates) >= 2:
-                nom = candidates[-2]
-                artista = candidates[-1]
-            elif len(candidates) == 1:
-                nom = candidates[0]
-                artista = ''
-            else:
-                i += 1
-                continue
-
-            key = (nom.lower(), artista.lower())
-            if key in vistos:
-                i += 1
-                continue
-            vistos.add(key)
-
-            bloc_fi = min(i + 40, len(linies))
-            for k in range(i + 1, min(i + 40, len(linies))):
-                if linies[k].startswith('Last week:'):
-                    bloc_fi = k
-                    break
-            yt_url = None
-            for k in range(max(0, i - 25), bloc_fi):
-                m = re.match(r'(https://www\.youtube\.com/watch\?v=[\w-]+|https://youtu\.be/[\w-]+)', linies[k])
-                if m:
-                    yt_url = m.group(1)
-                    break
-
-            tracks.append({'pos': pos, 'nom': nom, 'artista': artista,
-                           'last_week': last_week, 'peak': peak, 'weeks': weeks,
-                           'yt_url': yt_url})
-            pos += 1
-        i += 1
-
-    return tracks, setmana_text
-
-def calc_moviment(pos, last_week):
-    if last_week == '-' or last_week == '':
-        return 'NEW', COLOR_NEW, 'NEW'
-    try:
-        lw = int(last_week)
-    except:
-        return '=', COLOR_SAME, 'SAME'
-    diff = lw - pos
-    if diff > 0:
-        return f"+{diff}", COLOR_UP, 'UP'
-    elif diff < 0:
-        return f"{diff}", COLOR_DOWN, 'DOWN'
-    else:
-        return "=", COLOR_SAME, 'SAME'
 
 def partir_nom(nom, max_chars=22):
     if len(nom) <= max_chars:
@@ -195,6 +263,7 @@ def partir_nom(nom, max_chars=22):
     if idx == -1:
         idx = max_chars
     return nom[:idx].strip(), nom[idx:].strip()
+
 
 def trobar_moment_impactant(audio_path, duracio_total, estil='energetic'):
     try:
@@ -239,21 +308,16 @@ def trobar_moment_impactant(audio_path, duracio_total, estil='energetic'):
         print(f"   Error deteccio: {e}")
         return 30.0
 
-# Permetre llista manual via TRACKS, sino scraping
+
 TRACKS_RAW = os.environ.get('TRACKS', '')
-if TRACKS_RAW:
-    print("Carregant tracks rebuts (manual)...")
-    tracks = json.loads(TRACKS_RAW)
-    setmana_text = SETMANA_TEXT_ENV
-    for t in tracks:
-        if t.get('timestamp_manual') not in (None, '', 0):
-            t['timestamp_manual'] = float(t['timestamp_manual'])
-        else:
-            t['timestamp_manual'] = None
-else:
-    print("Scraping del chart...")
-    tracks, setmana_text = scrape_chart(SETMANA)
-    print(f"Setmana: {setmana_text}")
+print("Carregant tracks rebuts...")
+tracks = json.loads(TRACKS_RAW)
+setmana_text = SETMANA_TEXT_ENV
+for t in tracks:
+    if t.get('timestamp_manual') not in (None, '', 0):
+        t['timestamp_manual'] = float(t['timestamp_manual'])
+    else:
+        t['timestamp_manual'] = None
 
 if not tracks:
     print("ERROR: No s'han trobat tracks")
@@ -261,57 +325,137 @@ if not tracks:
 
 print(f"\nTracks ({len(tracks)}):")
 for t in tracks:
-    print(f"  #{t['pos']}: {t['nom']} - {t['artista']} (LW:{t['last_week']} Peak:{t.get('peak','-')} Wks:{t.get('weeks','-')}) YT:{'SI' if t.get('yt_url') else 'NO'}")
+    print(f"  #{t['pos']}: {t['nom']} - {t['artista']}")
 
 print("\nObtenint token de Spotify...")
 spotify_token = get_spotify_token()
 print("Token OK" if spotify_token else "Sense token Spotify")
 
+if GENERE == 'hardstyle':
+    titol_l1 = "THE #1 HARDSTYLE"
+    titol_l2 = "TRACK THIS WEEK"
+else:
+    titol_l1 = "THE #1 ELECTRONIC"
+    titol_l2 = "TRACK THIS WEEK"
+
 clips_paths = []
+
+max_pos = max(t['pos'] for t in tracks)
+if PROVA_FOLLOW_MIG:
+    print("\nPROVA ACTIVA: logo a baix + Follow/Thanks a la meitat del video")
+elif STICKER_ACTIU:
+    print(f"\nStickers Follow/Thanks actius, apareixeran al primer clip (#{max_pos})")
 
 for track in tracks:
     pos              = track['pos']
     nom              = track['nom']
     artista          = track.get('artista', '')
-    last_week        = track.get('last_week', '-')
-    peak             = track.get('peak', '-')
-    weeks            = track.get('weeks', '-')
     yt_url           = track.get('yt_url')
+    video_manual     = track.get('video_manual')
     timestamp_manual = track.get('timestamp_manual')
     nom_manual       = track.get('nom_manual')
     durada           = DURADA_TOP1 if pos == 1 else DURADA_CLIP
     es_ultim         = (pos == 1)
+    es_primer        = (pos == max_pos)
 
-    mov_text, mov_color, mov_tipus = calc_moviment(pos, last_week)
-    print(f"\nClip #{pos}: {nom} - {artista} [{mov_text}]")
+    print(f"\nClip #{pos}: {nom} - {artista}")
 
     video_path = os.path.expanduser(f"~/videos/{pos:02d}.mp4")
     audio_path = os.path.expanduser(f"~/videos/{pos:02d}.wav")
     thumb_path = os.path.expanduser(f"~/videos/{pos:02d}_thumb.jpg")
     os.makedirs(os.path.expanduser("~/videos"), exist_ok=True)
 
-    if spotify_token:
-        cover_data = get_spotify_cover(nom, artista, spotify_token)
-        if cover_data:
-            with open(thumb_path, 'wb') as f:
-                f.write(cover_data)
-            print(f"   Portada Spotify OK")
+    # ---------- PORTADA ----------
+    cover_manual = track.get('cover_manual')
+    cover_none   = track.get('cover_none', False)
 
-    if yt_url:
+    if cover_manual and cover_manual.startswith('http'):
+        try:
+            cover_data = requests.get(cover_manual, timeout=30).content
+            if cover_data and len(cover_data) > 500:
+                with open(thumb_path, 'wb') as f:
+                    f.write(cover_data)
+                print(f"   Portada manual OK ({cover_manual})")
+        except Exception as e:
+            print(f"   ERROR descarregant portada manual: {e}")
+    elif cover_manual and os.path.exists(cover_manual) and os.path.getsize(cover_manual) > 1000:
+        shutil.copy(cover_manual, thumb_path)
+        print(f"   Portada manual OK ({cover_manual})")
+    elif not cover_none:
+        cover_url = track.get('cover_url')
+        if cover_url:
+            try:
+                cover_data = requests.get(cover_url, timeout=15).content
+                if cover_data and len(cover_data) > 1000:
+                    with open(thumb_path, 'wb') as f:
+                        f.write(cover_data)
+                    print(f"   Portada directa OK")
+            except:
+                pass
+        if (not os.path.exists(thumb_path) or os.path.getsize(thumb_path) < 1000) and spotify_token:
+            cover_data = get_spotify_cover(nom, artista, spotify_token)
+            if cover_data:
+                with open(thumb_path, 'wb') as f:
+                    f.write(cover_data)
+                print(f"   Portada Spotify OK")
+        if not os.path.exists(thumb_path) or os.path.getsize(thumb_path) < 1000:
+            cover_data = get_youtube_thumbnail(yt_url)
+            if cover_data:
+                with open(thumb_path, 'wb') as f:
+                    f.write(cover_data)
+                print(f"   Portada YouTube OK (fallback)")
+            else:
+                print(f"   AVIS: cap portada trobada per aquest track")
+    else:
+        print(f"   Sense portada (marcat manualment)")
+
+    # ---------- VIDEO ----------
+    if video_manual:
+        print(f"   Video manual: {video_manual}")
+        if video_manual.startswith('http'):
+            ret = 1
+            try:
+                r = requests.get(video_manual, timeout=180, stream=True)
+                if r.status_code == 200:
+                    with open(video_path, 'wb') as f:
+                        for chunk in r.iter_content(chunk_size=1024 * 1024):
+                            if chunk:
+                                f.write(chunk)
+                    if os.path.getsize(video_path) > 10000:
+                        ret = 0
+                    else:
+                        print(f"   ERROR: video manual descarregat buit")
+                else:
+                    print(f"   ERROR descarregant video manual: HTTP {r.status_code}")
+            except Exception as e:
+                print(f"   ERROR descarregant video manual: {e}")
+        elif os.path.exists(video_manual) and os.path.getsize(video_manual) > 10000:
+            shutil.copy(video_manual, video_path)
+            ret = 0
+        else:
+            print(f"   ERROR: no s'ha trobat {video_manual}")
+            ret = 1
+    elif yt_url:
         font = yt_url
-        print(f"   URL chart: {yt_url}")
+        print(f"   URL manual: {yt_url}")
+        ret = os.system(f'yt-dlp -4 -f "bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[ext=mp4]/best" --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{font}" --no-playlist -q')
     else:
         font = f"ytsearch1:{artista} {nom} official video"
         print(f"   Cerca: {artista} {nom}")
-    ret = os.system(f'yt-dlp -f "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{font}" --no-playlist -q')
+        ret = os.system(f'yt-dlp -4 -f "bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[ext=mp4]/best" --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{font}" --no-playlist -q')
 
     if ret != 0 or not os.path.exists(video_path) or os.path.getsize(video_path) < 10000:
         print(f"   No s'ha trobat videoclip - usant portada")
         output_path = f"{OUTPUT}/clip_{pos:02d}.mp4"
         if os.path.exists(thumb_path):
-            os.system(f'ffmpeg -loop 1 -i "{thumb_path}" -f lavfi -i anullsrc=r=44100:cl=stereo -t {durada} -vf "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,fps=30" -c:v libx264 -r 30 -c:a aac -b:a 192k -ar 44100 -shortest "{output_path}" -y -loglevel error')
+            os.system(f'ffmpeg -loop 1 -i "{thumb_path}" -f lavfi -i anullsrc=r=44100:cl=stereo -t {durada} -vf "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,fps=30" {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 -shortest "{output_path}" -y -loglevel error')
         else:
-            os.system(f'ffmpeg -f lavfi -i color=c=black:s=1080x1920:d={durada} -f lavfi -i anullsrc=r=44100:cl=stereo -t {durada} -r 30 -c:v libx264 -c:a aac -b:a 192k -ar 44100 -shortest "{output_path}" -y -loglevel error')
+            os.system(f'ffmpeg -f lavfi -i color=c=black:s=1080x1920:d={durada} -f lavfi -i anullsrc=r=44100:cl=stereo -t {durada} -r 30 {VIDEO_OPTS} -c:a aac -b:a 192k -ar 44100 -shortest "{output_path}" -y -loglevel error')
+        mida = os.path.getsize(output_path) if os.path.exists(output_path) else 0
+        if mida > 1000:
+            print(f"   OK clip generat (fallback portada, {mida//1024} KB)")
+        else:
+            print(f"   ERROR: clip #{pos} no generat correctament (mida={mida})")
         clips_paths.append((pos, output_path))
         continue
 
@@ -331,103 +475,128 @@ for track in tracks:
     else:
         inici = trobar_moment_impactant(audio_path, duracio_total, ESTIL) if os.path.exists(audio_path) else 30.0
 
+    if inici + durada > duracio_total:
+        inici_original = inici
+        inici = max(0, duracio_total - durada - 0.5)
+        print(f"   AVIS: timestamp {int(inici_original//60):02d}:{int(inici_original%60):02d} + {durada}s superava la durada del video ({duracio_total:.1f}s). Ajustat a {int(inici//60):02d}:{int(inici%60):02d}")
+
     output_path = f"{OUTPUT}/clip_{pos:02d}.mp4"
-    titol1 = "GLOBAL DANCE CHART"
-    setmana_disp = setmana_text if setmana_text else "THIS WEEK"
+    setmana_disp = setmana_text if setmana_text else "TOP 10 OF THE WEEK"
 
     nom = nom_manual if nom_manual else nom
     nom_net = nom.replace("'", "").replace('"', '').replace(':', '-')
     nom_linia1, nom_linia2 = partir_nom(nom_net, max_chars=22)
-    artista_net = artista.replace("'", "").replace('"', '').replace(':', '-')[:30]
+    artista_net = artista.replace("'", "").replace('"', '').replace(':', '-')[:34]
 
     n_total = len(tracks)
     bar_progress = int(BAR_W * (n_total - pos + 1) / n_total)
 
-    if mov_tipus == 'NEW':
-        mov_label = "NEW ENTRY"
-    elif mov_tipus == 'UP':
-        mov_label = f"UP {mov_text}"
-    elif mov_tipus == 'DOWN':
-        mov_label = f"DOWN {mov_text.replace('-','')}"
-    else:
-        mov_label = "NO CHANGE"
-
     txt = []
-    txt.append(f"drawbox=x=0:y=0:w=1080:h=400:color=black@0.22:t=fill")
+    txt.append(f"drawbox=x=0:y=0:w=1080:h=440:color=black@0.24:t=fill")
     txt.append(f"drawbox=x=0:y=1580:w=1080:h=340:color=black@0.18:t=fill")
-    txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol1}':fontsize=75:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
-    txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{setmana_disp}':fontsize=34:fontcolor=0x00BFFF:borderw=2:bordercolor=black@0.6:x=(w-text_w)/2:y={Y_TITOL2}")
+    txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol_l1}':fontsize=68:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
+    txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol_l2}':fontsize=68:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1B}")
+    txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{setmana_disp}':fontsize=32:fontcolor={COLOR_ACCENT}:borderw=2:bordercolor=black@0.6:x=(w-text_w)/2:y={Y_TITOL2}")
     txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='#{pos}':fontsize=130:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=3:x={X_INFO}:y={Y_NUM}")
     txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia1}':fontsize=56:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM1}")
     if nom_linia2:
         txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia2}':fontsize=56:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM2}")
-        y_art = Y_NOM2 + 68
-    else:
-        y_art = Y_NOM2
-    if artista_net:
-        txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='{artista_net}':fontsize=36:fontcolor=white@0.80:borderw=2:bordercolor=black@0.7:x={X_INFO}:y={y_art}")
-    # Moviment amb color
-    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{mov_label}':fontsize=44:fontcolor={mov_color}:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=2:x={BAR_X}:y={Y_MOV}")
-    # 3 dades en columna: Last week / Peak / Weeks
-    txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='LAST WEEK\\: {last_week}':fontsize=34:fontcolor=white@0.85:borderw=2:bordercolor=black@0.8:x={BAR_X}:y={Y_STATS}")
-    txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='PEAK\\: {peak}':fontsize=34:fontcolor=white@0.85:borderw=2:bordercolor=black@0.8:x={BAR_X}:y={Y_STATS+44}")
-    txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='WEEKS ON CHART\\: {weeks}':fontsize=34:fontcolor=white@0.85:borderw=2:bordercolor=black@0.8:x={BAR_X}:y={Y_STATS+88}")
+    txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='{artista_net}':fontsize=40:fontcolor=white@0.85:borderw=2:bordercolor=black@0.8:shadowx=0:shadowy=2:x={BAR_X}:y={Y_ARTISTA}")
     txt.append(f"drawbox=x={BAR_X}:y={Y_BAR}:w={BAR_W}:h=5:color=white@0.15:t=fill")
-    txt.append(f"drawbox=x={BAR_X}:y={Y_BAR}:w={bar_progress}:h=5:color=0x00BFFF@0.9:t=fill")
+    txt.append(f"drawbox=x={BAR_X}:y={Y_BAR}:w={bar_progress}:h=5:color={COLOR_ACCENT}@0.9:t=fill")
 
     if es_ultim:
         compte_text = COMPTE.replace("'", "")
         t_aparicio = durada - DURADA_OUTRO + 0.3
         txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{compte_text}':fontsize=50:fontcolor=white@0.82:borderw=2:bordercolor=black@0.6:x=(w-text_w)/2:y={Y_OUTRO}:enable='gte(t,{t_aparicio})'")
-        txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='{SUBTITOL}':fontsize=30:fontcolor=0x00BFFF@0.70:borderw=1:bordercolor=black@0.5:x=(w-text_w)/2:y={Y_OUTRO2}:enable='gte(t,{t_aparicio})'")
+        txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='{SUBTITOL}':fontsize=30:fontcolor={COLOR_ACCENT}@0.70:borderw=1:bordercolor=black@0.5:x=(w-text_w)/2:y={Y_OUTRO2}:enable='gte(t,{t_aparicio})'")
 
     txt_str = ",".join(txt)
     has_thumb = os.path.exists(thumb_path) and os.path.getsize(thumb_path) > 1000
 
+    input_parts = [f'-ss {inici} -i "{video_path}"']
+    audio_idx = 0
+    seguent_idx = 1
+
+    thumb_idx = None
     if has_thumb:
-        fc = (
-            "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
-            "crop=1080:1920:(iw-1080)/2:(ih-1920)/2[bg];"
-            "[1:v]scale={cw}:{ch}:force_original_aspect_ratio=decrease,"
-            "pad={cw}:{ch}:(ow-iw)/2:(oh-ih)/2:color=black@0,setsar=1[cover];"
-            "[bg][cover]overlay={cx}:{cy}[withcover];"
-            "[withcover]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored];"
-            "[colored]{txt}[out]"
-        ).format(cw=COVER_W, ch=COVER_H, cx=COVER_X, cy=COVER_Y, txt=txt_str)
-        inputs = f'-ss {inici} -i "{video_path}" -i "{thumb_path}"'
-        if LOGO_ACTIU:
-            fc += f";[2:v]scale={LOGO_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo];[out][logo]overlay=W-w-{LOGO_MARGIN}:{LOGO_MARGIN}[final]"
-            inputs += f' -i "{LOGO_PATH}"'
-            mapa_final = "[final]"
-        else:
-            mapa_final = "[out]"
-        cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map 0:a -c:v libx264 -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
+        input_parts.append(f'-i "{thumb_path}"')
+        thumb_idx = seguent_idx
+        seguent_idx += 1
+
+    logo_idx = None
+    if LOGO_PER_CLIP:
+        input_parts.append(f'-i "{LOGO_PATH}"')
+        logo_idx = seguent_idx
+        seguent_idx += 1
+
+    sticker_follow_idx = None
+    sticker_thanks_idx = None
+    if es_primer and STICKER_PER_CLIP:
+        input_parts.append(f'-loop 1 -i "{STICKER_FOLLOW_PATH}"')
+        sticker_follow_idx = seguent_idx
+        seguent_idx += 1
+        input_parts.append(f'-loop 1 -i "{STICKER_THANKS_PATH}"')
+        sticker_thanks_idx = seguent_idx
+        seguent_idx += 1
+
+    inputs = " ".join(input_parts)
+
+    fc_parts = ["[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920:(iw-1080)/2:(ih-1920)/2[bg]"]
+    if has_thumb:
+        fc_parts.append(
+            f"[{thumb_idx}:v]scale={COVER_W}:{COVER_H}:force_original_aspect_ratio=decrease,"
+            f"pad={COVER_W}:{COVER_H}:(ow-iw)/2:(oh-ih)/2:color=black@0,setsar=1[cover]"
+        )
+        fc_parts.append(f"[bg][cover]overlay={COVER_X}:{COVER_Y}[withcover]")
+        fc_parts.append("[withcover]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored]")
     else:
-        fc = (
-            "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
-            "crop=1080:1920:(iw-1080)/2:(ih-1920)/2[bg];"
-            "[bg]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored];"
-            "[colored]{txt}[out]"
-        ).format(txt=txt_str)
-        inputs = f'-ss {inici} -i "{video_path}"'
-        if LOGO_ACTIU:
-            fc += f";[1:v]scale={LOGO_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo];[out][logo]overlay=W-w-{LOGO_MARGIN}:{LOGO_MARGIN}[final]"
-            inputs += f' -i "{LOGO_PATH}"'
-            mapa_final = "[final]"
-        else:
-            mapa_final = "[out]"
-        cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map 0:a -c:v libx264 -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
+        fc_parts.append("[bg]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored]")
+    fc_parts.append(f"[colored]{txt_str},setpts=PTS/{SPEED_FACTOR}[txted]")
+    fc_parts.append(f"[{audio_idx}:a]atempo={SPEED_FACTOR}[aout]")
 
-    os.system(cmd)
+    if es_primer and STICKER_PER_CLIP:
+        fc_parts.append(
+            f"[{sticker_follow_idx}:v]scale={STICKER_W}:-1,format=rgba,"
+            f"fade=t=in:st=2.0:d=0.3:alpha=1,fade=t=out:st=3.8:d=0.3:alpha=1[stfollow]"
+        )
+        fc_parts.append(
+            f"[{sticker_thanks_idx}:v]scale={STICKER_W}:-1,format=rgba,"
+            f"fade=t=in:st=3.8:d=0.3:alpha=1,fade=t=out:st=5.3:d=0.3:alpha=1[stthanks]"
+        )
+        fc_parts.append(f"[txted][stfollow]overlay=(W-w)/2:{STICKER_Y}:enable='between(t,2.0,4.1)'[stk1]")
+        fc_parts.append(f"[stk1][stthanks]overlay=(W-w)/2:{STICKER_Y}:enable='between(t,3.8,5.6)'[out]")
+    else:
+        fc_parts.append("[txted]copy[out]")
+
+    if LOGO_PER_CLIP:
+        fc_parts.append(f"[{logo_idx}:v]scale={LOGO_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo]")
+        fc_parts.append(f"[out][logo]overlay=W-w-{LOGO_MARGIN}:{LOGO_MARGIN}[final]")
+        mapa_final = "[final]"
+    else:
+        mapa_final = "[out]"
+
+    fc = ";".join(fc_parts)
+    cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map "[aout]" {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
+
+    result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+    mida = os.path.getsize(output_path) if os.path.exists(output_path) else 0
+    if mida > 1000:
+        print(f"   OK clip generat ({mida//1024} KB)")
+    else:
+        print(f"   ERROR: clip #{pos} no generat correctament (mida={mida})")
+        print(f"   FFMPEG STDERR: {result.stderr[-2000:]}")
     clips_paths.append((pos, output_path))
-    print(f"   OK clip generat")
+    time.sleep(4)  # pausa entre temes perque YouTube no vegi 10 peticions seguides des de la mateixa IP
 
-# Ordenar de #10 a #1 (clímax al #1 al final del vídeo)
+# ---------- MUNTATGE FINAL ----------
 clips_paths.sort(key=lambda x: x[0], reverse=True)
 clips_valids = []
 for pos, path in clips_paths:
     if os.path.exists(path) and os.path.getsize(path) > 1000:
         clips_valids.append(path)
+    else:
+        print(f"   Clip #{pos} descartat: {path}")
 
 if len(clips_valids) < 2:
     print("ERROR: No hi ha prou clips valids")
@@ -455,8 +624,77 @@ for i in range(2, n_clips):
     video_filters.append(f"[{prev_v}][{i}:v]xfade=transition=fade:duration={FADE_DURADA}:offset={offset:.3f}[{out_v}]")
     audio_filters.append(f"[{prev_a}][{i}:a]acrossfade=d={FADE_DURADA}[{out_a}]")
 
-filter_complex = ";".join(video_filters + audio_filters)
+overlay_filters = []
+extra_inputs = ""
+limit_durada = ""
+mapa_video = "[vfinal]"
+durada_final = sum(durades) - FADE_DURADA * (n_clips - 1)
+
+if PROVA_FOLLOW_MIG and (LOGO_ACTIU or STICKER_ACTIU):
+    idx = n_clips
+    t0 = durada_final / 2                      # el Follow surt just a la meitat del video
+    actual = "[vfinal]"
+
+    # --- logo fix a baix, sempre visible ---
+    logo_top = LOGO_CENTRE_CY - 49             # valor per defecte si no es pot llegir el logo
+    if LOGO_ACTIU:
+        try:
+            from PIL import Image
+            lw, lh = Image.open(LOGO_PATH).size
+            logo_top = LOGO_CENTRE_CY - (LOGO_CENTRE_W * lh / lw) / 2
+        except Exception:
+            pass
+        extra_inputs += f' -loop 1 -framerate 30 -i "{LOGO_PATH}"'
+        logo_i = idx
+        idx += 1
+        overlay_filters.append(
+            f"[{logo_i}:v]scale={LOGO_CENTRE_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[lgone]")
+        overlay_filters.append(f"{actual}[lgone]overlay=(W-w)/2:{LOGO_CENTRE_CY}-h/2[vl2]")
+        actual = "[vl2]"
+
+    # --- boto FOLLOW (i despres THANKS) just a sobre del logo, sense l'emblema del sticker ---
+    if STICKER_ACTIU:
+        y0f, y1f, asp_f = mesurar_cta(STICKER_FOLLOW_PATH, DEF_FOLLOW)
+        y0t, y1t, asp_t = mesurar_cta(STICKER_THANKS_PATH, DEF_THANKS)
+        alt_boto = (y1f - y0f) * FOLLOW_W * asp_f              # alcada visible del boto Follow, en pixels
+        sy = round(logo_top - FOLLOW_GAP - alt_boto)           # el Thanks va a la mateixa alcada
+        print(f"   Follow mig: boto de {FOLLOW_W}px just sobre el logo (y={sy}), apareix a {t0:.1f}s de {durada_final:.1f}s")
+        extra_inputs += f' -loop 1 -framerate 30 -i "{STICKER_FOLLOW_PATH}"'
+        follow_i = idx
+        idx += 1
+        overlay_filters.append(
+            f"[{follow_i}:v]scale={FOLLOW_W}:-1,format=rgba,crop=iw:ih*{y1f - y0f:.5f}:0:ih*{y0f:.5f},"
+            f"fade=t=in:st={t0:.3f}:d={CTA_FADE}:alpha=1,"
+            f"fade=t=out:st={t0 + FOLLOW_DURADA - CTA_FADE:.3f}:d={CTA_FADE}:alpha=1[stf]")
+        etiqueta = "[vl3]" if THANKS_MIG else "[vout]"
+        overlay_filters.append(
+            f"{actual}[stf]overlay=(W-w)/2:{sy}:enable='between(t,{t0:.3f},{t0 + FOLLOW_DURADA:.3f})'{etiqueta}")
+        actual = etiqueta
+        if THANKS_MIG:
+            t_th = t0 + FOLLOW_DURADA - CTA_FADE
+            extra_inputs += f' -loop 1 -framerate 30 -i "{STICKER_THANKS_PATH}"'
+            thanks_i = idx
+            idx += 1
+            overlay_filters.append(
+                f"[{thanks_i}:v]scale={FOLLOW_W}:-1,format=rgba,crop=iw:ih*{y1t - y0t:.5f}:0:ih*{y0t:.5f},"
+                f"fade=t=in:st={t_th:.3f}:d={CTA_FADE}:alpha=1,"
+                f"fade=t=out:st={t_th + THANKS_DURADA - CTA_FADE:.3f}:d={CTA_FADE}:alpha=1[stt]")
+            overlay_filters.append(
+                f"{actual}[stt]overlay=(W-w)/2:{sy}:enable='between(t,{t_th:.3f},{t_th + THANKS_DURADA:.3f})'[vout]")
+            actual = "[vout]"
+    else:
+        overlay_filters.append(f"{actual}copy[vout]")
+        actual = "[vout]"
+    mapa_video = "[vout]"
+    limit_durada = f"-t {durada_final + 0.05:.3f}"
+
+filter_complex = ";".join(video_filters + overlay_filters + audio_filters)
 output_final = f"{OUTPUT}/chart_final.mp4"
-cmd = f'ffmpeg {inputs_str} -filter_complex "{filter_complex}" -map "[vfinal]" -map "[afinal]" -c:v libx264 -c:a aac -b:a 192k "{output_final}" -y -loglevel error'
-os.system(cmd)
-print("Video final generat!")
+cmd = f'ffmpeg {inputs_str}{extra_inputs} -filter_complex "{filter_complex}" -map "{mapa_video}" -map "[afinal]" {VIDEO_OPTS} -c:a aac -b:a 192k {limit_durada} "{output_final}" -y -loglevel error'
+ret_final = os.system(cmd)
+if ret_final != 0 or not os.path.exists(output_final) or os.path.getsize(output_final) < 10000:
+    print(f"ERROR: muntatge final ha fallat (codi {ret_final})")
+else:
+    r = subprocess.run(["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", output_final], capture_output=True, text=True)
+    durada_total = float(json.loads(r.stdout)['format']['duration'])
+    print(f"Video final generat! Durada: {durada_total:.1f}s amb {n_clips} clips")
