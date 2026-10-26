@@ -2,6 +2,7 @@ import os, json, re
 import requests
 
 GENERE = os.environ.get('GENERE', 'electronica')
+TOTAL_TEMES = 15   # es carreguen 15 temes: els 10 primers (el chart) + 5 suplents per poder canviar-ne algun
 TIDAL_PLAYLIST_ID = "d57a8f2c-4158-44b7-aa7f-4ba4314c1ba8"  # 40 Biggest EDM/DANCE Hits Weekly
 
 def get_tidal_token():
@@ -44,7 +45,7 @@ def scrape_electronica_tidal():
     tracks = []
     pos = 1
     for ref in ordre_items:
-        if pos > 10:
+        if pos > TOTAL_TEMES:
             break
         track = inclosos.get((ref.get('type'), ref.get('id')))
         if not track:
@@ -95,7 +96,7 @@ def scrape_electronica():
     tracks = []
     vistos = set()
     i = 0
-    while i < len(linies) and len(tracks) < 10:
+    while i < len(linies) and len(tracks) < TOTAL_TEMES:
         m_pos = re.match(r'^#(\d+)$', linies[i])
         if m_pos:
             pos_num = int(m_pos.group(1))
@@ -104,7 +105,7 @@ def scrape_electronica():
                 nom = resta[0]
                 artista = resta[1]
                 key = (nom.lower(), artista.lower())
-                if key not in vistos and pos_num <= 10:
+                if key not in vistos and pos_num <= TOTAL_TEMES:
                     vistos.add(key)
                     tracks.append({
                         'pos': pos_num, 'nom': nom, 'artista': artista, 'cover_url': None,
@@ -139,7 +140,7 @@ def scrape_hardstyle():
     vistos = set()
     pos = 1
     for i in range(1, len(blocs), 2):
-        if pos > 10:
+        if pos > TOTAL_TEMES:
             break
         uuid = blocs[i]
         if uuid in vistos:
