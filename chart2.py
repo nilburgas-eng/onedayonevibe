@@ -50,8 +50,102 @@ def trobar_fitxer_sense_distingir_majuscules(nom_base):
             return f
     return None
 
-STICKER_FOLLOW_PATH = trobar_fitxer_sense_distingir_majuscules("sticker_follow.png") or "sticker_follow.png"
-STICKER_THANKS_PATH = trobar_fitxer_sense_distingir_majuscules("sticker_thanks.png") or "sticker_thanks.png"
+# Aquest format fa servir "PLAYLIST IN BIO!" (primer) i "SAVE PLAYLIST" (despres) en lloc del Follow/Thanks.
+# Fitxers a l'arrel del repo: sticker_playlist.png i sticker_save.png (valen les imatges originals, amb emblema i tot:
+# el programa treu l'emblema i deixa nomes el boto). Si en falta algun, es fan servir Follow/Thanks.
+def assegura_pillow():
+    """Si Pillow no esta instal.lat (el workflow no el demana), l'instal.la en aquest moment."""
+    try:
+        import PIL  # noqa
+        return True
+    except ImportError:
+        import sys as _sys
+        for extra in ([], ['--break-system-packages']):
+            r = subprocess.run([_sys.executable, '-m', 'pip', 'install', '-q', 'pillow'] + extra, capture_output=True, text=True)
+            if r.returncode == 0:
+                print("   Pillow instal.lat")
+                return True
+        print("   AVIS: no s'ha pogut instal.lar Pillow")
+        return False
+
+assegura_pillow()
+
+def preparar_botons(p1, p2):
+    """Deixa les dues imatges amb el mateix llenc, sense l'emblema de dalt i amb el boto alineat.
+    Torna (ruta1, ruta2) o None si no es pot."""
+    try:
+        from PIL import Image
+        dades = []
+        for path in (p1, p2):
+            im = Image.open(path).convert('RGBA')
+            w, h = im.size
+            px = im.getchannel('A').load()
+            xs = range(int(w * 0.25), int(w * 0.75), 3)
+            solid = [all(px[x, y] > 20 for x in xs) for y in range(h)]      # files on el boto es opac de punta a punta
+            runs, ini = [], None
+            for y, v in enumerate(solid + [False]):
+                if v and ini is None:
+                    ini = y
+                if not v and ini is not None:
+                    runs.append((ini, y - 1)); ini = None
+            if not runs:
+                return None
+            top, bot = max(runs, key=lambda r: r[1] - r[0])                 # el tros opac mes alt = el boto
+            clar = Image.new('RGBA', (int(w * 0.40), top), (0, 0, 0, 0))
+            im.paste(clar, (int(w * 0.30), 0))                                # esborra l'emblema que hi ha per sobre
+            bb = im.getchannel('A').point(lambda v: 255 if v > 20 else 0).getbbox()
+            dades.append((im, bb, (top + bot) / 2))
+        amp = max(d[1][2] - d[1][0] for d in dades) + 4
+        amunt = max(d[2] - d[1][1] for d in dades) + 2
+        avall = max(d[1][3] - d[2] for d in dades) + 2
+        sortides = []
+        for i, (im, bb, cy) in enumerate(dades):
+            llenc = Image.new('RGBA', (amp, int(amunt + avall)), (0, 0, 0, 0))
+            tros = im.crop(bb)
+            llenc.alpha_composite(tros, ((amp - tros.size[0]) // 2, int(amunt - (cy - bb[1]))))
+            os.makedirs(os.path.expanduser("~/videos"), exist_ok=True)
+            ruta = os.path.expanduser(f"~/videos/boto_playlist_{i + 1}.png")
+            llenc.save(ruta)
+            sortides.append(ruta)
+        print(f"   Botons preparats: {amp}x{int(amunt + avall)} px")
+        return tuple(sortides)
+    except Exception as e:
+        print(f"   AVIS: no s'han pogut preparar els botons ({type(e).__name__}: {e})")
+        return None
+
+def trobar_sticker_tolerant(prefix):
+    """Busca 'sticker_playlist...' sense distingir majuscules i amb qualsevol extensio .png/.PNG (tambe 'x.png.PNG').
+    Mira primer a l'arrel del repo i, si no hi es, dins de qualsevol carpeta."""
+    def valid(f):
+        return f.lower().startswith(prefix) and '.png' in f.lower()
+    cands = [f for f in os.listdir('.') if valid(f)]
+    cands.sort(key=lambda n: (len(n), n))
+    if cands:
+        return cands[0]
+    for arrel, dirs, fitxers in os.walk('.'):
+        dirs[:] = [d for d in dirs if not d.startswith('.')]
+        for f in sorted(fitxers, key=lambda n: (len(n), n)):
+            if valid(f):
+                return os.path.join(arrel, f)
+    return None
+
+_PL_PLAYLIST = trobar_sticker_tolerant("sticker_playlist")
+_PL_SAVE     = trobar_sticker_tolerant("sticker_save")
+print(f"Stickers nous trobats: playlist={_PL_PLAYLIST}, save={_PL_SAVE}")
+if not (_PL_PLAYLIST and _PL_SAVE):
+    _pngs = []
+    for _arrel, _dirs, _fitxers in os.walk('.'):
+        _dirs[:] = [d for d in _dirs if not d.startswith('.')]
+        _pngs += [os.path.join(_arrel, f) for f in _fitxers if f.lower().endswith('.png')]
+    print("   PNG que hi ha al repo: " + ", ".join(sorted(_pngs)))
+_PL_PREP     = preparar_botons(_PL_PLAYLIST, _PL_SAVE) if (_PL_PLAYLIST and _PL_SAVE) else None
+if _PL_PREP:
+    STICKER_FOLLOW_PATH, STICKER_THANKS_PATH = _PL_PREP
+    print("Stickers: Playlist in bio + Save playlist (v3)")
+else:
+    STICKER_FOLLOW_PATH = trobar_fitxer_sense_distingir_majuscules("sticker_follow.png") or "sticker_follow.png"
+    STICKER_THANKS_PATH = trobar_fitxer_sense_distingir_majuscules("sticker_thanks.png") or "sticker_thanks.png"
+    print("Stickers: Follow + Thanks (no trobo sticker_playlist.png / sticker_save.png)")
 STICKER_ACTIU = os.path.exists(STICKER_FOLLOW_PATH) and os.path.exists(STICKER_THANKS_PATH)
 STICKER_W = 220
 STICKER_Y = 1180
@@ -66,8 +160,8 @@ LOGO_CENTRE_CY   = 1488   # centre vertical del logo: a baix, just sobre del @co
 FOLLOW_W         = 437    # amplada total del sticker (el boto visible en fa ~77%)
 FOLLOW_GAP       = 14     # separacio entre el boto i el logo
 THANKS_MIG       = True   # despres del Follow, mostrar el Thanks
-FOLLOW_DURADA    = 2.1
-THANKS_DURADA    = 1.8
+FOLLOW_DURADA    = 3.2   # "Playlist in bio" (abans 2.1)
+THANKS_DURADA    = 2.4   # "Save playlist" (abans 1.8)
 CTA_FADE         = 0.3
 LOGO_PER_CLIP    = LOGO_ACTIU and not PROVA_FOLLOW_MIG
 STICKER_PER_CLIP = STICKER_ACTIU and not PROVA_FOLLOW_MIG
@@ -83,6 +177,8 @@ def mesurar_cta(path, per_defecte):
         from PIL import Image
         alfa = Image.open(path).convert('RGBA').getchannel('A')
         w, h = alfa.size
+        if h / w < 0.8:                          # imatge molt ampla = ja es nomes el boto (sense emblema): s'usa sencera
+            return 0.0, 1.0, h / w
         dades = alfa.tobytes()
         files = [dades[y * w:(y + 1) * w] for y in range(h)]
         visibles = [y for y in range(h) if max(files[y]) > 20]
