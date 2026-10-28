@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>onedayonevibe — Top 10 Drops</title>
+<title>onedayonevibe — Top 10 Artista</title>
 <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0d0d0d; color: #fff; min-height: 100vh; padding: 20px; }
@@ -34,33 +34,26 @@
     .track-grid input { margin-bottom: 0; font-size: 13px; padding: 10px; }
     .track-full { margin-top: 8px; }
     .track-full input { margin-bottom: 0; font-size: 13px; padding: 10px; }
+    .btn-mini { background: #2a2a2a; color: #fff; border: 1px solid #444; border-radius: 5px; padding: 3px 10px; font-size: 14px; font-weight: 700; cursor: pointer; margin-right: 6px; }
 </style>
 </head>
 <body>
 <div class="container">
     <h1>@onedayonevibe</h1>
-    <p class="subtitle">Top 10 Drops — Generador manual</p>
+    <p class="subtitle">Top 10 d'un artista segons streams</p>
 
     <div class="card">
-        <h2>✏️ Pas 1 — Tema</h2>
-        <label>Tema (el títol final surt sol com "TOP 10 {TEMA} DROPS")</label>
-        <input type="text" id="tema" placeholder="Headhunterz / Golden Era EDM / 2013 EDM" />
-        <label>Part (opcional — deixa buit si no n'hi ha)</label>
-        <input type="text" id="part" placeholder="3" />
+        <h2>✏️ Pas 1 — Artista</h2>
+        <label>Artista (el títol surt sol com "TOP 10 {ARTISTA} SONGS")</label>
+        <input type="text" id="artista" placeholder="Showtek" />
         <label>Estil de detecció (només si algun tema no porta timestamp)</label>
         <select id="estil">
             <option value="energetic">⚡ Energètic (EDM, House, Techno)</option>
             <option value="melodic">🎵 Melòdic (Hardstyle, Trance)</option>
             <option value="vocal">🎤 Vocal (Pop, cançons amb veu)</option>
         </select>
-        <label>Portades d'aquesta tanda</label>
-        <select id="cover_font">
-            <option value="spotify">🎧 Spotify (per defecte)</option>
-            <option value="youtube">🎬 Miniatura de YouTube</option>
-        </select>
-        <label>🎞️ Vídeo de fons compartit (opcional — aftermovie/drops de festival)</label>
-        <input type="text" id="fons_url" placeholder="https://youtu.be/... (deixa buit per fer servir el videoclip de cada tema)" />
-        <p style="font-size:11px;color:#666;margin-top:-10px;margin-bottom:14px;">Si l'omples, tots els clips (excepte els que tinguin vídeo manual propi) agafaran un tram aleatori d'aquest vídeo en lloc del videoclip oficial de cada cançó.</p>
+        <button class="btn btn-secondary" onclick="obrirKworb()">🔗 Obrir Kworb (streams per artista)</button>
+        <p style="font-size:11px;color:#666;margin-top:-4px;">A Kworb busca l'artista, obre la seva pàgina de cançons (ordenades per streams) i copia les files del top 10 (Cançó, Total, Diari). Després enganxa-les al Pas 2.</p>
     </div>
 
     <div id="status" class="status">
@@ -68,11 +61,11 @@
     </div>
 
     <div id="tracks-card" class="card">
-        <h2>🎵 Pas 2 — Els 10 drops</h2>
-        <p style="font-size:12px;color:#666;margin-bottom:14px;">Afegeix cada drop a mà: nom, artista i l'enllaç de YouTube (o puja un vídeo/portada propis). Posa el timestamp just on comença el drop — a 5s per clip la precisió importa molt. El botó 🎬 obre el vídeo o la cerca a YouTube.</p>
+        <h2>🎵 Pas 2 — Els temes</h2>
+        <p style="font-size:12px;color:#666;margin-bottom:14px;">Omple cada tema a mà (nom, streams totals i diaris) o enganxa la llista. Amb ⬆ ⬇ els reordenes. Posa el timestamp del moment que vols mostrar. El botó 🎬 obre el vídeo o la cerca a YouTube.</p>
 
-        <label>📋 O enganxa la llista sencera (una per línia, format "Nom - Artista", amb o sense numeració)</label>
-        <textarea id="llista-paste" rows="5" style="width:100%;background:#2a2a2a;border:1px solid #333;border-radius:8px;padding:12px;color:#fff;font-size:13px;margin-bottom:10px;resize:vertical;font-family:inherit;" placeholder="1. Dragonborn - Headhunterz&#10;2. The Vandal - Da Tweekaz&#10;3. Reload - Sebastian Ingrosso &amp; Tommy Trash"></textarea>
+        <label>📋 Enganxa la llista (una per línia). Serveix el que copies de Kworb (Cançó · Total · Diari separats per tabulador) o el format "Nom - 1.234.567 - 2.100"</label>
+        <textarea id="llista-paste" rows="6" style="width:100%;background:#2a2a2a;border:1px solid #333;border-radius:8px;padding:12px;color:#fff;font-size:13px;margin-bottom:10px;resize:vertical;font-family:inherit;" placeholder="Booyah - 245.678.901 - 120.345&#10;Satisfaction - 180.123.456 - 98.765"></textarea>
         <button class="btn btn-secondary" onclick="omplirDesDeLlista()">📋 Omplir des de la llista</button>
 
         <div id="tracks-list"></div>
@@ -155,10 +148,13 @@ function renderTracks() {
     tracksActuals.forEach((t, i) => {
         const div = document.createElement('div');
         div.className = 'track';
+        div.id = `track-${i}`;
         div.innerHTML = `
             <div class="track-head">
                 <span class="track-nom">#${t.pos}</span>
                 <div>
+                    <button class="btn-mini" onclick="moure(${i}, -1)" ${i === 0 ? 'disabled style="opacity:.3"' : ''}>⬆</button>
+                    <button class="btn-mini" onclick="moure(${i}, 1)" ${i === tracksActuals.length - 1 ? 'disabled style="opacity:.3"' : ''}>⬇</button>
                     <button onclick="obrirYoutube(${i})" style="background:#00BFFF;color:#000;border:none;border-radius:5px;padding:3px 10px;font-size:14px;font-weight:700;cursor:pointer;margin-right:6px;">🎬</button>
                     <button onclick="eliminarTrack(${i})" style="background:#ff4444;color:#fff;border:none;border-radius:5px;padding:3px 10px;font-size:14px;font-weight:700;cursor:pointer;">🗑️</button>
                 </div>
@@ -166,10 +162,11 @@ function renderTracks() {
             <div class="track-full">
                 <input type="text" placeholder="Nom cançó" value="${(t.nom||'').replace(/"/g,'&quot;')}" onchange="actualitzar(${i}, 'nom', this.value)" />
             </div>
-            <div class="track-full">
-                <input type="text" placeholder="Artista" value="${(t.artista||'').replace(/"/g,'&quot;')}" onchange="actualitzar(${i}, 'artista', this.value)" />
-            </div>
             <div class="track-grid">
+                <input type="text" placeholder="Streams totals" value="${esc(t.streams||'')}" onchange="actualitzar(${i}, 'streams', this.value)" />
+                <input type="text" placeholder="Streams diaris" value="${esc(t.daily||'')}" onchange="actualitzar(${i}, 'daily', this.value)" />
+            </div>
+            <div class="track-grid" style="margin-top:8px;">
                 <input type="text" placeholder="Timestamp (mm:ss)" value="${segonsAStr(t.timestamp_manual)}" onchange="actualitzar(${i}, 'ts', this.value)" />
                 <input type="text" placeholder="URL YouTube" value="${t.yt_url||''}" onchange="actualitzar(${i}, 'yt', this.value)" />
             </div>
@@ -181,7 +178,7 @@ function renderTracks() {
                 </div>
             </div>
             <div class="track-full">
-                <label style="margin-top:6px;">🖼️ Portada pròpia (opcional, sobreescriu el selector global)</label>
+                <label style="margin-top:6px;">🖼️ Portada pròpia (opcional)</label>
                 <input type="file" accept="image/*" onchange="pujarPortadaManual(${i}, this)" />
                 <div id="cover-status-${i}" style="font-size:12px;color:${(t.cover_manual || t.cover_none) ? '#00ff88' : '#666'};margin-top:-6px;margin-bottom:6px;">
                     ${t.cover_manual ? '✅ Portada manual: ' + t.cover_manual.split('/').pop() : (t.cover_none ? '🚫 Sense portada (marcat manualment)' : '')}
@@ -193,47 +190,120 @@ function renderTracks() {
     });
 }
 
+function esc(t) {
+    return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function formatNum(txt) {
+    const digits = String(txt || '').replace(/[^\d]/g, '');
+    if (!digits) return '';
+    return Number(digits).toLocaleString('en-US');
+}
+
+function obrirKworb() {
+    const a = document.createElement('a');
+    a.href = 'https://kworb.net/spotify/';
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+
+function renumerar() {
+    tracksActuals.forEach((t, idx) => t.pos = idx + 1);
+}
+
+function moure(i, direccio) {
+    const j = i + direccio;
+    if (j < 0 || j >= tracksActuals.length) return;
+    [tracksActuals[i], tracksActuals[j]] = [tracksActuals[j], tracksActuals[i]];
+    renumerar();
+    renderTracks();
+    const el = document.getElementById(`track-${j}`);
+    if (el) {
+        el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        el.style.outline = '2px solid #00BFFF';
+        setTimeout(() => { el.style.outline = ''; }, 1400);
+    }
+}
+
+// Una linia -> {nom, streams, daily}. Accepta: "Nom<TAB>Total<TAB>Diari" (copiat de Kworb) o "Nom - Total - Diari"
+function parseLinia(linia) {
+    let neta = linia.replace(/^\s*\d+\s*[\.\)\:]\s*/, '').trim();
+    if (!neta) return null;
+    let nom = neta, streams = '', daily = '';
+    if (neta.includes('\t')) {
+        const p = neta.split('\t').map(x => x.trim()).filter(x => x.length > 0);
+        nom = p[0] || '';
+        streams = p[1] || '';
+        daily = p[2] || '';
+    } else {
+        const m = neta.match(/^(.*?)[\s\-–|;]+([\d][\d.,\s]{3,})[\s\-–|;]+([\d][\d.,]*)\s*$/);
+        if (m) {
+            nom = m[1].trim(); streams = m[2]; daily = m[3];
+        } else {
+            const m2 = neta.match(/^(.*?)[\s\-–|;]+([\d][\d.,]{3,})\s*$/);
+            if (m2) { nom = m2[1].trim(); streams = m2[2]; }
+        }
+    }
+    nom = nom.replace(/^\*+\s*|\*+$/g, '').trim();
+    if (!nom) return null;
+    return { nom, streams: formatNum(streams), daily: formatNum(daily) };
+}
+
+// Converteix el text enganxat en una llista de {nom, streams, daily}.
+// Accepta files amb tabuladors, "Nom - Total - Diari", o cada cel.la en una linia (el que fa el mobil de vegades).
+function parsejarLlista(raw) {
+    const linies = raw.split('\n').map(l => l.replace(/\r/g, '').trim()).filter(l => l.length > 0);
+    const esNumero = l => /^[\d][\d.,\s]*$/.test(l);
+    const resultat = [];
+    let actual = null;
+    for (const linia of linies) {
+        if (esNumero(linia) && actual && !actual.daily) {
+            if (!actual.streams) actual.streams = formatNum(linia);
+            else actual.daily = formatNum(linia);
+            continue;
+        }
+        const d = parseLinia(linia);
+        if (!d) continue;
+        actual = d;
+        resultat.push(d);
+    }
+    return resultat;
+}
+
 function omplirDesDeLlista() {
     const raw = document.getElementById('llista-paste').value;
-    const linies = raw.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-    if (linies.length === 0) {
+    const llista = parsejarLlista(raw);
+    if (llista.length === 0) {
         mostrarStatus('❌ La llista és buida', 'error');
         return;
     }
-    let comptador = 0;
-    linies.forEach((linia, i) => {
-        // treu numeracio inicial: "1.", "1)", "1 -", "1:" etc.
-        let neta = linia.replace(/^\s*\d+\s*[\.\)\:]\s*/, '').trim();
-        let nom = neta;
-        let artista = '';
-        // separa per " - " (el primer que trobi)
-        const idx = neta.indexOf(' - ');
-        if (idx !== -1) {
-            nom = neta.slice(0, idx).trim();
-            artista = neta.slice(idx + 3).trim();
-        }
-        if (!nom) return;
-        if (tracksActuals[i]) {
-            tracksActuals[i].nom = nom;
-            tracksActuals[i].artista = artista;
+    const artista = document.getElementById('artista').value.trim();
+    llista.forEach((d, k) => {
+        if (tracksActuals[k]) {
+            Object.assign(tracksActuals[k], d);
         } else {
             tracksActuals.push({
-                pos: tracksActuals.length + 1,
-                nom, artista,
+                pos: tracksActuals.length + 1, ...d, artista,
                 timestamp_manual: null, yt_url: null,
                 video_manual: null, cover_manual: null, cover_none: false
             });
         }
-        comptador++;
     });
+    renumerar();
     renderTracks();
-    mostrarStatus(`✅ ${comptador} drops omplerts des de la llista. Revisa i afegeix els timestamps/enllaços.`, 'ok');
+    const sense = llista.filter(t => !t.streams).length;
+    mostrarStatus(`✅ ${llista.length} temes omplerts.` + (sense ? ` ⚠️ ${sense} sense streams: revisa'ls.` : '') + ' Afegeix els timestamps (i el nom si el vols canviar).', sense ? 'info' : 'ok');
 }
 
 function actualitzar(i, camp, valor) {
     if (camp === 'ts') tracksActuals[i].timestamp_manual = parseTimestamp(valor);
     else if (camp === 'nom') tracksActuals[i].nom = valor.trim();
     else if (camp === 'artista') tracksActuals[i].artista = valor.trim();
+    else if (camp === 'streams') tracksActuals[i].streams = valor.trim();
+    else if (camp === 'daily') tracksActuals[i].daily = valor.trim();
     else if (camp === 'yt') tracksActuals[i].yt_url = valor.trim() || null;
 }
 
@@ -382,7 +452,7 @@ function eliminarTrack(i) {
 function afegirTrack() {
     tracksActuals.push({
         pos: tracksActuals.length + 1,
-        nom: '', artista: '',
+        nom: '', artista: '', streams: '', daily: '',
         timestamp_manual: null, yt_url: null,
         video_manual: null, cover_manual: null, cover_none: false
     });
@@ -393,7 +463,7 @@ function obrirYoutube(i) {
     const t = tracksActuals[i];
     const url = t.yt_url
         ? t.yt_url
-        : `https://www.youtube.com/results?search_query=${encodeURIComponent(`${t.artista} ${t.nom} official video`)}`;
+        : `https://www.youtube.com/results?search_query=${encodeURIComponent(`${t.artista || document.getElementById('artista').value.trim()} ${t.nom} official video`)}`;
     const a = document.createElement('a');
     a.href = url;
     a.target = '_blank';
@@ -404,8 +474,8 @@ function obrirYoutube(i) {
 }
 
 function netejarTracks() {
-    return tracksActuals.map(t => {
-        const o = { pos: t.pos, nom: t.nom, artista: t.artista };
+    return tracksActuals.filter(t => t.nom && t.nom.trim()).map((t, idx) => {
+        const o = { pos: idx + 1, nom: t.nom, streams: t.streams || '', daily: t.daily || '' };
         if (t.timestamp_manual !== null && t.timestamp_manual !== undefined) o.timestamp_manual = t.timestamp_manual;
         if (t.yt_url) o.yt_url = t.yt_url;
         if (t.video_manual) o.video_manual = t.video_manual;
@@ -415,28 +485,32 @@ function netejarTracks() {
     });
 }
 
+function tagArtista() {
+    const nom = document.getElementById('artista').value.trim().toLowerCase().replace(/ /g, '_');
+    return `top10_${nom}`;
+}
+
 async function generarVideo() {
-    const tracksValids = tracksActuals.filter(t => t.nom && t.nom.trim());
-    if (tracksValids.length < 2) {
-        mostrarStatus('❌ Omple com a mínim 2 drops (nom i artista)', 'error');
+    const artista = document.getElementById('artista').value.trim();
+    if (!artista) {
+        mostrarStatus('❌ Escriu el nom de l\'artista', 'error');
         return;
     }
-    const tema = document.getElementById('tema').value.trim();
-    const part = document.getElementById('part').value.trim();
+    const tracks = netejarTracks();
+    if (tracks.length < 2) {
+        mostrarStatus('❌ Omple com a mínim 2 temes', 'error');
+        return;
+    }
+    const sense = tracks.filter(t => !t.streams).length;
     const estil = document.getElementById('estil').value;
-    const coverFont = document.getElementById('cover_font').value;
-    const fonsUrl = document.getElementById('fons_url').value.trim();
-    mostrarStatus('⏳ Generant vídeo...', 'info');
-    const res = await dispararWorkflow('top10drops.yml', {
-        tema,
-        part,
+    mostrarStatus(`⏳ Generant vídeo amb ${tracks.length} temes...`, 'info');
+    const res = await dispararWorkflow('top10.yml', {
+        artista,
         estil,
-        cover_font: coverFont,
-        fons_url: fonsUrl,
-        tracks: JSON.stringify(netejarTracks())
+        tracks: JSON.stringify(tracks)
     });
     if (res.status === 204) {
-        mostrarStatus('✅ Generació iniciada!<br>⏳ Tarda 15-20 min. Després "Descarregar vídeo final".', 'ok');
+        mostrarStatus(`✅ Generació iniciada amb ${tracks.length} temes!` + (sense ? `<br>⚠️ ${sense} sense streams (sortirà buit).` : '') + '<br>⏳ Tarda 15-20 min. Després "Descarregar vídeo final".', 'ok');
     } else {
         mostrarStatus(`❌ Error ${res.status}: ${res.detall}`, 'error');
     }
@@ -461,28 +535,30 @@ async function veureEstat() {
 }
 
 async function descarregarFinal() {
+    if (!document.getElementById('artista').value.trim()) { mostrarStatus('❌ Escriu primer el nom de l\'artista', 'error'); return; }
     const r = await fetch(
-        `https://api.github.com/repos/${GITHUB_REPO}/releases/tags/top10drops_generat`,
+        `https://api.github.com/repos/${GITHUB_REPO}/releases/tags/${tagArtista()}`,
         { headers: { 'Authorization': `token ${GITHUB_TOKEN}` } }
     );
     if (r.status !== 200) { mostrarStatus('❌ Release no trobat', 'error'); return; }
     const release = await r.json();
-    const asset = release.assets.find(a => a.name === 'top10drops_final.mp4');
+    const asset = release.assets.find(a => a.name === 'top10_final.mp4');
     if (asset) window.open(asset.browser_download_url, '_blank');
     else mostrarStatus('❌ Vídeo final no trobat encara', 'error');
 }
 
 async function esborrarRelease() {
+    if (!document.getElementById('artista').value.trim()) { mostrarStatus('❌ Escriu primer el nom de l\'artista', 'error'); return; }
     mostrarStatus('⏳ Esborrant...', 'info');
     const r = await fetch(
-        `https://api.github.com/repos/${GITHUB_REPO}/releases/tags/top10drops_generat`,
+        `https://api.github.com/repos/${GITHUB_REPO}/releases/tags/${tagArtista()}`,
         { headers: { 'Authorization': `token ${GITHUB_TOKEN}` } }
     );
     if (r.status !== 200) { mostrarStatus('❌ Release no trobat', 'error'); return; }
     const release = await r.json();
     await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/${release.id}`,
         { method: 'DELETE', headers: { 'Authorization': `token ${GITHUB_TOKEN}` } });
-    await fetch(`https://api.github.com/repos/${GITHUB_REPO}/git/refs/tags/top10drops_generat`,
+    await fetch(`https://api.github.com/repos/${GITHUB_REPO}/git/refs/tags/${tagArtista()}`,
         { method: 'DELETE', headers: { 'Authorization': `token ${GITHUB_TOKEN}` } });
     mostrarStatus('✅ Release esborrat!', 'ok');
 }
