@@ -261,8 +261,11 @@ function parsejarLlista(raw) {
     let actual = null;
     for (const linia of linies) {
         if (esNumero(linia) && actual && !actual.daily) {
-            if (!actual.streams) actual.streams = formatNum(linia);
-            else actual.daily = formatNum(linia);
+            // pot venir un sol numero o els dos a la mateixa linia ("95,461,990   23,553")
+            for (const num of linia.split(/\s+/).filter(x => x.length > 0)) {
+                if (!actual.streams) actual.streams = formatNum(num);
+                else if (!actual.daily) actual.daily = formatNum(num);
+            }
             continue;
         }
         const d = parseLinia(linia);
