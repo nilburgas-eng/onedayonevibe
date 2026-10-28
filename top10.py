@@ -20,6 +20,23 @@ for font_path in [FONT_BEBAS, FONT_SEMIBOLD, FONT_EXTRABOLD, FONT_MEDIUM]:
         elif font_path == FONT_EXTRABOLD: FONT_EXTRABOLD = FONT_FALLBACK
         elif font_path == FONT_MEDIUM: FONT_MEDIUM = FONT_FALLBACK
 
+def assegura_pillow():
+    """Si Pillow no esta instal.lat (el workflow no el demana), l'instal.la en aquest moment."""
+    try:
+        import PIL  # noqa
+        return True
+    except ImportError:
+        import sys as _sys
+        for extra in ([], ['--break-system-packages']):
+            r = subprocess.run([_sys.executable, '-m', 'pip', 'install', '-q', 'pillow'] + extra, capture_output=True, text=True)
+            if r.returncode == 0:
+                print("   Pillow instal.lat")
+                return True
+        print("   AVIS: no s'ha pogut instal.lar Pillow")
+        return False
+
+assegura_pillow()
+
 ARTISTA           = os.environ['ARTISTA']
 TRACKS_RAW        = os.environ['TRACKS']
 ESTIL             = os.environ.get('ESTIL', 'energetic')
@@ -220,8 +237,11 @@ elif STICKER_ACTIU:
 for track in tracks:
     pos              = track['pos']
     nom              = track['nom']
-    streams          = track['streams']
-    daily            = track['daily']
+    streams          = track.get('streams', '')
+    daily            = track.get('daily', '')
+    video_manual     = track.get('video_manual')
+    cover_manual     = track.get('cover_manual')
+    cover_none       = track.get('cover_none', False)
     timestamp_manual = track.get('timestamp_manual')
     nom_manual       = track.get('nom_manual')
     yt_url           = track.get('yt_url')
@@ -236,12 +256,38 @@ for track in tracks:
     thumb_base = os.path.expanduser(f"~/videos/{pos:02d}_thumb")
     os.makedirs(os.path.expanduser("~/videos"), exist_ok=True)
 
-    if spotify_token:
-        cover_data = get_spotify_cover(nom, ARTISTA, spotify_token)
-        if cover_data:
-            with open(thumb_path, 'wb') as f:
-                f.write(cover_data)
-            print(f"   Portada Spotify OK")
+    # ---------- PORTADA (manual > url del chart > Spotify > YouTube) ----------
+    if cover_manual and cover_manual.startswith('http'):
+        try:
+            cover_data = requests.get(cover_manual, timeout=30).content
+            if cover_data and len(cover_data) > 500:
+                with open(thumb_path, 'wb') as f:
+                    f.write(cover_data)
+                print(f"   Portada manual OK ({cover_manual})")
+        except Exception as e:
+            print(f"   ERROR descarregant portada manual: {e}")
+    elif cover_manual and os.path.exists(cover_manual) and os.path.getsize(cover_manual) > 1000:
+        shutil.copy(cover_manual, thumb_path)
+        print(f"   Portada manual OK ({cover_manual})")
+    elif cover_none:
+        print("   Sense portada (marcat manualment)")
+    else:
+        cover_url = track.get('cover_url')
+        if cover_url:
+            try:
+                cover_data = requests.get(cover_url, timeout=15).content
+                if cover_data and len(cover_data) > 1000:
+                    with open(thumb_path, 'wb') as f:
+                        f.write(cover_data)
+                    print("   Portada directa OK")
+            except Exception:
+                pass
+        if (not os.path.exists(thumb_path) or os.path.getsize(thumb_path) < 1000) and spotify_token:
+            cover_data = get_spotify_cover(nom, ARTISTA, spotify_token)
+            if cover_data:
+                with open(thumb_path, 'wb') as f:
+                    f.write(cover_data)
+                print("   Portada Spotify OK")
 
     nom_query = nom.replace("'", "").replace('"', '').strip()
     if any(x in nom.lower() for x in ['remix', 'edit', 'mix', 'version']):
@@ -251,13 +297,37 @@ for track in tracks:
         query_thumb = f"{ARTISTA} {nom_query} {ARTISTA} official video"
         query = f"{ARTISTA} {nom_query} {ARTISTA} official video"
 
-    if not os.path.exists(thumb_path) or os.path.getsize(thumb_path) < 1000:
+    if not cover_none and not cover_manual and (not os.path.exists(thumb_path) or os.path.getsize(thumb_path) < 1000):
         os.system(f'yt-dlp --write-thumbnail --skip-download --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{thumb_base}" "ytsearch1:{query_thumb}" -q 2>/dev/null')
         thumb_webp = thumb_base + ".webp"
         if not os.path.exists(thumb_path) and os.path.exists(thumb_webp):
             os.system(f'ffmpeg -i "{thumb_webp}" "{thumb_path}" -y -loglevel error')
 
-    if yt_url:
+    if video_manual:
+        print(f"   Video manual: {video_manual}")
+        ret = 1
+        if video_manual.startswith('http'):
+            try:
+                r = requests.get(video_manual, timeout=180, stream=True)
+                if r.status_code == 200:
+                    with open(video_path, 'wb') as f:
+                        for chunk in r.iter_content(chunk_size=1024 * 1024):
+                            if chunk:
+                                f.write(chunk)
+                    if os.path.getsize(video_path) > 10000:
+                        ret = 0
+                    else:
+                        print("   ERROR: video manual descarregat buit")
+                else:
+                    print(f"   ERROR descarregant video manual: HTTP {r.status_code}")
+            except Exception as e:
+                print(f"   ERROR descarregant video manual: {e}")
+        elif os.path.exists(video_manual) and os.path.getsize(video_manual) > 10000:
+            shutil.copy(video_manual, video_path)
+            ret = 0
+        else:
+            print(f"   ERROR: no s'ha trobat {video_manual}")
+    elif yt_url:
         print(f"   URL manual: {yt_url}")
         ret = os.system(f'yt-dlp -f "{YTDLP_FORMAT}" --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{yt_url}" -q')
     else:
@@ -288,6 +358,11 @@ for track in tracks:
         print(f"   Timestamp manual: {int(inici//60):02d}:{int(inici%60):02d}")
     else:
         inici = trobar_moment_impactant(audio_path, duracio_total, ESTIL) if os.path.exists(audio_path) else 30.0
+
+    if inici + durada > duracio_total:
+        inici_original = inici
+        inici = max(0, duracio_total - durada - 0.5)
+        print(f"   AVIS: timestamp {int(inici_original//60):02d}:{int(inici_original%60):02d} + {durada}s superava la durada del video ({duracio_total:.1f}s). Ajustat a {int(inici//60):02d}:{int(inici%60):02d}")
 
     output_path = f"{OUTPUT}/clip_{pos:02d}.mp4"
     titol1 = f"TOP {len(tracks)} {ARTISTA.upper()} SONGS"
@@ -392,9 +467,15 @@ for track in tracks:
     fc = ";".join(fc_parts)
     cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map "[aout]" {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
 
-    os.system(cmd)
+    result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+    mida = os.path.getsize(output_path) if os.path.exists(output_path) else 0
+    if mida > 1000:
+        print(f"   OK clip generat ({mida//1024} KB)")
+    else:
+        print(f"   ERROR: clip #{pos} no generat correctament (mida={mida})")
+        print(f"   FFMPEG STDERR: {result.stderr[-2000:]}")
     clips_paths.append((pos, output_path))
-    print(f"   OK clip generat")
+    time.sleep(4)  # pausa entre temes perque YouTube no vegi moltes peticions seguides
 
 clips_paths.sort(key=lambda x: x[0], reverse=True)
 clips_valids = []
@@ -498,5 +579,9 @@ if PROVA_FOLLOW_MIG and (LOGO_ACTIU or STICKER_ACTIU):
 filter_complex = ";".join(video_filters + overlay_filters + audio_filters)
 output_final = f"{OUTPUT}/top10_final.mp4"
 cmd = f'ffmpeg {inputs_str}{extra_inputs} -filter_complex "{filter_complex}" -map "{mapa_video}" -map "[afinal]" {VIDEO_OPTS} -c:a aac -b:a 192k {limit_durada} "{output_final}" -y -loglevel error'
-os.system(cmd)
-print("Video final generat!")
+ret_final = os.system(cmd)
+if ret_final != 0 or not os.path.exists(output_final) or os.path.getsize(output_final) < 10000:
+    print(f"ERROR: muntatge final ha fallat (codi {ret_final})")
+    exit(1)
+r = subprocess.run(["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", output_final], capture_output=True, text=True)
+print(f"Video final generat! Durada: {float(json.loads(r.stdout)['format']['duration']):.1f}s amb {n_clips} clips")
