@@ -104,6 +104,27 @@ Y_BASE    = 490
 Y_SEP     = 78
 
 
+def nombre_canals_audio(path):
+    """Nombre de canals del primer stream d'audio (0 si no se sap)."""
+    try:
+        r = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "a:0", "-show_entries", "stream=channels",
+                            "-of", "csv=p=0", path], capture_output=True, text=True)
+        return int(r.stdout.strip().split(",")[0])
+    except Exception:
+        return 0
+
+
+def audio_estereo(path):
+    """Retorna (filtre_complex_audio, mapa_audio). Els sets amb so 5.1 (6 canals) fan petar l'encoder AAC
+    ('Unsupported channel layout 6 channels'), aixi que es baixen a estereo abans de codificar."""
+    canals = nombre_canals_audio(path)
+    if canals == 6:
+        return (";[0:a]pan=stereo|c0=0.4*c0+0.3*c2+0.3*c4|c1=0.4*c1+0.3*c2+0.3*c5[aout]", '"[aout]"', "-ac 2")
+    if canals > 2:
+        return (";[0:a]aformat=channel_layouts=stereo[aout]", '"[aout]"', "-ac 2")
+    return ("", "0:a", "-ac 2")
+
+
 def baixar_tram(url, inici, durada_tram, output_path):
     """Baixa nomes el tram [inici, inici+durada_tram] del video font, sense baixar-lo sencer."""
     fi = inici + durada_tram
@@ -252,7 +273,9 @@ for i, track in enumerate(tracks_ordenats):
         mapa_final = "[out]"
 
     fc = ";".join(fc_parts)
-    cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map 0:a {VIDEO_OPTS} -c:a aac -b:a 192k "{output_path}" -y -loglevel error'
+    fc_audio, mapa_audio, opts_audio = audio_estereo(tram_path)
+    fc = fc + fc_audio
+    cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map {mapa_audio} {VIDEO_OPTS} -c:a aac {opts_audio} -b:a 192k "{output_path}" -y -loglevel error'
     result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
 
     mida = os.path.getsize(output_path) if os.path.exists(output_path) else 0
