@@ -1,0 +1,34 @@
+name: Hardnews Buscar
+
+on:
+  workflow_dispatch:
+    inputs:
+      urls:
+        description: 'Enllacos de les noticies (un per linia)'
+        required: true
+
+jobs:
+  buscar:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout codi
+        uses: actions/checkout@v4
+
+      - name: Instal·lar dependencies
+        run: pip install requests anthropic readability-lxml lxml_html_clean
+
+      - name: Resumir noticies
+        env:
+          URLS: ${{ github.event.inputs.urls }}
+          ANTHROPIC_KEY: ${{ secrets.ANTHROPIC_KEY }}
+        run: python3 hardnews_buscar.py
+
+      - name: Commit del JSON
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add hardnews_data.json
+          git commit -m "Actualitzar dades Hardnews" || echo "Sense canvis"
+          git push
