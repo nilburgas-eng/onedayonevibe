@@ -34,7 +34,7 @@ jobs:
 
       - name: Instal·lar dependencies
         run: |
-          pip install yt-dlp requests google-auth google-auth-oauthlib google-api-python-client
+          pip install yt-dlp requests pillow google-auth google-auth-oauthlib google-api-python-client
           sudo apt-get update
           sudo apt-get install -y --fix-missing ffmpeg curl wget
 
@@ -42,6 +42,7 @@ jobs:
         run: |
           mkdir -p ~/fonts
           wget -q "https://github.com/google/fonts/raw/main/ofl/bebasneue/BebasNeue-Regular.ttf" -O ~/fonts/BebasNeue.ttf
+          wget -q "https://github.com/google/fonts/raw/main/ofl/anton/Anton-Regular.ttf" -O ~/fonts/Anton.ttf
           wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-SemiBold.ttf" -O ~/fonts/Montserrat-SemiBold.ttf
           wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-ExtraBold.ttf" -O ~/fonts/Montserrat-ExtraBold.ttf
           wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-Medium.ttf" -O ~/fonts/Montserrat-Medium.ttf
@@ -134,4 +135,35 @@ jobs:
               r2 = requests.post(f"{upload_url}?name=top5releases_final.mp4",
                   headers={**headers, "Content-Type": "video/mp4"}, data=f)
           print(f"Pujat: {r2.status_code}")
+          PYEOF
+
+      - name: Pujar portada a GitHub Releases
+        if: success()
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+        run: |
+          python3 << 'PYEOF'
+          import os, glob, requests
+          repo = "${{ github.repository }}"
+          tag = "top5releases_generat"
+          headers = {"Authorization": f"token {os.environ['GITHUB_TOKEN']}"}
+          fitxers = glob.glob(os.path.expanduser("~/output/*_portada.png"))
+          if not fitxers:
+              print("Sense portada (no s'ha generat)")
+              raise SystemExit(0)
+          r = requests.get(f"https://api.github.com/repos/{repo}/releases/tags/{tag}", headers=headers)
+          if r.status_code != 200:
+              print(f"AVIS: no trobo el release {tag} ({r.status_code}), no es puja la portada")
+              raise SystemExit(0)
+          release = r.json()
+          upload_url = release['upload_url'].split('{')[0]
+          for p in fitxers:
+              nom = os.path.basename(p)
+              for a in release.get('assets', []):
+                  if a['name'] == nom:
+                      requests.delete(f"https://api.github.com/repos/{repo}/releases/assets/{a['id']}", headers=headers)
+              with open(p, 'rb') as f:
+                  r3 = requests.post(f"{upload_url}?name={nom}",
+                      headers={**headers, "Content-Type": "image/png"}, data=f)
+              print(f"Portada pujada ({nom}): {r3.status_code}")
           PYEOF
