@@ -1,4 +1,13 @@
 import os, json, re, subprocess, shutil
+try:
+    from portada import genera_portada, separa_titol_event
+except Exception as _e:      # si falta portada.py al repo, el video es fa igualment sense portada
+    print(f"AVIS: no es pot carregar portada.py ({_e}); no es generara la portada")
+    def genera_portada(*a, **k):
+        return None
+    def separa_titol_event(t):
+        return (t, "")
+PORTADA_SRCS = {}            # pos -> (video, t_ini, t_fi): d'on es treu el fotograma de la portada
 import requests
 
 OUTPUT = os.path.expanduser("~/output")
@@ -104,6 +113,27 @@ Y_BASE    = 490
 Y_SEP     = 78
 
 
+def nombre_canals_audio(path):
+    """Nombre de canals del primer stream d'audio (0 si no se sap)."""
+    try:
+        r = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "a:0", "-show_entries", "stream=channels",
+                            "-of", "csv=p=0", path], capture_output=True, text=True)
+        return int(r.stdout.strip().split(",")[0])
+    except Exception:
+        return 0
+
+
+def audio_estereo(path):
+    """Retorna (filtre_complex_audio, mapa_audio). Els sets amb so 5.1 (6 canals) fan petar l'encoder AAC
+    ('Unsupported channel layout 6 channels'), aixi que es baixen a estereo abans de codificar."""
+    canals = nombre_canals_audio(path)
+    if canals == 6:
+        return (";[0:a]pan=stereo|c0=0.4*c0+0.3*c2+0.3*c4|c1=0.4*c1+0.3*c2+0.3*c5[aout]", '"[aout]"', "-ac 2")
+    if canals > 2:
+        return (";[0:a]aformat=channel_layouts=stereo[aout]", '"[aout]"', "-ac 2")
+    return ("", "0:a", "-ac 2")
+
+
 def baixar_tram(url, inici, durada_tram, output_path):
     """Baixa nomes el tram [inici, inici+durada_tram] del video font, sense baixar-lo sencer."""
     fi = inici + durada_tram
@@ -180,6 +210,7 @@ for i, track in enumerate(tracks_ordenats):
         continue
 
     offset_dins_tram = min(PADDING, timestamp)
+    PORTADA_SRCS[numero] = (tram_path, offset_dins_tram + 0.1 * durada, offset_dins_tram + 0.9 * durada)
 
     titol1 = "TOP 5 MOMENTS"
     titol2 = DJ.upper().replace("'", "").replace('"', '')
@@ -252,7 +283,9 @@ for i, track in enumerate(tracks_ordenats):
         mapa_final = "[out]"
 
     fc = ";".join(fc_parts)
-    cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map 0:a {VIDEO_OPTS} -c:a aac -b:a 192k "{output_path}" -y -loglevel error'
+    fc_audio, mapa_audio, opts_audio = audio_estereo(tram_path)
+    fc = fc + fc_audio
+    cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map {mapa_audio} {VIDEO_OPTS} -c:a aac {opts_audio} -b:a 192k "{output_path}" -y -loglevel error'
     result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
 
     mida = os.path.getsize(output_path) if os.path.exists(output_path) else 0
@@ -388,3 +421,16 @@ else:
     r = subprocess.run(["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", output_final], capture_output=True, text=True)
     durada_total = float(json.loads(r.stdout)['format']['duration'])
     print(f"Video final generat! Durada: {durada_total:.1f}s amb {n_clips} clips")
+
+# ---------------- portada de TikTok (extra; si falla, el video ja esta fet) ----------------
+try:
+    _src = PORTADA_SRCS.get(1) or (PORTADA_SRCS[min(PORTADA_SRCS)] if PORTADA_SRCS else None)
+    if _src and os.path.exists(output_final):
+        print("\nGenerant la portada...")
+        _k, _t, _s = "TOP 5 MOMENTS", DJ, ""
+        genera_portada(video=_src[0], t_ini=_src[1], t_fi=_src[2], kicker=_k, titol=_t, subtitol=_s,
+                       sortida=f"{OUTPUT}/top5_portada.png")
+    else:
+        print("\nPortada: no hi ha cap video d'on treure el fotograma")
+except Exception as _e:
+    print(f"AVIS: portada no generada ({type(_e).__name__}: {_e})")
