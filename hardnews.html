@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>onedayonevibe — Hard Dance News</title>
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0d0d0d; color: #fff; min-height: 100vh; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px 0; }
+    h1 { font-size: 28px; font-weight: 800; color: #00BFFF; margin-bottom: 4px; }
+    .subtitle { font-size: 14px; color: #666; margin-bottom: 30px; }
+    .card { background: #1a1a1a; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+    .card h2 { font-size: 14px; font-weight: 600; color: #00BFFF; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
+    label { display: block; font-size: 13px; color: #999; margin-bottom: 6px; }
+    input[type=text], textarea, select { width: 100%; background: #2a2a2a; border: 1px solid #333; border-radius: 8px; padding: 12px; color: #fff; font-size: 15px; margin-bottom: 14px; outline: none; font-family: inherit; }
+    input[type=file] { width: 100%; margin-bottom: 10px; color: #aaa; font-size: 13px; }
+    input:focus, textarea:focus, select:focus { border-color: #00BFFF; }
+    .btn { width: 100%; padding: 16px; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; border: none; margin-bottom: 12px; }
+    .btn:active { opacity: 0.8; }
+    .btn-primary { background: #00BFFF; color: #000; }
+    .btn-green { background: #1DB954; color: #000; }
+    .btn-secondary { background: #2a2a2a; color: #fff; border: 1px solid #444; }
+    .btn-danger { background: #ff4444; color: #fff; }
+    .status { background: #1a1a1a; border-radius: 12px; padding: 16px; margin-bottom: 16px; display: none; }
+    .status.visible { display: block; }
+    .status-text { font-size: 14px; line-height: 1.6; }
+    .status-ok { color: #00ff88; }
+    .status-error { color: #ff4444; }
+    .status-info { color: #00BFFF; }
+    .story { background: #222; border-radius: 10px; padding: 14px; margin-bottom: 14px; border-left: 4px solid #00BFFF; }
+    .story-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .story-nom { font-size: 15px; font-weight: 700; }
+    .story input[type=text], .story textarea { font-size: 14px; padding: 10px; margin-bottom: 8px; }
+    .btn-mini { background: #2a2a2a; color: #fff; border: 1px solid #444; border-radius: 5px; padding: 3px 10px; font-size: 14px; font-weight: 700; cursor: pointer; margin-right: 6px; }
+    .btn-mini.red { background: #ff4444; border-color: #ff4444; margin-right: 0; }
+    .foto { width: 100%; height: 150px; object-fit: cover; border-radius: 8px; background: #111; margin-bottom: 8px; display: block; }
+    .foto-buida { width: 100%; height: 150px; border-radius: 8px; background: #111; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; color: #555; font-size: 13px; }
+    .avis { font-size: 12px; color: #ffb74d; margin-bottom: 8px; }
+    .comptador { font-size: 11px; color: #666; text-align: right; margin-top: -4px; margin-bottom: 8px; }
+    .comptador.llarg { color: #ffb74d; }
+    .link { font-size: 11px; color: #666; word-break: break-all; margin-bottom: 8px; }
+    .fila { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; font-size: 14px; color: #ccc; }
+    .fila input { width: 20px; height: 20px; margin: 0; }
+    .nota { font-size: 12px; color: #666; margin-bottom: 14px; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>@onedayonevibe</h1>
+    <p class="subtitle">Top Hard Dance News This Week — Carrusel</p>
+
+    <div class="card">
+        <h2>🔗 Pas 1 — Enllaços de les notícies</h2>
+        <label>Un enllaç per línia (5 és el punt dolç, màxim 10)</label>
+        <textarea id="urls" rows="6" placeholder="https://wololosound.com/...&#10;https://dancingastronaut.com/...&#10;https://..."></textarea>
+        <button class="btn btn-primary" onclick="resumirNoticies()">🔍 1. Resumir notícies</button>
+        <button class="btn btn-secondary" onclick="carregarNoticies()">🔄 Carregar resums</button>
+        <p class="nota">Quan acabi (uns 1-2 min), toca «Carregar resums». Compte: si tornes a carregar, es perd el que hagis editat.</p>
+    </div>
+
+    <div id="status" class="status">
+        <div id="status-text" class="status-text"></div>
+    </div>
+
+    <div id="editor" style="display:none;">
+        <div class="card">
+            <h2>🖼️ Pas 2 — Portada</h2>
+            <label>Títol de la setmana (surt a la portada)</label>
+            <input type="text" id="setmana" placeholder="Oct 26 - Nov 1" />
+            <label>Foto de fons de la portada (millor vertical; si no en poses, farà servir la de la primera notícia)</label>
+            <input type="file" accept="image/*" onchange="pujarFotoPortada(this)" />
+            <div id="portada-status" style="font-size:12px;color:#666;margin-top:-4px;margin-bottom:10px;"></div>
+            <div class="fila"><input type="checkbox" id="outro" checked /><label for="outro" style="margin:0;color:#ccc;font-size:14px;">Afegir diapositiva final «Follow @onedayonevibe»</label></div>
+        </div>
+
+        <div class="card">
+            <h2>📰 Pas 3 — Revisa les notícies</h2>
+            <p class="nota">Edita el titular i el resum com vulguis. Amb ⬆ ⬇ canvies l'ordre. La foto és la de l'article; si no t'agrada, puja'n una teva. Titular màxim ~60 caràcters, resum ~230.</p>
+            <div id="stories-list"></div>
+            <button class="btn btn-secondary" onclick="afegirNoticia()">➕ Afegir notícia a mà</button>
+        </div>
+
+        <div class="card">
+            <h2>📋 Descripció + hashtags (per TikTok)</h2>
+            <textarea id="caption-box" rows="5"></textarea>
+            <button class="btn btn-secondary" onclick="copiarCaption()">📋 Copiar</button>
+        </div>
+
+        <button class="btn btn-green" onclick="generarCarrusel()">🎬 2. Generar carrusel</button>
+    </div>
+
+    <div class="card">
+        <h2>⬇️ Descarregar / Esborrar</h2>
+        <button class="btn btn-secondary" onclick="veureEstat()">📊 Consultar estat</button>
+        <button class="btn btn-secondary" onclick="llistarImatges()">🖼️ Carregar imatges del carrusel</button>
+        <div id="imatges-llista"></div>
+        <button class="btn btn-danger" onclick="esborrarRelease()">🗑️ Esborrar Release</button>
+        <button class="btn btn-secondary" onclick="canviarToken()">🔑 Canviar token</button>
+    </div>
+</div>
+
+<script>
+const GITHUB_REPO = "nilburgas-eng/onedayonevibe";
+const TAG = "hardnews_generat";
+let GITHUB_TOKEN = '';
+try { GITHUB_TOKEN = localStorage.getItem('github_token') || ''; } catch (e) {}
+let stories = [];
+let fotoPortada = '';      // ruta al repo de la foto de portada pujada
+
+window.onload = function() {
+    if (!GITHUB_TOKEN) {
+        GITHUB_TOKEN = prompt('Introdueix el teu GitHub Token:') || '';
+        if (GITHUB_TOKEN) { try { localStorage.setItem('github_token', GITHUB_TOKEN); } catch (e) {} }
+    }
+    document.getElementById('setmana').value = textSetmana();
+};
+
+// "Oct 26 - Nov 1": dilluns a diumenge de la setmana actual
+function textSetmana() {
+    const mesos = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const avui = new Date();
+    const dia = avui.getDay();
+    const dilluns = new Date(avui);
+    dilluns.setDate(avui.getDate() - (dia === 0 ? 6 : dia - 1));
+    const diumenge = new Date(dilluns);
+    diumenge.setDate(dilluns.getDate() + 6);
+    return `${mesos[dilluns.getMonth()]} ${dilluns.getDate()} - ${mesos[diumenge.getMonth()]} ${diumenge.getDate()}`;
+}
+
+function esc(t) {
+    return String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function canviarToken() {
+    const nou = prompt('Introdueix el nou GitHub Token:');
+    if (nou) {
+        GITHUB_TOKEN = nou;
+        try { localStorage.setItem('github_token', nou); } catch (e) {}
+        mostrarStatus('✅ Token actualitzat!', 'ok');
+    }
+}
+
+function mostrarStatus(text, tipus) {
+    const el = document.getElementById('status');
+    el.classList.add('visible');
+    document.getElementById('status-text').innerHTML = `<span class="status-${tipus}">${text}</span>`;
+}
+
+async function dispararWorkflow(workflow, inputs) {
+    const r = await fetch(
+        `https://api.github.com/repos/${GITHUB_REPO}/actions/workflows/${workflow}/dispatches`,
+        {
+            method: 'POST',
+            headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ref: 'main', inputs })
+        }
+    );
+    let detall = '';
+    if (r.status !== 204) {
+        try { detall = (await r.json()).message || ''; } catch (e) {}
+    }
+    return { status: r.status, detall };
+}
+
+// ---------------------------------------------------------------- pas 1
+async function resumirNoticies() {
+    const urls = document.getElementById('urls').value.split('\n').map(l => l.trim()).filter(l => l.startsWith('http'));
+    if (urls.length === 0) {
+        mostrarStatus('❌ Enganxa almenys un enllaç (ha de començar per http)', 'error');
+        return;
+    }
+    if (urls.length > 10) {
+        mostrarStatus('❌ Màxim 10 enllaços', 'error');
+        return;
+    }
+    mostrarStatus(`⏳ Resumint ${urls.length} notícies...`, 'info');
+    const res = await dispararWorkflow('hardnews_buscar.yml', { urls: urls.join('\n') });
+    if (res.status === 204) {
+        mostrarStatus('✅ Resum iniciat!<br>⏳ Espera 1-2 min i toca «🔄 Carregar resums».', 'ok');
+    } else {
+        mostrarStatus(`❌ Error ${res.status}: ${res.detall}`, 'error');
+    }
+}
+
+async function carregarNoticies() {
+    mostrarStatus('⏳ Carregant resums...', 'info');
+    try {
+        const r = await fetch(
+            `https://api.github.com/repos/${GITHUB_REPO}/contents/hardnews_data.json?t=${Date.now()}`,
+            { headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3.raw' } }
+        );
+        if (r.status !== 200) {
+            mostrarStatus('❌ Encara no hi ha resums. Espera que acabi el procés.', 'error');
+            return;
+        }
+        const data = await r.json();
+        stories = (data.stories || []).map(s => ({
+            url: s.url || '', source: s.source || '', headline: s.headline || '', summary: s.summary || '',
+            image_url: s.image_url || '', error: s.error || '', foto_path: '', preview_local: ''
+        }));
+        const cap = (data.caption || '') + ((data.hashtags && data.hashtags.length) ? '\n\n' + data.hashtags.join(' ') : '');
+        document.getElementById('caption-box').value = cap;
+        document.getElementById('editor').style.display = 'block';
+        renderStories();
+        const errors = stories.filter(s => s.error).length;
+        mostrarStatus(`✅ ${stories.length} notícies carregades.` + (errors ? ` ⚠️ ${errors} necessiten text a mà.` : '') + ' Revisa-les i genera!', errors ? 'info' : 'ok');
+    } catch (e) {
+        mostrarStatus('❌ Error carregant: ' + e.message, 'error');
+    }
+}
+
+// ---------------------------------------------------------------- pas 3: editor
+function renderStories() {
+    const cont = document.getElementById('stories-list');
+    cont.innerHTML = '';
+    stories.forEach((s, i) => {
+        const src = s.preview_local || s.image_url;
+        const foto = src
+            ? `<img class="foto" src="${esc(src)}" referrerpolicy="no-referrer" alt="" onerror="fotoError(this)" />`
+            : `<div class="foto-buida">Sense foto: puja\'n una</div>`;
+        const div = document.createElement('div');
+        div.className = 'story';
+        div.id = `story-${i}`;
+        div.innerHTML = `
+            <div class="story-head">
+                <span class="story-nom">NEWS ${i + 1}/${stories.length}</span>
+                <div>
+                    <button class="btn-mini" onclick="moure(${i}, -1)" ${i === 0 ? 'disabled style="opacity:.3"' : ''}>⬆</button>
+                    <button class="btn-mini" onclick="moure(${i}, 1)" ${i === stories.length - 1 ? 'disabled style="opacity:.3"' : ''}>⬇</button>
+                    <button class="btn-mini red" onclick="eliminarNoticia(${i})">🗑️</button>
+                </div>
+            </div>
+            ${s.error ? `<div class="avis">⚠️ ${esc(s.error)}</div>` : ''}
+            ${foto}
+            <label>🖼️ Foto pròpia (opcional, sobreescriu la de l'article)</label>
+            <input type="file" accept="image/*" onchange="pujarFotoNoticia(${i}, this)" />
+            <div id="foto-status-${i}" style="font-size:12px;color:${s.foto_path ? '#00ff88' : '#666'};margin-top:-6px;margin-bottom:8px;">${s.foto_path ? '✅ Foto pròpia pujada' : ''}</div>
+            <label>Titular</label>
+            <input type="text" value="${esc(s.headline)}" oninput="canviar(${i}, 'headline', this.value)" />
+            <div id="cnt-h-${i}" class="comptador">${s.headline.length}/60</div>
+            <label>Resum</label>
+            <textarea rows="4" oninput="canviar(${i}, 'summary', this.value)">${esc(s.summary)}</textarea>
+            <div id="cnt-s-${i}" class="comptador">${s.summary.length}/230</div>
+            <label>Font</label>
+            <input type="text" value="${esc(s.source)}" oninput="canviar(${i}, 'source', this.value)" placeholder="Wololo Sound" />
+            ${s.url ? `<div class="link">🔗 ${esc(s.url)}</div>` : ''}
+        `;
+        cont.appendChild(div);
+        actualitzarComptadors(i);
+    });
+}
+
+function fotoError(img) {
+    const d = document.createElement('div');
+    d.className = 'foto-buida';
+    d.textContent = "No s'ha pogut mostrar la foto (puja'n una teva)";
+    img.replaceWith(d);
+}
+
+function actualitzarComptadors(i) {
+    const s = stories[i];
+    const h = document.getElementById(`cnt-h-${i}`), m = document.getElementById(`cnt-s-${i}`);
+    if (h) { h.textContent = `${s.headline.length}/60`; h.classList.toggle('llarg', s.headline.length > 60); }
+    if (m) { m.textContent = `${s.summary.length}/230`; m.classList.toggle('llarg', s.summary.length > 230); }
+}
+
+function canviar(i, camp, valor) {
+    stories[i][camp] = valor;
+    if (camp === 'headline' || camp === 'summary') actualitzarComptadors(i);
+}
+
+function moure(i, direccio) {
+    const j = i + direccio;
+    if (j < 0 || j >= stories.length) return;
+    [stories[i], stories[j]] = [stories[j], stories[i]];
+    renderStories();
+    const el = document.getElementById(`story-${j}`);
+    if (el) {
+        el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        el.style.outline = '2px solid #00BFFF';
+        setTimeout(() => { el.style.outline = ''; }, 1400);
+    }
+}
+
+function eliminarNoticia(i) {
+    stories.splice(i, 1);
+    renderStories();
+}
+
+function afegirNoticia() {
+    stories.push({ url: '', source: '', headline: '', summary: '', image_url: '', error: '', foto_path: '', preview_local: '' });
+    renderStories();
+    const el = document.getElementById(`story-${stories.length - 1}`);
+    if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+}
+
+// ---------------------------------------------------------------- fotos
+function llegirBase64(file) {
+    return new Promise((res, rej) => {
+        const reader = new FileReader();
+        reader.onload = () => res(reader.result.split(',')[1]);
+        reader.onerror = () => rej(new Error('Error llegint el fitxer'));
+        reader.readAsDataURL(file);
+    });
+}
+
+async function pujarImatgeRepo(file, prefix) {
+    if (file.size > 15 * 1024 * 1024) throw new Error('Imatge massa gran (màxim ~15MB)');
+    const base64 = await llegirBase64(file);
+    const extensio = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+    const path = `manual_covers/hardnews_${prefix}_${Date.now()}.${extensio}`;
+    const r = await fetch(
+        `https://api.github.com/repos/${GITHUB_REPO}/contents/${path}`,
+        {
+            method: 'PUT',
+            headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: `Foto hardnews ${prefix}`, content: base64, branch: 'main' })
+        }
+    );
+    if (r.status === 201 || r.status === 200) return path;
+    const err = await r.json().catch(() => ({}));
+    throw new Error(`${r.status} ${err.message || ''}`);
+}
+
+async function pujarFotoNoticia(i, inputEl) {
+    const file = inputEl.files[0];
+    if (!file) return;
+    mostrarStatus('⏳ Pujant foto...', 'info');
+    try {
+        const path = await pujarImatgeRepo(file, `n${i + 1}`);
+        stories[i].foto_path = path;
+        stories[i].preview_local = URL.createObjectURL(file);
+        renderStories();
+        mostrarStatus('✅ Foto pujada!', 'ok');
+    } catch (e) {
+        mostrarStatus('❌ Error pujant la foto: ' + e.message, 'error');
+    }
+}
+
+async function pujarFotoPortada(inputEl) {
+    const file = inputEl.files[0];
+    if (!file) return;
+    mostrarStatus('⏳ Pujant foto de portada...', 'info');
+    try {
+        fotoPortada = await pujarImatgeRepo(file, 'portada');
+        const st = document.getElementById('portada-status');
+        st.style.color = '#00ff88';
+        st.textContent = '✅ Foto de portada pujada';
+        mostrarStatus('✅ Foto de portada pujada!', 'ok');
+    } catch (e) {
+        mostrarStatus('❌ Error pujant la foto: ' + e.message, 'error');
+    }
+}
+
+// ---------------------------------------------------------------- generar
+async function generarCarrusel() {
+    const valides = stories.filter(s => s.headline.trim() && s.summary.trim());
+    if (valides.length === 0) {
+        mostrarStatus('❌ Cal almenys una notícia amb titular i resum', 'error');
+        return;
+    }
+    const buides = stories.length - valides.length;
+    const dades = {
+        week: document.getElementById('setmana').value.trim(),
+        cover_photo: fotoPortada,
+        outro: document.getElementById('outro').checked,
+        stories: valides.map(s => ({
+            headline: s.headline.trim(), summary: s.summary.trim(), source: s.source.trim(),
+            image_url: s.image_url, foto_path: s.foto_path, url: s.url
+        }))
+    };
+    const json = JSON.stringify(dades);
+    if (json.length > 60000) {
+        mostrarStatus('❌ Massa text per enviar (redueix els resums)', 'error');
+        return;
+    }
+    mostrarStatus('⏳ Generant carrusel...', 'info');
+    const res = await dispararWorkflow('hardnews.yml', { data: json });
+    if (res.status === 204) {
+        mostrarStatus(`✅ Generació iniciada amb ${valides.length} notícies!` + (buides ? `<br>⚠️ ${buides} sense titular o resum no s'han inclòs.` : '') + '<br>⏳ Tarda 1-2 min. Després «Carregar imatges del carrusel».', 'ok');
+    } else {
+        mostrarStatus(`❌ Error ${res.status}: ${res.detall}`, 'error');
+    }
+}
+
+function copiarCaption() {
+    const box = document.getElementById('caption-box');
+    box.focus();
+    box.select();
+    box.setSelectionRange(0, 999999);
+    try {
+        const ok = document.execCommand('copy');
+        mostrarStatus(ok ? '✅ Descripció copiada!' : '⚠️ No s\'ha pogut copiar. Selecciona el text i copia\'l a mà.', ok ? 'ok' : 'error');
+    } catch (e) {
+        mostrarStatus('⚠️ No s\'ha pogut copiar. Selecciona el text i copia\'l a mà.', 'error');
+    }
+}
+
+// ---------------------------------------------------------------- descarregar
+async function veureEstat() {
+    mostrarStatus('⏳ Consultant estat...', 'info');
+    const r = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/actions/runs?per_page=5`,
+        { headers: { 'Authorization': `token ${GITHUB_TOKEN}` } });
+    const data = await r.json();
+    const runs = data.workflow_runs;
+    if (!runs || runs.length === 0) { mostrarStatus('❌ No hi ha workflows recents', 'error'); return; }
+    let html = '<b>Últims workflows:</b><br><br>';
+    for (const run of runs) {
+        const icon = run.status === 'completed' ? (run.conclusion === 'success' ? '✅' : '❌') : '⏳';
+        html += `${icon} <b>${esc(run.name)}</b> — ${esc(run.conclusion || run.status)}<br>`;
+        html += `&nbsp;&nbsp;&nbsp;${new Date(run.created_at).toLocaleString()}<br><br>`;
+    }
+    mostrarStatus(html, 'info');
+}
+
+async function llistarImatges() {
+    mostrarStatus('⏳ Carregant imatges...', 'info');
+    const r = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/tags/${TAG}`,
+        { headers: { 'Authorization': `token ${GITHUB_TOKEN}` } });
+    if (r.status !== 200) { mostrarStatus('❌ Encara no hi ha imatges generades', 'error'); return; }
+    const release = await r.json();
+    const imatges = (release.assets || []).filter(a => /^slide_.*\.png$/.test(a.name)).sort((a, b) => a.name.localeCompare(b.name));
+    if (imatges.length === 0) { mostrarStatus('❌ Encara no hi ha imatges generades', 'error'); return; }
+    const cont = document.getElementById('imatges-llista');
+    cont.innerHTML = '';
+    imatges.forEach(a => {
+        const etiqueta = a.name === 'slide_00_cover.png' ? 'Portada'
+            : a.name === 'slide_90_outro.png' ? 'Diapositiva final'
+            : 'Notícia ' + parseInt(a.name.slice(6, 8), 10);
+        const b = document.createElement('button');
+        b.className = 'btn btn-secondary';
+        b.textContent = `⬇️ ${etiqueta}`;
+        b.onclick = () => window.open(a.browser_download_url, '_blank');
+        cont.appendChild(b);
+    });
+    mostrarStatus(`✅ ${imatges.length} imatges. Toca'n una i, a la pàgina que s'obre, mantén premuda la imatge per desar-la.`, 'ok');
+}
+
+async function esborrarRelease() {
+    mostrarStatus('⏳ Esborrant...', 'info');
+    const r = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/tags/${TAG}`,
+        { headers: { 'Authorization': `token ${GITHUB_TOKEN}` } });
+    if (r.status !== 200) { mostrarStatus('❌ Release no trobat', 'error'); return; }
+    const release = await r.json();
+    await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/${release.id}`,
+        { method: 'DELETE', headers: { 'Authorization': `token ${GITHUB_TOKEN}` } });
+    await fetch(`https://api.github.com/repos/${GITHUB_REPO}/git/refs/tags/${TAG}`,
+        { method: 'DELETE', headers: { 'Authorization': `token ${GITHUB_TOKEN}` } });
+    document.getElementById('imatges-llista').innerHTML = '';
+    mostrarStatus('✅ Release esborrat!', 'ok');
+}
+</script>
+</body>
+</html>
