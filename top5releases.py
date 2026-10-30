@@ -83,6 +83,23 @@ def trobar_fitxer_sense_distingir_majuscules(nom_base):
 # Aquest format fa servir "PLAYLIST IN BIO!" (primer) i "SAVE PLAYLIST" (despres) en lloc del Follow/Thanks.
 # Fitxers a l'arrel del repo: sticker_playlist.png i sticker_save.png (valen les imatges originals, amb emblema i tot:
 # el programa treu l'emblema i deixa nomes el boto). Si en falta algun, es fan servir Follow/Thanks.
+def assegura_pillow():
+    """Si Pillow no esta instal.lat (el workflow no el demana), l'instal.la en aquest moment."""
+    try:
+        import PIL  # noqa
+        return True
+    except ImportError:
+        import sys as _sys
+        for extra in ([], ['--break-system-packages']):
+            r = subprocess.run([_sys.executable, '-m', 'pip', 'install', '-q', 'pillow'] + extra, capture_output=True, text=True)
+            if r.returncode == 0:
+                print("   Pillow instal.lat")
+                return True
+        print("   AVIS: no s'ha pogut instal.lar Pillow")
+        return False
+
+assegura_pillow()
+
 def preparar_botons(p1, p2):
     """Deixa les dues imatges amb el mateix llenc, sense l'emblema de dalt i amb el boto alineat.
     Torna (ruta1, ruta2) o None si no es pot."""
@@ -127,16 +144,30 @@ def preparar_botons(p1, p2):
         return None
 
 def trobar_sticker_tolerant(prefix):
-    """Busca 'sticker_playlist...' sense distingir majuscules i amb qualsevol extensio .png/.PNG (tambe 'x.png.PNG')."""
-    cands = [f for f in os.listdir('.') if f.lower().startswith(prefix) and '.png' in f.lower()]
+    """Busca 'sticker_playlist...' sense distingir majuscules i amb qualsevol extensio .png/.PNG (tambe 'x.png.PNG').
+    Mira primer a l'arrel del repo i, si no hi es, dins de qualsevol carpeta."""
+    def valid(f):
+        return f.lower().startswith(prefix) and '.png' in f.lower()
+    cands = [f for f in os.listdir('.') if valid(f)]
     cands.sort(key=lambda n: (len(n), n))
-    return cands[0] if cands else None
+    if cands:
+        return cands[0]
+    for arrel, dirs, fitxers in os.walk('.'):
+        dirs[:] = [d for d in dirs if not d.startswith('.')]
+        for f in sorted(fitxers, key=lambda n: (len(n), n)):
+            if valid(f):
+                return os.path.join(arrel, f)
+    return None
 
 _PL_PLAYLIST = trobar_sticker_tolerant("sticker_playlist")
 _PL_SAVE     = trobar_sticker_tolerant("sticker_save")
 print(f"Stickers nous trobats: playlist={_PL_PLAYLIST}, save={_PL_SAVE}")
 if not (_PL_PLAYLIST and _PL_SAVE):
-    print("   Imatges a l'arrel del repo: " + ", ".join(sorted(f for f in os.listdir('.') if f.lower().endswith('.png'))))
+    _pngs = []
+    for _arrel, _dirs, _fitxers in os.walk('.'):
+        _dirs[:] = [d for d in _dirs if not d.startswith('.')]
+        _pngs += [os.path.join(_arrel, f) for f in _fitxers if f.lower().endswith('.png')]
+    print("   PNG que hi ha al repo: " + ", ".join(sorted(_pngs)))
 _PL_PREP     = preparar_botons(_PL_PLAYLIST, _PL_SAVE) if (_PL_PLAYLIST and _PL_SAVE) else None
 if _PL_PREP:
     STICKER_FOLLOW_PATH, STICKER_THANKS_PATH = _PL_PREP
