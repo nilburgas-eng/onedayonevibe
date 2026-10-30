@@ -1,4 +1,4 @@
-import os, json, re, subprocess, shutil
+import os, json, re, subprocess, shutil, time
 try:
     from portada import genera_portada, separa_titol_event
 except Exception as _e:      # si falta portada.py al repo, el video es fa igualment sense portada
@@ -45,6 +45,24 @@ LOGO_W       = 90
 LOGO_OPACITY = 0.85
 LOGO_MARGIN  = 30
 LOGO_ACTIU   = os.path.exists(LOGO_PATH)
+
+def assegura_pillow():
+    """Si Pillow no esta instal.lat (el workflow no el demana), l'instal.la en aquest moment."""
+    try:
+        import PIL  # noqa
+        return True
+    except ImportError:
+        import sys as _sys
+        for extra in ([], ['--break-system-packages']):
+            r = subprocess.run([_sys.executable, '-m', 'pip', 'install', '-q', 'pillow'] + extra, capture_output=True, text=True)
+            if r.returncode == 0:
+                print("   Pillow instal.lat")
+                return True
+        print("   AVIS: no s'ha pogut instal.lar Pillow")
+        return False
+
+assegura_pillow()
+
 
 def trobar_fitxer_sense_distingir_majuscules(nom_base):
     for f in os.listdir('.'):
@@ -135,20 +153,32 @@ def audio_estereo(path):
 
 
 def baixar_tram(url, inici, durada_tram, output_path):
-    """Baixa nomes el tram [inici, inici+durada_tram] del video font, sense baixar-lo sencer."""
+    """Baixa nomes el tram [inici, inici+durada_tram] del video font, sense baixar-lo sencer.
+    Reintenta si YouTube dona errors temporals (5XX); l'ultim intent usa un format mes simple."""
     fi = inici + durada_tram
-    cmd = (
-        f'yt-dlp -f "bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[ext=mp4]/best" '
-        f'--download-sections "*{inici:.2f}-{fi:.2f}" --force-keyframes-at-cuts '
-        f'--merge-output-format mp4 --cookies cookies.txt --js-runtime node '
-        f'--remote-components ejs:github -o "{output_path}" "{url}"'
-    )
-    r = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-    ok = r.returncode == 0 and os.path.exists(output_path) and os.path.getsize(output_path) > 10000
-    if not ok:
-        print(f"   YT-DLP STDERR: {r.stderr[-1500:]}")
-        print(f"   YT-DLP STDOUT: {r.stdout[-500:]}")
-    return ok
+    format_principal = "bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[ext=mp4]/best"
+    format_reserva = "best[height<=1080][ext=mp4]/best[ext=mp4]/best"
+    intents = [(format_principal, 0), (format_principal, 8), (format_reserva, 15)]
+    r = None
+    for n, (fmt, pausa) in enumerate(intents, 1):
+        if pausa:
+            print(f"   Reintent {n}/{len(intents)} en {pausa}s" + (" (format alternatiu)" if fmt == format_reserva else ""))
+            time.sleep(pausa)
+        if os.path.exists(output_path):
+            os.remove(output_path)
+        cmd = (
+            f'yt-dlp -f "{fmt}" '
+            f'--download-sections "*{inici:.2f}-{fi:.2f}" --force-keyframes-at-cuts '
+            f'--merge-output-format mp4 --cookies cookies.txt --js-runtime node '
+            f'--remote-components ejs:github -o "{output_path}" "{url}"'
+        )
+        r = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+        ok = r.returncode == 0 and os.path.exists(output_path) and os.path.getsize(output_path) > 10000
+        if ok:
+            return True
+    print(f"   YT-DLP STDERR: {r.stderr[-1500:]}")
+    print(f"   YT-DLP STDOUT: {r.stdout[-500:]}")
+    return False
 
 
 if not SET_URL:
