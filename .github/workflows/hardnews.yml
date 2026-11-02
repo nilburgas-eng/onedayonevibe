@@ -1,0 +1,78 @@
+name: Hardnews Generar
+
+on:
+  workflow_dispatch:
+    inputs:
+      data:
+        description: 'JSON amb la setmana, la portada i les noticies'
+        required: true
+
+jobs:
+  generar:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout codi
+        uses: actions/checkout@v4
+
+      - name: Instal·lar dependencies
+        run: |
+          pip install requests pillow
+          echo "Dependencies OK"
+
+      - name: Descarregar fonts
+        run: |
+          mkdir -p ~/fonts
+          wget -q "https://github.com/google/fonts/raw/main/ofl/bebasneue/BebasNeue-Regular.ttf" -O ~/fonts/BebasNeue.ttf
+          wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-SemiBold.ttf" -O ~/fonts/Montserrat-SemiBold.ttf
+          wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-ExtraBold.ttf" -O ~/fonts/Montserrat-ExtraBold.ttf
+          wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-Medium.ttf" -O ~/fonts/Montserrat-Medium.ttf
+          wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-Bold.ttf" -O ~/fonts/Montserrat-Bold.ttf
+          echo "Fonts: $(ls ~/fonts/ | wc -l)"
+
+      - name: Generar carrusel
+        env:
+          DATA: ${{ github.event.inputs.data }}
+        run: python3 hardnews.py
+
+      - name: Pujar imatges a GitHub Releases
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+        run: |
+          python3 << 'PYEOF'
+          import os, glob, requests
+          repo = "${{ github.repository }}"
+          tag = "hardnews_generat"
+          token = os.environ['GITHUB_TOKEN']
+          headers = {"Authorization": f"token {token}"}
+
+          r = requests.get(f"https://api.github.com/repos/{repo}/releases/tags/{tag}", headers=headers)
+          if r.status_code == 200:
+              release = r.json()
+              upload_url = release['upload_url'].split('{')[0]
+              print("Release existent trobat")
+              for a in release.get('assets', []):
+                  if a['name'].startswith('slide_'):
+                      requests.delete(f"https://api.github.com/repos/{repo}/releases/assets/{a['id']}", headers=headers)
+          else:
+              print("Creant release nou...")
+              r = requests.post(f"https://api.github.com/repos/{repo}/releases", headers=headers,
+                  json={"tag_name": tag, "name": tag, "draft": False})
+              if r.status_code not in (200, 201):
+                  print(f"ERROR creant release: {r.status_code}")
+                  print(r.text)
+                  exit(1)
+              upload_url = r.json()['upload_url'].split('{')[0]
+
+          fitxers = sorted(glob.glob(os.path.expanduser("~/output/slide_*.png")))
+          if not fitxers:
+              print("ERROR: no hi ha cap imatge per pujar")
+              exit(1)
+          for path in fitxers:
+              nom = os.path.basename(path)
+              with open(path, 'rb') as f:
+                  r2 = requests.post(f"{upload_url}?name={nom}",
+                      headers={**headers, "Content-Type": "image/png"}, data=f)
+              print(f"Pujat {nom}: {r2.status_code}")
+          PYEOF
