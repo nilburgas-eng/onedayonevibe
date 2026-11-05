@@ -31,15 +31,6 @@
     },
     {
       "pos": 4,
-      "nom": "Heart Of A Dragon",
-      "artista": "Ran-D",
-      "cover_url": "https://hardstyle.com/track_image/b467175d-91fb-4efd-8f76-63fbd3a5ae5a/250x250/375",
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 5,
       "nom": "GIVE IT TO ME",
       "artista": "Darren Styles",
       "cover_url": "https://hardstyle.com/track_image/cb8e1696-a402-4e74-b3a0-932c759e74ad/250x250/375",
@@ -48,7 +39,7 @@
       "yt_url": null
     },
     {
-      "pos": 6,
+      "pos": 5,
       "nom": "Come As One",
       "artista": "Brennan Heart",
       "cover_url": "https://hardstyle.com/track_image/d5f55e04-e083-4aef-aa9e-54cfa7c4e4da/250x250/128",
@@ -57,19 +48,28 @@
       "yt_url": null
     },
     {
+      "pos": 6,
+      "nom": "Eyes Of Death",
+      "artista": "Bmberjck",
+      "cover_url": "https://hardstyle.com/track_image/066d6265-6842-402c-96f7-34cf61b0113a/250x250/335",
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
       "pos": 7,
-      "nom": "My House",
-      "artista": "DJ Isaac",
-      "cover_url": "https://hardstyle.com/track_image/f6550648-44e5-4823-9088-2b204d3c035d/250x250/375",
+      "nom": "Heart Of A Dragon",
+      "artista": "Ran-D",
+      "cover_url": "https://hardstyle.com/track_image/b467175d-91fb-4efd-8f76-63fbd3a5ae5a/250x250/375",
       "timestamp_manual": null,
       "nom_manual": null,
       "yt_url": null
     },
     {
       "pos": 8,
-      "nom": "Eyes Of Death",
-      "artista": "Bmberjck",
-      "cover_url": "https://hardstyle.com/track_image/066d6265-6842-402c-96f7-34cf61b0113a/250x250/335",
+      "nom": "My House",
+      "artista": "DJ Isaac",
+      "cover_url": "https://hardstyle.com/track_image/f6550648-44e5-4823-9088-2b204d3c035d/250x250/375",
       "timestamp_manual": null,
       "nom_manual": null,
       "yt_url": null
@@ -85,33 +85,15 @@
     },
     {
       "pos": 10,
-      "nom": "Break The System (Official REBELLiON Indoor 2026 Anthem)",
-      "artista": "Exproz",
-      "cover_url": "https://hardstyle.com/track_image/c99bf8eb-fb5a-4c05-a2ca-7b07ddc7c5a1/250x250/375",
+      "nom": "Darkness",
+      "artista": "E-Force",
+      "cover_url": "https://hardstyle.com/track_image/c88f9c12-a755-4fe6-a6a9-5bd40496ce1c/250x250/375",
       "timestamp_manual": null,
       "nom_manual": null,
       "yt_url": null
     },
     {
       "pos": 11,
-      "nom": "PRODIGY",
-      "artista": "The Purge",
-      "cover_url": "https://hardstyle.com/track_image/02d3e497-5991-4dbd-90b8-d6256528470d/250x250/375",
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 12,
-      "nom": "Embers",
-      "artista": "D-Block & S-te-Fan",
-      "cover_url": "https://hardstyle.com/track_image/3e336efe-80c3-445e-b084-1233f760223d/250x250/375",
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 13,
       "nom": "In And Out of Love",
       "artista": "Sound Rush",
       "cover_url": "https://hardstyle.com/track_image/4bdbb5e1-d17e-454d-b1a4-f2a2fa92ba1f/250x250/375",
@@ -120,10 +102,28 @@
       "yt_url": null
     },
     {
+      "pos": 12,
+      "nom": "Spirits",
+      "artista": "Jesse Jax",
+      "cover_url": "https://hardstyle.com/track_image/e9a0c9e4-5397-4c75-99df-35413eb3cd12/250x250/375",
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 13,
+      "nom": "Embers",
+      "artista": "D-Block & S-te-Fan",
+      "cover_url": "https://hardstyle.com/track_image/3e336efe-80c3-445e-b084-1233f760223d/250x250/375",
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
       "pos": 14,
-      "nom": "Keep On Rising",
-      "artista": "Primeshock",
-      "cover_url": "https://hardstyle.com/track_image/d32e69f6-cf01-4534-99fd-f6352cc539e7/250x250/375",
+      "nom": "Break The System (Official REBELLiON Indoor 2026 Anthem)",
+      "artista": "Exproz",
+      "cover_url": "https://hardstyle.com/track_image/c99bf8eb-fb5a-4c05-a2ca-7b07ddc7c5a1/250x250/375",
       "timestamp_manual": null,
       "nom_manual": null,
       "yt_url": null
