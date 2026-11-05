@@ -19,6 +19,18 @@ on:
         description: 'Estil: energetic, melodic o vocal'
         required: false
         default: 'energetic'
+      suplents:
+        description: 'Temes suplents JSON (nomes per a l historial)'
+        required: false
+        default: ''
+      marques:
+        description: 'Mostrar NEW i fletxes: si o no'
+        required: false
+        default: 'si'
+      guardar_historial:
+        description: 'Guardar la setmana a l historial: si o no'
+        required: false
+        default: 'si'
 
 jobs:
   generar:
@@ -107,6 +119,9 @@ jobs:
           SETMANA_TEXT: ${{ github.event.inputs.setmana_text }}
           GENERE: ${{ github.event.inputs.genere }}
           ESTIL: ${{ github.event.inputs.estil }}
+          SUPLENTS: ${{ github.event.inputs.suplents }}
+          MARQUES: ${{ github.event.inputs.marques }}
+          GUARDAR_HISTORIAL: ${{ github.event.inputs.guardar_historial }}
           SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
           SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
         run: python3 chart2.py
@@ -194,3 +209,17 @@ jobs:
 
           print(f"Pujat correctament: {r2.status_code}")
           PYEOF
+
+      - name: Guardar historial del chart (per a les fletxes de la setmana vinent)
+        continue-on-error: true
+        run: |
+          if [ -f chart_historial.json ]; then
+            git config user.name "github-actions"
+            git config user.email "actions@github.com"
+            git add chart_historial.json
+            git commit -m "Actualitzar historial del chart" || echo "Sense canvis"
+            git pull --rebase origin main || true
+            git push
+          else
+            echo "No hi ha historial nou per guardar"
+          fi
