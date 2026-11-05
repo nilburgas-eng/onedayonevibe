@@ -38,6 +38,15 @@
     .track.suplent { border-left-color: #666; background: #1c1c1c; }
     .track.suplent .track-nom { color: #aaa; }
     .divisor { text-align: center; font-size: 12px; color: #00BFFF; letter-spacing: 1px; margin: 18px 0 14px; padding: 10px; border-top: 2px dashed #00BFFF; border-bottom: 2px dashed #00BFFF; }
+    .marca { display: inline-block; font-size: 12px; font-weight: 800; padding: 2px 9px; border-radius: 999px; margin-left: 8px; vertical-align: middle; letter-spacing: .5px; }
+    .marca.up { background: rgba(36,224,112,.18); color: #24e070; }
+    .marca.down { background: rgba(255,72,72,.18); color: #ff6b6b; }
+    .marca.new { background: #ffc21a; color: #000; }
+    .marca.same { background: rgba(255,255,255,.12); color: #ddd; }
+    .opcions-chart { background: #222; border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; }
+    .opcions-chart label.check { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #ddd; margin: 0 0 8px; cursor: pointer; }
+    .opcions-chart label.check input { width: 20px; height: 20px; margin: 0; flex: none; }
+    .historial-info { font-size: 12px; color: #888; line-height: 1.5; margin-top: 4px; }
     .btn-mini { background: #2a2a2a; color: #fff; border: 1px solid #444; border-radius: 5px; padding: 3px 10px; font-size: 14px; font-weight: 700; cursor: pointer; margin-right: 6px; }
 </style>
 </head>
@@ -49,7 +58,7 @@
     <div class="card">
         <h2>🔍 Pas 1 — Carregar chart</h2>
         <label>Gènere</label>
-        <select id="genere">
+        <select id="genere" onchange="canviGenere()">
             <option value="electronica">🎧 Electrònica general</option>
             <option value="hardstyle">⚡ Hardstyle</option>
         </select>
@@ -72,6 +81,11 @@
     <div id="tracks-card" class="card" style="display:none;">
         <h2>🎬 Pas 2 — Revisar i ajustar</h2>
         <p style="font-size:12px;color:#666;margin-bottom:14px;">Es carreguen 15 temes: <b>els 10 primers surten al vídeo</b> i els de sota de la ratlla blava són suplents. Amb ⬆ ⬇ els mous d'ordre (si en puges un suplent per sobre de la ratlla, el #10 passa a suplent), o bé fes servir «Intercanviar amb…». Edita nom, artista, moment o cola temes propis amb la URL de YouTube. També pots pujar un vídeo propi directament. El botó 🎬 obre el vídeo o la cerca a YouTube.</p>
+        <div class="opcions-chart">
+            <label class="check"><input type="checkbox" id="opt-marques" checked onchange="renderTracks()" /> Mostrar NEW i fletxes ▲▼ (vs setmana anterior)</label>
+            <label class="check"><input type="checkbox" id="opt-historial" checked /> Guardar aquesta setmana a l'historial</label>
+            <div id="historial-info" class="historial-info"></div>
+        </div>
         <div id="tracks-list"></div>
         <button class="btn btn-secondary" onclick="afegirTrack()">➕ Afegir cançó</button>
         <button class="btn btn-green" onclick="generarVideo()">🎬 2. Generar vídeo</button>
@@ -180,6 +194,7 @@ async function carregarChart() {
         const data = await r.json();
         tracksActuals = data.tracks;
         renumerar();
+        await carregarHistorial();
         setmanaText = data.setmana_text || '';
         if (setmanaText && !document.getElementById('setmana').value) {
             document.getElementById('setmana').value = setmanaText;
@@ -192,9 +207,110 @@ async function carregarChart() {
     }
 }
 
+// ---------------------------------------------------------------- historial i marques NEW / fletxes
+// (mateixes regles que chart2.py: un tema es reconeix per titol + artista)
+let historial = { snapshots: [] };
+const HIST_MIN_DIES = 4;
+
+async function carregarHistorial() {
+    historial = { snapshots: [] };
+    try {
+        const r = await fetch(
+            `https://api.github.com/repos/${GITHUB_REPO}/contents/chart_historial.json?t=${Date.now()}`,
+            { headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3.raw' } }
+        );
+        if (r.status === 200) {
+            const h = await r.json();
+            if (h && Array.isArray(h.snapshots)) historial = h;
+        }
+    } catch (e) { /* sense historial */ }
+}
+
+function senseAccents(s) { return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+
+function normTitol(s) {
+    s = senseAccents(s).toLowerCase();
+    s = s.replace(/\([^)]*\)|\[[^\]]*\]/g, ' ');
+    s = s.replace(/\s[-–—]\s.*$/, ' ');
+    s = s.replace(/[^a-z0-9]+/g, ' ');
+    return s.trim();
+}
+
+function artistesSet(s) {
+    s = senseAccents(s).toLowerCase();
+    const parts = s.split(/,|&|\+|\/|\bfeat\.?(?=\s|$)|\bft\.?(?=\s|$)|\bfeaturing\b|\bvs\.?(?=\s|$)|\bwith\b|\bx\b/);
+    const out = new Set();
+    parts.forEach(p => { p = (p || '').replace(/[^a-z0-9]+/g, ' ').trim(); if (p) out.add(p); });
+    return out;
+}
+
+function mateixTema(a, b) {
+    const ta = normTitol(a.nom);
+    if (!ta || ta !== normTitol(b.nom)) return false;
+    const sa = artistesSet(a.artista), sb = artistesSet(b.artista);
+    if (sa.size === 0 || sb.size === 0) return true;
+    for (const x of sa) if (sb.has(x)) return true;
+    return false;
+}
+
+function referenciaHistorial() {
+    const genere = document.getElementById('genere').value;
+    const ara = Date.now();
+    const cands = (historial.snapshots || []).filter(s => {
+        const d = Date.parse(s.data || '');
+        return s.genere === genere && !isNaN(d) && (ara - d) / 86400000 >= HIST_MIN_DIES;
+    });
+    if (!cands.length) return null;
+    cands.sort((a, b) => String(a.data).localeCompare(String(b.data)));
+    return cands[cands.length - 1];
+}
+
+// Torna {m: ['new'] | ['up', n] | ['down', n] | ['same'] | null, auto: bool}
+function calcularMarca(t, pos, ref) {
+    const manual = String(t.prev || '').trim().toLowerCase();
+    if (manual === '-') return { m: null, auto: false };
+    if (manual === 'new') return { m: ['new'], auto: false };
+    let prev = null, auto = true;
+    if (/^\d+$/.test(manual)) { prev = parseInt(manual, 10); auto = false; }
+    else {
+        if (!ref) return { m: null, auto: true };
+        const r = (ref.tracks || []).find(x => mateixTema(t, x));
+        if (!r) return { m: ['new'], auto: true };
+        prev = parseInt(r.pos, 10) || null;
+        if (prev === null) return { m: ['new'], auto: true };
+    }
+    const d = prev - pos;
+    return { m: d > 0 ? ['up', d] : d < 0 ? ['down', -d] : ['same'], auto, prev };
+}
+
+function textMarca(m) {
+    if (!m) return 'cap marca';
+    return m[0] === 'new' ? 'NEW' : m[0] === 'up' ? `▲ ${m[1]}` : m[0] === 'down' ? `▼ ${m[1]}` : '=';
+}
+
+function actualitzarInfoHistorial(ref) {
+    const el = document.getElementById('historial-info');
+    if (!el) return;
+    if (!document.getElementById('opt-marques').checked) {
+        el.textContent = 'Les marques estan desactivades: el vídeo sortirà sense NEW ni fletxes.';
+    } else if (ref) {
+        const quan = ref.setmana || (ref.data ? ref.data.slice(0, 10) : '');
+        el.textContent = `Comparant amb la setmana anterior (${quan}, ${(ref.tracks || []).length} temes guardats). Si un tema surt malament com a NEW, tria al seu desplegable «Abans era el #…».`;
+    } else {
+        el.textContent = 'Encara no hi ha historial anterior d\'aquest gènere: aquesta setmana no sortirà cap marca, però es guardarà i les marques començaran la setmana vinent. Si recordes les posicions, pots posar-les a mà a cada tema («Abans era el #…»).';
+    }
+}
+
+function canviGenere() {
+    if (tracksActuals.length) renderTracks();
+}
+
 function renderTracks() {
     const cont = document.getElementById('tracks-list');
     cont.innerHTML = '';
+    const marquesOn = document.getElementById('opt-marques').checked;
+    const ref = referenciaHistorial();
+    actualitzarInfoHistorial(ref);
     tracksActuals.forEach((t, i) => {
         if (i === MAX_VIDEO) {
             const sep = document.createElement('div');
@@ -206,11 +322,24 @@ function renderTracks() {
         div.className = 'track' + (i >= MAX_VIDEO ? ' suplent' : '');
         div.id = `track-${i}`;
         const etiqueta = i < MAX_VIDEO ? `#${i + 1}` : `Suplent ${i - MAX_VIDEO + 1}`;
+        let marcaHtml = '', prevHtml = '';
+        if (i < MAX_VIDEO && marquesOn) {
+            const cm = calcularMarca(t, i + 1, ref);
+            if (cm.m) marcaHtml = `<span class="marca ${cm.m[0]}">${textMarca(cm.m)}</span>`;
+            const v = String(t.prev || '').trim().toLowerCase();
+            const sel = (val) => v === val ? 'selected' : '';
+            const autoTxt = textMarca(calcularMarca({ nom: t.nom, artista: t.artista }, i + 1, ref).m);
+            let opts = `<option value="" id="auto-opt-${i}" ${sel('')}>Marca: automàtica (${autoTxt})</option>`;
+            opts += `<option value="new" ${sel('new')}>NEW (nou al chart)</option>`;
+            opts += `<option value="-" ${sel('-')}>Sense marca</option>`;
+            for (let n = 1; n <= 15; n++) opts += `<option value="${n}" ${sel(String(n))}>Abans era el #${n}</option>`;
+            prevHtml = `<div class="track-full"><select onchange="actualitzar(${i}, 'prev', this.value)">${opts}</select></div>`;
+        }
         const opcionsIntercanvi = tracksActuals.map((u, j) => j === i ? '' :
             `<option value="${j}">${j < MAX_VIDEO ? '#' + (j + 1) : 'Suplent ' + (j - MAX_VIDEO + 1)} — ${esc(u.nom_manual || u.nom || 'sense nom')}</option>`).join('');
         div.innerHTML = `
             <div class="track-head">
-                <span class="track-nom">${etiqueta}</span>
+                <span class="track-nom">${etiqueta}<span id="marca-${i}">${marcaHtml}</span></span>
                 <div>
                     <button class="btn-mini" onclick="moure(${i}, -1)" ${i === 0 ? 'disabled style="opacity:.3"' : ''}>⬆</button>
                     <button class="btn-mini" onclick="moure(${i}, 1)" ${i === tracksActuals.length - 1 ? 'disabled style="opacity:.3"' : ''}>⬇</button>
@@ -224,6 +353,7 @@ function renderTracks() {
                     ${opcionsIntercanvi}
                 </select>
             </div>
+            ${prevHtml}
             <div class="track-full">
                 <input type="text" placeholder="Nom cançó" value="${(t.nom_manual||t.nom||'').replace(/"/g,'&quot;')}" onchange="actualitzar(${i}, 'nom', this.value)" />
             </div>
@@ -296,6 +426,20 @@ function actualitzar(i, camp, valor) {
     else if (camp === 'nom') tracksActuals[i].nom = valor.trim();
     else if (camp === 'artista') tracksActuals[i].artista = valor.trim();
     else if (camp === 'yt') tracksActuals[i].yt_url = valor.trim() || null;
+    else if (camp === 'prev') { tracksActuals[i].prev = valor; renderTracks(); aniarA(i); }
+    // si canvies nom o artista, la marca automàtica es recalcula (sense redibuixar tota la llista)
+    if (camp === 'nom' || camp === 'artista') refrescarMarca(i);
+}
+
+function refrescarMarca(i) {
+    if (i >= MAX_VIDEO || !document.getElementById('opt-marques').checked) return;
+    const t = tracksActuals[i];
+    const ref = referenciaHistorial();
+    const cm = calcularMarca(t, i + 1, ref);
+    const sp = document.getElementById(`marca-${i}`);
+    if (sp) sp.innerHTML = cm.m ? `<span class="marca ${cm.m[0]}">${textMarca(cm.m)}</span>` : '';
+    const op = document.getElementById(`auto-opt-${i}`);
+    if (op) op.textContent = `Marca: automàtica (${textMarca(calcularMarca({ nom: t.nom, artista: t.artista }, i + 1, ref).m)})`;
 }
 
 let releaseManualId = null;
@@ -445,7 +589,7 @@ function afegirTrack() {
         pos: tracksActuals.length + 1,
         nom: '', artista: '', cover_url: null,
         timestamp_manual: null, nom_manual: null, yt_url: null,
-        video_manual: null, cover_manual: null, cover_none: false
+        video_manual: null, cover_manual: null, cover_none: false, prev: ''
     });
     renderTracks();
 }
@@ -473,6 +617,7 @@ function netejarTracks() {
         if (t.video_manual) o.video_manual = t.video_manual;
         if (t.cover_manual) o.cover_manual = t.cover_manual;
         if (t.cover_none) o.cover_none = true;
+        if (t.prev) o.prev = String(t.prev);
         return o;
     });
 }
@@ -490,7 +635,10 @@ async function generarVideo() {
         estil,
         genere,
         setmana_text: setmanaManual || setmanaText,
-        tracks: JSON.stringify(netejarTracks())
+        tracks: JSON.stringify(netejarTracks()),
+        suplents: JSON.stringify(tracksActuals.slice(MAX_VIDEO).map((t, k) => ({ pos: MAX_VIDEO + k + 1, nom: t.nom, artista: t.artista }))),
+        marques: document.getElementById('opt-marques').checked ? 'si' : 'no',
+        guardar_historial: document.getElementById('opt-historial').checked ? 'si' : 'no'
     });
     if (res.status === 204) {
         mostrarStatus(`✅ Generació iniciada amb els ${Math.min(tracksActuals.length, MAX_VIDEO)} primers temes!<br>⏳ Tarda 15-20 min. Després "Descarregar vídeo final".`, 'ok');
