@@ -201,6 +201,8 @@ COVER_H  = 280
 COVER_X  = 90
 COVER_Y  = 500
 X_INFO   = 410
+# Colors del podi: el #3, #2 i #1 pugen de to (bronze, plata, or); la resta es queden en blanc.
+COLORS_PODI = {3: '0xDE9250', 2: '0xD6DEE8', 1: '0xFFC82E'}
 Y_NUM    = 500
 Y_NOM1   = 640
 Y_NOM2   = 710
@@ -309,6 +311,185 @@ def trobar_moment_impactant(audio_path, duracio_total, estil='energetic'):
         return 30.0
 
 
+# =====================================================================================
+#  MARQUES "NEW" i FLETXES (puja / baixa respecte la setmana anterior)
+#  - L'historial es guarda a chart_historial.json (a l'arrel del repo, el workflow el puja).
+#  - Un tema es reconeix per titol + artista (sense accents, sense (Extended Mix), sense feat...).
+#  - Si no hi ha historial (primera vegada) no surt cap marca; la setmana seguent ja sortiran.
+#  - Cada tema pot portar el camp 'prev' (des de la web app) per corregir a ma:
+#      ''/absent = automatic | 'new' = NEW | '-' = sense marca | '7' = abans era el #7
+# =====================================================================================
+import unicodedata
+from datetime import datetime, timezone
+
+HIST_PATH     = "chart_historial.json"
+MARQUES_ACTIU = os.environ.get('MARQUES', 'si').strip().lower() != 'no'
+GUARDAR_HIST  = os.environ.get('GUARDAR_HISTORIAL', 'si').strip().lower() != 'no'
+SUPLENTS_RAW  = os.environ.get('SUPLENTS', '')
+HIST_MIN_DIES = 4      # una "setmana anterior" ha de tenir com a minim 4 dies; si es torna a generar abans, se sobreescriu
+HIST_MAX      = 40     # maxim de setmanes guardades
+BADGE_GAP     = 30     # separacio entre el numero (#5) i la marca
+BADGE_DY      = 0      # ajust vertical fi de la marca respecte al numero (px)
+ARA_UTC       = datetime.now(timezone.utc)
+
+
+def _sense_accents(s):
+    return ''.join(c for c in unicodedata.normalize('NFD', str(s or '')) if unicodedata.category(c) != 'Mn')
+
+
+def norm_titol(s):
+    s = _sense_accents(s).lower()
+    s = re.sub(r'\([^)]*\)|\[[^\]]*\]', ' ', s)          # (Extended Mix), [Official Video]...
+    s = re.sub(r'\s[-–—]\s.*$', ' ', s)          # " - Radio Edit"
+    s = re.sub(r'[^a-z0-9]+', ' ', s)
+    return s.strip()
+
+
+def artistes_set(s):
+    s = _sense_accents(s).lower()
+    parts = re.split(r',|&|\+|/|\bfeat\.?(?=\s|$)|\bft\.?(?=\s|$)|\bfeaturing\b|\bvs\.?(?=\s|$)|\bwith\b|\bx\b', s)
+    out = set()
+    for p in parts:
+        p = re.sub(r'[^a-z0-9]+', ' ', p).strip()
+        if p:
+            out.add(p)
+    return out
+
+
+def mateix_tema(a, b):
+    ta = norm_titol(a.get('nom'))
+    if not ta or ta != norm_titol(b.get('nom')):
+        return False
+    sa, sb = artistes_set(a.get('artista')), artistes_set(b.get('artista'))
+    if not sa or not sb:
+        return True
+    return bool(sa & sb)
+
+
+def llegir_historial():
+    try:
+        with open(HIST_PATH, encoding='utf-8') as f:
+            h = json.load(f)
+        if isinstance(h, dict) and isinstance(h.get('snapshots'), list):
+            return h
+    except Exception:
+        pass
+    return {'snapshots': []}
+
+
+def _edat_dies(snap):
+    try:
+        d = datetime.fromisoformat(str(snap.get('data', '')).replace('Z', '+00:00'))
+        return (ARA_UTC - d).total_seconds() / 86400
+    except Exception:
+        return 0
+
+
+def trobar_referencia(hist, genere):
+    cands = [s for s in hist.get('snapshots', []) if s.get('genere') == genere and _edat_dies(s) >= HIST_MIN_DIES]
+    return max(cands, key=lambda s: s.get('data', '')) if cands else None
+
+
+def marca_per_track(track, ref):
+    """Torna ('new',) | ('up', n) | ('down', n) | ('same',) | None (sense marca)."""
+    manual = str(track.get('prev', '') or '').strip().lower()
+    pos = int(track['pos'])
+    if manual in ('-', 'cap', 'none', 'no'):
+        return None
+    if manual in ('new', 'n', 'nou', 'nova'):
+        return ('new',)
+    prev = None
+    if manual.isdigit():
+        prev = int(manual)
+    else:
+        if ref is None:
+            return None
+        for r in ref.get('tracks', []):
+            if mateix_tema(track, r):
+                prev = int(r.get('pos') or 0) or None
+                break
+        if prev is None:
+            return ('new',)
+    d = prev - pos
+    if d > 0:
+        return ('up', d)
+    if d < 0:
+        return ('down', -d)
+    return ('same',)
+
+
+def text_marca(m):
+    if not m:
+        return '-'
+    return {'new': 'NEW', 'up': f'UP +{m[1] if len(m) > 1 else 0}', 'down': f'DOWN -{m[1] if len(m) > 1 else 0}', 'same': '='}[m[0]]
+
+
+def crear_badge(marca, path):
+    """Dibuixa la marca (NEW / fletxa + posicions) en un PNG transparent. Torna (ample, alt) finals."""
+    from PIL import Image, ImageDraw, ImageFont
+    S = 3                     # supermostreig per tenir vores suaus
+    H = 76 * S
+    try:
+        f = ImageFont.truetype(FONT_EXTRABOLD, 42 * S)
+    except Exception:
+        f = ImageFont.load_default()
+    tipus = marca[0]
+    if tipus == 'new':
+        text, fg = 'NEW', (0, 0, 0, 255)
+        tw = f.getlength(text)
+        W = int(tw + 52 * S)
+        img = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+        d = ImageDraw.Draw(img)
+        d.rounded_rectangle((0, 0, W - 1, H - 1), radius=H // 2, fill=(255, 194, 26, 255))
+        d.text((W / 2, H / 2), text, font=f, fill=fg, anchor='mm')
+    else:
+        if tipus == 'up':
+            color, text = (36, 224, 112, 255), str(marca[1])
+        elif tipus == 'down':
+            color, text = (255, 72, 72, 255), str(marca[1])
+        else:
+            color, text = (235, 235, 235, 255), ''
+        pad = 26 * S
+        tri_w, tri_h = 34 * S, 30 * S
+        if tipus == 'same':
+            W = pad * 2 + 40 * S
+        else:
+            tw = f.getlength(text)
+            W = int(pad + tri_w + 14 * S + tw + pad)
+        img = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+        d = ImageDraw.Draw(img)
+        d.rounded_rectangle((0, 0, W - 1, H - 1), radius=H // 2, fill=(0, 0, 0, 150))
+        cy = H / 2
+        if tipus == 'same':
+            bx0, bx1 = (W - 40 * S) / 2, (W + 40 * S) / 2
+            d.rounded_rectangle((bx0, cy - 15 * S, bx1, cy - 6 * S), radius=4 * S, fill=color)
+            d.rounded_rectangle((bx0, cy + 6 * S, bx1, cy + 15 * S), radius=4 * S, fill=color)
+        else:
+            x0 = pad
+            if tipus == 'up':
+                pts = [(x0, cy + tri_h / 2), (x0 + tri_w, cy + tri_h / 2), (x0 + tri_w / 2, cy - tri_h / 2)]
+            else:
+                pts = [(x0, cy - tri_h / 2), (x0 + tri_w, cy - tri_h / 2), (x0 + tri_w / 2, cy + tri_h / 2)]
+            d.polygon(pts, fill=color)
+            d.text((x0 + tri_w + 14 * S, cy), text, font=f, fill=(255, 255, 255, 255), anchor='lm')
+    img = img.resize((W // S, H // S), Image.LANCZOS)
+    img.save(path)
+    return img.size
+
+
+def guardar_historial(tracks_video, suplents, genere, setmana):
+    hist = llegir_historial()
+    # si ja hi ha una generacio d'aquesta mateixa setmana (menys de HIST_MIN_DIES), es substitueix
+    snaps = [s for s in hist['snapshots'] if not (s.get('genere') == genere and _edat_dies(s) < HIST_MIN_DIES)]
+    llista = [{'pos': int(t['pos']), 'nom': t.get('nom', ''), 'artista': t.get('artista', '')} for t in tracks_video]
+    llista += [{'pos': int(s['pos']), 'nom': s.get('nom', ''), 'artista': s.get('artista', '')} for s in suplents]
+    snaps.append({'data': ARA_UTC.isoformat(timespec='seconds'), 'setmana': setmana, 'genere': genere, 'tracks': llista})
+    snaps = sorted(snaps, key=lambda s: s.get('data', ''))[-HIST_MAX:]
+    with open(HIST_PATH, 'w', encoding='utf-8') as f:
+        json.dump({'snapshots': snaps}, f, ensure_ascii=False, indent=1)
+    print(f"Historial guardat ({len(llista)} temes) a {HIST_PATH}")
+
+
 TRACKS_RAW = os.environ.get('TRACKS', '')
 print("Carregant tracks rebuts...")
 tracks = json.loads(TRACKS_RAW)
@@ -326,6 +507,32 @@ if not tracks:
 print(f"\nTracks ({len(tracks)}):")
 for t in tracks:
     print(f"  #{t['pos']}: {t['nom']} - {t['artista']}")
+
+# ---------- marques NEW / fletxes ----------
+suplents = []
+try:
+    suplents = json.loads(SUPLENTS_RAW) if SUPLENTS_RAW.strip() else []
+    if not isinstance(suplents, list):
+        suplents = []
+except Exception as e:
+    print(f"AVIS: no s'han pogut llegir els suplents ({e})")
+    suplents = []
+
+historial = llegir_historial()
+referencia = trobar_referencia(historial, GENERE)
+marques = {}
+if not MARQUES_ACTIU:
+    print("\nMarques NEW/fletxes: desactivades")
+else:
+    if referencia:
+        print(f"\nMarques NEW/fletxes: comparant amb la setmana anterior ({referencia.get('setmana') or referencia.get('data')}, {len(referencia.get('tracks', []))} temes)")
+    else:
+        print("\nMarques NEW/fletxes: no hi ha historial anterior (primera vegada), no sortiran marques aquesta setmana")
+    for t in tracks:
+        m = marca_per_track(t, referencia)
+        if m:
+            marques[int(t['pos'])] = m
+        print(f"   #{t['pos']}: {text_marca(m)}{'  (manual)' if str(t.get('prev', '') or '').strip() else ''}")
 
 print("\nObtenint token de Spotify...")
 spotify_token = get_spotify_token()
@@ -497,7 +704,7 @@ for track in tracks:
     txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol_l1}':fontsize=68:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
     txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol_l2}':fontsize=68:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1B}")
     txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{setmana_disp}':fontsize=32:fontcolor={COLOR_ACCENT}:borderw=2:bordercolor=black@0.6:x=(w-text_w)/2:y={Y_TITOL2}")
-    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='#{pos}':fontsize=130:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=3:x={X_INFO}:y={Y_NUM}")
+    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='#{pos}':fontsize=130:fontcolor={COLORS_PODI.get(int(pos), 'white')}:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=3:x={X_INFO}:y={Y_NUM}")
     txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia1}':fontsize=56:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM1}")
     if nom_linia2:
         txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia2}':fontsize=56:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM2}")
@@ -530,6 +737,28 @@ for track in tracks:
         logo_idx = seguent_idx
         seguent_idx += 1
 
+    badge_idx = None
+    badge_x = badge_y = 0
+    marca = marques.get(int(pos))
+    if marca:
+        try:
+            badge_path = os.path.expanduser(f"~/videos/{pos:02d}_marca.png")
+            bw, bh = crear_badge(marca, badge_path)
+            from PIL import ImageFont
+            f_num = ImageFont.truetype(FONT_EXTRABOLD, 130)
+            ample_num = f_num.getlength(f"#{pos}")
+            bb_num = f_num.getbbox(f"#{pos}", anchor='ls')     # drawtext posa la part de dalt de les xifres a y=Y_NUM
+            centre_num = Y_NUM + (bb_num[3] - bb_num[1]) / 2
+            badge_x = int(X_INFO + ample_num + BADGE_GAP)
+            badge_y = int(centre_num - bh / 2 + BADGE_DY)
+            input_parts.append(f'-loop 1 -framerate 30 -i "{badge_path}"')
+            badge_idx = seguent_idx
+            seguent_idx += 1
+            print(f"   Marca: {text_marca(marca)} ({bw}x{bh}px a x={badge_x})")
+        except Exception as e:
+            badge_idx = None
+            print(f"   AVIS: no s'ha pogut crear la marca ({e})")
+
     sticker_follow_idx = None
     sticker_thanks_idx = None
     if es_primer and STICKER_PER_CLIP:
@@ -552,7 +781,12 @@ for track in tracks:
         fc_parts.append("[withcover]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored]")
     else:
         fc_parts.append("[bg]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored]")
-    fc_parts.append(f"[colored]{txt_str},setpts=PTS/{SPEED_FACTOR}[txted]")
+    if badge_idx is not None:
+        fc_parts.append(f"[colored]{txt_str}[txraw]")
+        fc_parts.append(f"[{badge_idx}:v]format=rgba,fade=t=in:st=0.35:d=0.3:alpha=1[bdg]")
+        fc_parts.append(f"[txraw][bdg]overlay={badge_x}:{badge_y}:shortest=0,setpts=PTS/{SPEED_FACTOR}[txted]")
+    else:
+        fc_parts.append(f"[colored]{txt_str},setpts=PTS/{SPEED_FACTOR}[txted]")
     fc_parts.append(f"[{audio_idx}:a]atempo={SPEED_FACTOR}[aout]")
 
     if es_primer and STICKER_PER_CLIP:
@@ -698,3 +932,10 @@ else:
     r = subprocess.run(["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", output_final], capture_output=True, text=True)
     durada_total = float(json.loads(r.stdout)['format']['duration'])
     print(f"Video final generat! Durada: {durada_total:.1f}s amb {n_clips} clips")
+    if GUARDAR_HIST:
+        try:
+            guardar_historial(tracks, suplents, GENERE, setmana_text)
+        except Exception as e:
+            print(f"AVIS: no s'ha pogut guardar l'historial ({e})")
+    else:
+        print("Historial: no es guarda (desactivat)")
