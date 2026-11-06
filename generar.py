@@ -116,6 +116,8 @@ def mesurar_cta(path, per_defecte):
 
 
 PADDING_X = 100
+# Colors del podi: el 3, 2 i 1 pugen de to (bronze, plata, or). El 5 i el 4 es queden en blanc.
+COLORS_PODI = {3: '0xDE9250', 2: '0xD6DEE8', 1: '0xFFC82E'}
 Y_TITOL1  = 260
 Y_TITOL2  = 340
 Y_BASE    = 490
@@ -242,7 +244,9 @@ for i, track in enumerate(tracks_ordenats):
     for n in range(5, 0, -1):
         pos_visual = 5 - n
         y_pos = Y_BASE + pos_visual * Y_SEP
-        filtres.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{n}.':fontsize=76:fontcolor=white:borderw=1:bordercolor=black@0.8:shadowcolor=black@0.30:shadowx=0:shadowy=2:x={PADDING_X}:y={y_pos}")
+        color_num = COLORS_PODI.get(n, 'white')
+        vora = 2 if n in COLORS_PODI else 1     # una mica mes de vora negra als numeros de color perque es llegeixin be
+        filtres.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{n}.':fontsize=76:fontcolor={color_num}:borderw={vora}:bordercolor=black@0.8:shadowcolor=black@0.30:shadowx=0:shadowy=2:x={PADDING_X}:y={y_pos}")
 
     for n in range(5, 0, -1):
         pos_visual = 5 - n
