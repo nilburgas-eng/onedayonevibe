@@ -39,8 +39,8 @@ SPOTIFY_SECRET    = os.environ.get('SPOTIFY_CLIENT_SECRET', '')
 COMPTE            = "@onedayonevibe"
 SUBTITOL          = "Hard Dance"   # subtitol sota l'@ al final del video (abans: "Electronic Vibes Daily")
 TOP_N             = 5
-DURADA_CLIP       = 8
-DURADA_TOP1       = 12
+DURADA_CLIP       = 10   # abans 8
+DURADA_TOP1       = 14   # abans 12
 DURADA_OUTRO      = 2.0
 FADE_DURADA       = 0.3
 
