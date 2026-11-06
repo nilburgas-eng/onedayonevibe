@@ -55,6 +55,8 @@ COVER_H  = 280
 COVER_X  = 90
 COVER_Y  = 500
 X_INFO   = 410
+# Colors del podi: el #3, #2 i #1 pugen de to (bronze, plata, or); la resta es queden en blanc.
+COLORS_PODI = {3: '0xDE9250', 2: '0xD6DEE8', 1: '0xFFC82E'}
 Y_NUM    = 500
 Y_NOM1   = 640
 Y_NOM2   = 710
@@ -500,7 +502,7 @@ for track in tracks:
     txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol_l1}':fontsize=68:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
     txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol_l2}':fontsize=68:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1B}")
     txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{subtitol_setmana}':fontsize=32:fontcolor={COLOR_ACCENT}:borderw=2:bordercolor=black@0.6:x=(w-text_w)/2:y={Y_TITOL2}")
-    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='#{pos}':fontsize=130:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=3:x={X_INFO}:y={Y_NUM}")
+    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='#{pos}':fontsize=130:fontcolor={COLORS_PODI.get(int(pos), 'white')}:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=3:x={X_INFO}:y={Y_NUM}")
     txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia1}':fontsize=56:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM1}")
     if nom_linia2:
         txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia2}':fontsize=56:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM2}")
