@@ -1,0 +1,42 @@
+name: Releases Candidats
+
+on:
+  workflow_dispatch:
+    inputs:
+      data:
+        description: 'Data a provar (AAAA-MM-DD). Buit = avui'
+        required: false
+        default: ''
+  schedule:
+    - cron: '17 6 * * *'
+
+jobs:
+  candidats:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout codi
+        uses: actions/checkout@v4
+
+      - name: Instal·lar dependencies
+        run: pip install requests
+
+      - name: Buscar candidats del dia
+        env:
+          DATA: ${{ github.event.inputs.data }}
+        run: python3 releases_candidats.py
+
+      - name: Guardar candidats
+        continue-on-error: true
+        run: |
+          if [ -f releases_candidats.json ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add releases_candidats.json
+            git diff --cached --quiet || git commit -m "Candidats de releases"
+            git pull --rebase origin main || true
+            git push
+          fi
