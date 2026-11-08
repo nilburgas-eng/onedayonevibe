@@ -25,7 +25,9 @@ CHART_MAX_POS = 15
 PENAL_VERSIO = 20      # radio edit / extended / speed up / remix edit...
 N_CANDIDATS = 3
 DIES_SENSE_REPETIR = 7
-MAX_PAGINES = 10
+MAX_PAGINES = 30
+DIES = max(1, int(os.environ.get('DIES', '1') or 1))   # dies enrere que s'inclouen a la llista completa (playlist)
+CACHE_PATH = 'releases_cache.json'          # slug -> enllac Spotify, popularitat, ISRC (evita rellegir pagines)
 
 GENERES_OK = ('hardstyle', 'euphoric', 'rawstyle')
 GENERES_NO = ('uptempo', 'hardcore', 'frenchcore')
@@ -135,7 +137,7 @@ def parse_pagina(h, vigilar_enllacos=True):
     return ent
 
 
-def llegir_llista(avui):
+def llegir_llista(desde):
     totes = []
     for p in range(1, MAX_PAGINES + 1):
         r = get(f"{BASE}{LLISTA}?page={p}")
@@ -149,7 +151,7 @@ def llegir_llista(avui):
             avis(f"Llista pagina {p}: no he trobat cap tema (potser ha canviat el format de HDRR)")
             break
         totes += ent
-        if dates and max(dates) < avui:
+        if dates and max(dates) < desde:
             break
     return totes
 
@@ -299,6 +301,28 @@ def enriquir(e):
     return info
 
 
+def llegir_cache():
+    try:
+        with open(CACHE_PATH, encoding='utf-8') as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+CACHE = llegir_cache()
+
+
+def info_tema(e):
+    """Com enriquir(), pero recorda el resultat a releases_cache.json."""
+    k = e.get('slug', '')
+    if k and k in CACHE and CACHE[k].get('spotify_id'):
+        return CACHE[k]
+    info = enriquir(e)
+    if k and info.get('spotify_id'):
+        CACHE[k] = info
+    return info
+
+
 def portada_gran(src):
     """Intenta la portada de 480 px; si no existeix, torna la que hi ha."""
     if not src:
@@ -327,7 +351,8 @@ else:
         avui = (ARA + timedelta(hours=2)).date()
 print(f"Data objectiu: {avui}\n")
 
-totes = llegir_llista(avui)
+desde = avui - timedelta(days=DIES - 1)
+totes = llegir_llista(desde)
 del_dia = [e for e in totes if e['data'] == avui]
 print(f"Temes d'avui a la llista: {len(del_dia)} (de {len(totes)} llegits)")
 if not del_dia:
@@ -387,7 +412,7 @@ if pool:
 
 sortida = []
 for e in cands + ([comodi] if comodi else []):
-    info = enriquir(e)
+    info = info_tema(e)
     if info['spotify_id'] and info['spotify_id'] in ja_fets:
         avis(f"{e['titol']} ja s'havia publicat")
     if not info['spotify_id']:
@@ -402,9 +427,53 @@ for e in cands + ([comodi] if comodi else []):
         'portada': portada_gran(e['portada']),
     })
 
+# --- llista completa per a la playlist (tots els temes valids del periode) ---
+RANG_VERSIO = {'extended': 1, 'radio': 2}
+
+
+def tipus_versio(t):
+    m = RE_VERSIO.search(t)
+    if not m:
+        return 0
+    w = m.group(1).lower()
+    return RANG_VERSIO.get(w.split()[0], 3)
+
+
+rang = [e for e in totes if e['data'] and desde <= e['data'] <= avui and genere_valid(e['genere'])]
+grups = {}
+for e in rang:
+    e['versio'] = bool(RE_VERSIO.search(e['titol']))
+    clau = (base_titol(e['titol']), norm(e['artistes'][0]) if e['artistes'] else '')
+    grups.setdefault(clau, []).append(e)
+tots_valids = []
+for clau, g in grups.items():
+    g.sort(key=lambda e: (tipus_versio(e['titol']), e['data']))
+    tots_valids.append(g[0])       # nomes la versio "mes original" de cada tema
+    for extra in g[1:]:
+        print(f"   versio repetida descartada: {extra['titol']} ({', '.join(extra['artistes'])})")
+for e in tots_valids:
+    if 'punts' not in e:
+        e['punts'], e['motius'] = puntuar(e, top100, chart)
+tots_valids.sort(key=lambda e: (e['data'], e['punts']), reverse=True)
+print(f"\nLlista completa per a la playlist: {len(tots_valids)} temes ({desde}..{avui})")
+tots = []
+for e in tots_valids:
+    info = info_tema(e)
+    if not info.get('spotify_id'):
+        avis(f"{e['titol']}: sense enllac de Spotify (no es pot afegir a la playlist)")
+    tots.append({'titol': e['titol'], 'artistes': e['artistes'], 'genere': e['genere'], 'data': str(e['data']),
+                 'punts': e['punts'], 'versio': bool(e.get('versio')), 'spotify_id': info.get('spotify_id', ''),
+                 'hdrr_url': f"{BASE}{e['slug']}" if e['slug'] else ''})
+try:
+    with open(CACHE_PATH, 'w', encoding='utf-8') as f:
+        json.dump(CACHE, f, ensure_ascii=False, indent=0)
+except Exception as ex:
+    avis(f"No he pogut desar la memoria cau: {ex}")
+
 res = {
     'data': str(avui), 'generat': ARA.isoformat(timespec='seconds'), 'font': 'hdrr.info',
     'candidats': sortida,
+    'tots': tots,
     'resta': [{'titol': e['titol'], 'artistes': e['artistes'], 'genere': e['genere'], 'punts': e['punts']} for e in resta],
     'estadistiques': {'llegits': len(totes), 'del_dia': len(del_dia), 'despres_filtre': len(final),
                       'artistes_top100': len(top100), 'temes_chart_propi': len(chart)},
