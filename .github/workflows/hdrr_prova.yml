@@ -1,0 +1,17 @@
+name: Hdrr Prova
+
+on:
+  workflow_dispatch:
+
+jobs:
+  prova:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout codi
+        uses: actions/checkout@v4
+
+      - name: Instal·lar dependencies
+        run: pip install requests
+
+      - name: Llegir hdrr.info (prova)
+        run: python3 hdrr_prova.py
