@@ -1,6 +1,6 @@
 {
  "data": "2026-11-06",
- "generat": "2026-11-08T21:23:01+00:00",
+ "generat": "2026-11-08T21:27:35+00:00",
  "font": "hdrr.info",
  "candidats": [
   {
@@ -27,48 +27,51 @@
    "portada": "https://www.hdrr.info/media/img/covers/480/hardwell-re4son-cover-art-83685c89.webp"
   },
   {
-   "titol": "Archangels",
+   "titol": "Out Of Office",
    "artistes": [
-    "DEEZL",
-    "Exoform"
+    "Harris & Ford",
+    "Heleen"
    ],
    "genere": "Hardstyle",
    "data": "2026-11-06",
-   "punts": 0.0,
-   "motius": [],
+   "punts": 45.5,
+   "motius": [
+    "Harris & Ford: #10 al Top 100 de HDRR (+45.5)"
+   ],
    "versio": false,
    "comodi": false,
-   "hdrr_url": "https://www.hdrr.info/tracks/archangels",
-   "spotify_id": "40rHiQ2H7YYEXYsGGjMFrH",
-   "spotify_url": "https://open.spotify.com/track/40rHiQ2H7YYEXYsGGjMFrH",
-   "popularitat_hdrr": 17,
-   "isrc": "GBLV62616779",
-   "portada": "https://www.hdrr.info/media/img/covers/480/deezl-archangels-cover-art-b68d18fe.webp"
+   "hdrr_url": "https://www.hdrr.info/tracks/out-of-office",
+   "spotify_id": "54SH6GJPNpsujwcBfzITJO",
+   "spotify_url": "https://open.spotify.com/track/54SH6GJPNpsujwcBfzITJO",
+   "popularitat_hdrr": 14,
+   "isrc": "DECE72606474",
+   "portada": "https://www.hdrr.info/media/img/covers/480/harris-ford-out-of-office-cover-art-c6f6e634.webp"
   },
   {
-   "titol": "ARE YOU READY",
+   "titol": "Zaag With Me",
    "artistes": [
-    "Daniele Mondello"
+    "More Kords"
    ],
    "genere": "Hardstyle",
    "data": "2026-11-06",
-   "punts": 0.0,
-   "motius": [],
+   "punts": 38.5,
+   "motius": [
+    "More Kords: #24 al Top 100 de HDRR (+38.5)"
+   ],
    "versio": false,
    "comodi": false,
-   "hdrr_url": "https://www.hdrr.info/tracks/are-you-ready-16",
-   "spotify_id": "06NnuMxsgP6JakPfvy1bfa",
-   "spotify_url": "https://open.spotify.com/track/06NnuMxsgP6JakPfvy1bfa",
-   "popularitat_hdrr": 0,
-   "isrc": "DGA052621522",
-   "portada": "https://www.hdrr.info/media/img/covers/480/daniele-mondello-are-you-ready-cover-art-943ffe2b.webp"
+   "hdrr_url": "https://www.hdrr.info/tracks/zaag-with-me",
+   "spotify_id": "1INDSktg53miG4AsGGvvqL",
+   "spotify_url": "https://open.spotify.com/track/1INDSktg53miG4AsGGvvqL",
+   "popularitat_hdrr": 11,
+   "isrc": "QT66C2671035",
+   "portada": "https://www.hdrr.info/media/img/covers/480/more-kords-zaag-with-me-cover-art-c90d88cc.webp"
   },
   {
-   "titol": "We Own The Light",
+   "titol": "Two Souls One Sound",
    "artistes": [
-    "Insuspect",
-    "AEON",
-    "Eternal Records"
+    "DJKyzen",
+    "T-Soulz"
    ],
    "genere": "Hardstyle",
    "data": "2026-11-06",
@@ -76,15 +79,40 @@
    "motius": [],
    "versio": false,
    "comodi": true,
-   "hdrr_url": "https://www.hdrr.info/tracks/we-own-the-light",
-   "spotify_id": "0UiaiacjP6mPi6pvepVvS9",
-   "spotify_url": "https://open.spotify.com/track/0UiaiacjP6mPi6pvepVvS9",
+   "hdrr_url": "https://www.hdrr.info/tracks/two-souls-one-sound",
+   "spotify_id": "6Dzo0jIaRPUXHoZaUJdFeo",
+   "spotify_url": "https://open.spotify.com/track/6Dzo0jIaRPUXHoZaUJdFeo",
    "popularitat_hdrr": 0,
-   "isrc": "QTA7X2635646",
-   "portada": "https://www.hdrr.info/media/img/covers/480/insuspect-we-own-the-light-cover-art-97e5daec.webp"
+   "isrc": "QT66C2612655",
+   "portada": "https://www.hdrr.info/media/img/covers/480/djkyzen-two-souls-one-sound-cover-art-21a1e5dc.webp"
   }
  ],
  "resta": [
+  {
+   "titol": "Archangels",
+   "artistes": [
+    "DEEZL",
+    "Exoform"
+   ],
+   "genere": "Hardstyle",
+   "punts": 28.5
+  },
+  {
+   "titol": "Fiction Within",
+   "artistes": [
+    "Ecstatic"
+   ],
+   "genere": "Hardstyle",
+   "punts": 8.0
+  },
+  {
+   "titol": "ARE YOU READY",
+   "artistes": [
+    "Daniele Mondello"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
   {
    "titol": "Away From You",
    "artistes": [
@@ -125,14 +153,6 @@
    "artistes": [
     "High Resistance",
     "Macby"
-   ],
-   "genere": "Hardstyle",
-   "punts": 0.0
-  },
-  {
-   "titol": "Fiction Within",
-   "artistes": [
-    "Ecstatic"
    ],
    "genere": "Hardstyle",
    "punts": 0.0
@@ -182,15 +202,6 @@
    "titol": "Our Kingdom",
    "artistes": [
     "Hatom"
-   ],
-   "genere": "Hardstyle",
-   "punts": 0.0
-  },
-  {
-   "titol": "Out Of Office",
-   "artistes": [
-    "Harris & Ford",
-    "Heleen"
    ],
    "genere": "Hardstyle",
    "punts": 0.0
@@ -269,20 +280,12 @@
    "punts": 0.0
   },
   {
-   "titol": "Zaag With Me",
-   "artistes": [
-    "More Kords"
-   ],
-   "genere": "Hardstyle",
-   "punts": 0.0
-  },
-  {
    "titol": "Blow It Up - Extended",
    "artistes": [
     "Potato"
    ],
    "genere": "Hardstyle",
-   "punts": -20.0
+   "punts": -15.5
   },
   {
    "titol": "Broken Forever - Speed up Mix",
@@ -322,10 +325,8 @@
   "llegits": 60,
   "del_dia": 30,
   "despres_filtre": 30,
-  "artistes_top100": 5,
+  "artistes_top100": 126,
   "temes_chart_propi": 0
  },
- "avisos": [
-  "Top 100: nomes he llegit 3 temes, la puntuacio per artistes sera parcial"
- ]
+ "avisos": []
 }
