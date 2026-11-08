@@ -154,13 +154,55 @@ def llegir_llista(avui):
     return totes
 
 
+def parse_top100_enllacos(h):
+    """Alternativa quan les portades no porten alt: ordre dels enllacos /tracks/ + enllacos /artists/ de cada fila."""
+    pos = []
+    vistos = set()
+    for m in RE_TRACKLINK.finditer(h):
+        if m.group(1) not in vistos:
+            vistos.add(m.group(1))
+            pos.append((m.start(), m.group(1)))
+    ent = []
+    for i, (a, slug) in enumerate(pos):
+        fi = pos[i + 1][0] if i + 1 < len(pos) else len(h)
+        seg = h[a:fi]
+        arts = []
+        for t in re.findall(r'(?is)<a\b[^>]*href\s*=\s*["\'](?:https?://[^/"\']+)?/artists/[^"\']+["\'][^>]*>(.*?)</a>', seg):
+            nom = text_pla(t)
+            if nom and nom not in arts:
+                arts.append(nom)
+        ent.append({'titol': slug.replace('/tracks/', ''), 'artistes': arts, 'genere': '', 'portada': '', 'slug': slug, 'data': None})
+    while ent and not ent[0]['artistes']:   # enllacos de capçalera/destacats abans de la primera fila amb artistes
+        ent.pop(0)
+    return ent[:100]
+
+
 def llegir_top100():
     r = get(BASE + TOP100)
     if r.status_code != 200:
         avis(f"Top 100: estat {r.status_code}")
         return {}
     ent = parse_pagina(r.text, vigilar_enllacos=False)
-    print(f"Top 100: {len(ent)} temes llegits")
+    print(f"Top 100 (per portades): {len(ent)} temes")
+    if len(ent) < 50:
+        alt = parse_top100_enllacos(r.text)
+        print(f"Top 100 (per enllacos): {len(alt)} temes")
+        if len(alt) > len(ent):
+            # es conserven els artistes de les portades quan existeixen (poden incloure artistes sense enllac)
+            for i, e in enumerate(ent):
+                if i < len(alt):
+                    for a in e['artistes']:
+                        if a not in alt[i]['artistes']:
+                            alt[i]['artistes'].append(a)
+            ent = alt
+    for i, e in enumerate(ent[:6], 1):
+        print(f"   #{i}: {e['titol']} | {', '.join(e['artistes'])}")
+    if len(ent) < 50:
+        print(f"   Diagnostic: {len(re.findall('/tracks/', r.text))} enllacos /tracks/, {len(re.findall('/artists/', r.text))} enllacos /artists/, {len(RE_IMG.findall(r.text))} imatges, {len(r.text)} caracters")
+        ms = list(RE_TRACKLINK.finditer(r.text))
+        if len(ms) > 4:
+            a = ms[4].start()
+            print("   Tros d'HTML al voltant del 5e enllac:", r.text[max(0, a - 400):a + 700].replace('\n', ' '))
     if len(ent) < 50:
         avis(f"Top 100: nomes he llegit {len(ent)} temes, la puntuacio per artistes sera parcial")
     mapa = {}
