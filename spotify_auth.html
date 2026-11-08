@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Connectar Spotify</title>
+<style>
+  :root { --bg:#0b0b10; --card:#16161f; --line:#2a2a38; --txt:#f2f2f7; --mut:#9a9aae; --acc:#00bfff; --ok:#1ed760; --err:#ff5c5c; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--txt); font:16px/1.5 -apple-system,Segoe UI,Roboto,sans-serif; padding:16px; }
+  .wrap { max-width:560px; margin:0 auto; }
+  h1 { font-size:22px; margin:8px 0 4px; }
+  p.sub { color:var(--mut); margin:0 0 16px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:14px; }
+  label { display:block; font-size:13px; color:var(--mut); margin:10px 0 4px; }
+  input, textarea { width:100%; background:#0f0f16; color:var(--txt); border:1px solid var(--line); border-radius:10px; padding:12px; font-size:16px; }
+  textarea { height:110px; font-family:ui-monospace,Menlo,monospace; font-size:13px; word-break:break-all; }
+  button { width:100%; margin-top:12px; padding:14px; border:0; border-radius:12px; font-size:16px; font-weight:700; background:var(--acc); color:#001018; cursor:pointer; }
+  button.sec { background:#26263a; color:var(--txt); }
+  .uri { font-family:ui-monospace,Menlo,monospace; font-size:13px; background:#0f0f16; border:1px solid var(--line); border-radius:8px; padding:8px; word-break:break-all; }
+  .ok { color:var(--ok); } .err { color:var(--err); } .mut { color:var(--mut); font-size:14px; }
+  ol { padding-left:20px; margin:8px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Connectar Spotify</h1>
+  <p class="sub">Pas únic per deixar que el sistema actualitzi la playlist sol.</p>
+
+  <div class="card" id="pas1">
+    <div class="mut">1. A la teva app de Spotify (developer.spotify.com/dashboard) afegeix aquest <b>Redirect URI</b> exactament així:</div>
+    <div class="uri" id="uri"></div>
+    <label for="cid">2. Client ID de l'app</label>
+    <input id="cid" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="enganxa el Client ID">
+    <button id="go">Connectar amb Spotify</button>
+    <div id="msg1" class="mut"></div>
+  </div>
+
+  <div class="card" id="pas2" hidden>
+    <div id="estat"></div>
+    <label for="rt">Refresh token (és secret: no el comparteixis enlloc més que als secrets de GitHub)</label>
+    <textarea id="rt" readonly></textarea>
+    <button class="sec" id="copia">Copiar el refresh token</button>
+    <div class="mut" style="margin-top:12px">Ara, a GitHub (Settings → Secrets and variables → Actions) crea aquests tres secrets:</div>
+    <ol class="mut">
+      <li><b>SPOTIFY_CLIENT_ID</b> = el Client ID</li>
+      <li><b>SPOTIFY_REFRESH_TOKEN</b> = el text de dalt</li>
+      <li><b>SPOTIFY_PLAYLIST_ID</b> = <span id="plid"></span></li>
+    </ol>
+  </div>
+</div>
+
+<script>
+const PLAYLIST_ID = '346iZoqU6CVPWE9S5IGTkg';
+const SCOPES = 'playlist-modify-public playlist-modify-private playlist-read-private';
+const REDIRECT = location.origin + location.pathname;
+const $ = id => document.getElementById(id);
+
+function store(k, v) { try { sessionStorage.setItem(k, v); } catch (e) {} }
+function load(k) { try { return sessionStorage.getItem(k) || ''; } catch (e) { return ''; } }
+
+function rand(n) {
+  const a = new Uint8Array(n); crypto.getRandomValues(a);
+  return Array.from(a, x => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~'[x % 66]).join('');
+}
+async function challenge(v) {
+  const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v));
+  return btoa(String.fromCharCode(...new Uint8Array(d))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+$('uri').textContent = REDIRECT;
+$('plid').textContent = PLAYLIST_ID;
+$('cid').value = load('cid');
+
+$('go').onclick = async () => {
+  const cid = $('cid').value.trim();
+  if (!cid) { $('msg1').innerHTML = '<span class="err">Falta el Client ID.</span>'; return; }
+  const verifier = rand(96), state = rand(16);
+  store('cid', cid); store('verifier', verifier); store('state', state);
+  const p = new URLSearchParams({
+    response_type: 'code', client_id: cid, scope: SCOPES, redirect_uri: REDIRECT,
+    code_challenge_method: 'S256', code_challenge: await challenge(verifier), state
+  });
+  location.href = 'https://accounts.spotify.com/authorize?' + p;
+};
+
+$('copia').onclick = async () => {
+  const t = $('rt').value;
+  try { await navigator.clipboard.writeText(t); $('copia').textContent = 'Copiat ✓'; }
+  catch (e) { $('rt').select(); $('copia').textContent = 'Selecciona el text i copia\'l a mà'; }
+};
+
+async function tornada() {
+  const q = new URLSearchParams(location.search);
+  if (q.get('error')) { $('msg1').innerHTML = '<span class="err">Spotify ha respost: ' + q.get('error') + '</span>'; return; }
+  const code = q.get('code');
+  if (!code) return;
+  history.replaceState({}, '', REDIRECT);
+  if (q.get('state') !== load('state')) { $('msg1').innerHTML = '<span class="err">La resposta no coincideix amb la petició. Torna-ho a provar.</span>'; return; }
+  $('msg1').textContent = 'Obtenint el token…';
+  const r = await fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ grant_type: 'authorization_code', code, redirect_uri: REDIRECT, client_id: load('cid'), code_verifier: load('verifier') })
+  });
+  const j = await r.json();
+  if (!r.ok || !j.refresh_token) { $('msg1').innerHTML = '<span class="err">Error: ' + (j.error_description || j.error || r.status) + '</span>'; return; }
+  $('pas1').hidden = true; $('pas2').hidden = false;
+  $('rt').value = j.refresh_token;
+  let html = '<span class="ok">Connectat ✓</span>';
+  try {
+    const h = { Authorization: 'Bearer ' + j.access_token };
+    const me = await (await fetch('https://api.spotify.com/v1/me', { headers: h })).json();
+    html += '<div class="mut">Compte: ' + (me.display_name || me.id || '?') + '</div>';
+    const pr = await fetch('https://api.spotify.com/v1/playlists/' + PLAYLIST_ID, { headers: h });
+    const pj = await pr.json();
+    if (pr.ok) {
+      const meu = pj.owner && me.id && pj.owner.id === me.id;
+      html += '<div class="mut">Playlist: ' + pj.name + (meu ? ' <span class="ok">(és teva ✓)</span>' : ' <span class="err">(NO és d\'aquest compte: has d\'iniciar sessió amb el compte propietari)</span>') + '</div>';
+    } else {
+      html += '<div class="mut err">No he pogut llegir la playlist (' + pr.status + ').</div>';
+    }
+  } catch (e) { html += '<div class="mut">No he pogut comprovar el compte, però el token és vàlid.</div>'; }
+  $('estat').innerHTML = html;
+}
+tornada();
+</script>
+</body>
+</html>
