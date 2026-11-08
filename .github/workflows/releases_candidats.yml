@@ -7,8 +7,17 @@ on:
         description: 'Data a provar (AAAA-MM-DD). Buit = avui'
         required: false
         default: ''
+      dies:
+        description: 'Dies enrere per a la playlist (2 = avui i ahir; 30 per omplir-la el primer cop)'
+        required: false
+        default: '2'
+      playlist:
+        description: 'Actualitzar la playlist de Spotify: si o no'
+        required: false
+        default: 'si'
   schedule:
     - cron: '17 6 * * *'
+    - cron: '17 12 * * *'
 
 jobs:
   candidats:
@@ -27,16 +36,26 @@ jobs:
       - name: Buscar candidats del dia
         env:
           DATA: ${{ github.event.inputs.data }}
+          DIES: ${{ github.event.inputs.dies || '2' }}
         run: python3 releases_candidats.py
 
-      - name: Guardar candidats
+      - name: Actualitzar la playlist de Spotify
+        if: ${{ github.event.inputs.playlist != 'no' && github.event.inputs.data == '' }}
+        continue-on-error: true
+        env:
+          SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
+          SPOTIFY_REFRESH_TOKEN: ${{ secrets.SPOTIFY_REFRESH_TOKEN }}
+          SPOTIFY_PLAYLIST_ID: ${{ secrets.SPOTIFY_PLAYLIST_ID }}
+        run: python3 releases_playlist.py
+
+      - name: Guardar resultats
         continue-on-error: true
         run: |
-          if [ -f releases_candidats.json ]; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add releases_candidats.json
-            git diff --cached --quiet || git commit -m "Candidats de releases"
-            git pull --rebase origin main || true
-            git push
-          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for f in releases_candidats.json releases_playlist_log.json releases_cache.json; do
+            [ -f "$f" ] && git add "$f"
+          done
+          git diff --cached --quiet || git commit -m "Releases: candidats i playlist"
+          git pull --rebase origin main || true
+          git push
