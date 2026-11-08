@@ -1,0 +1,331 @@
+{
+ "data": "2026-11-06",
+ "generat": "2026-11-08T21:23:01+00:00",
+ "font": "hdrr.info",
+ "candidats": [
+  {
+   "titol": "RE4SON",
+   "artistes": [
+    "Hardwell",
+    "Sub Zero Project",
+    "D-Block & S-te-Fan",
+    "4444 OF A KIND"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-06",
+   "punts": 49.5,
+   "motius": [
+    "D-Block & S-te-Fan: #2 al Top 100 de HDRR (+49.5)"
+   ],
+   "versio": false,
+   "comodi": false,
+   "hdrr_url": "https://www.hdrr.info/tracks/re4son",
+   "spotify_id": "6553wCdVuWciRZbLd0T1r5",
+   "spotify_url": "https://open.spotify.com/track/6553wCdVuWciRZbLd0T1r5",
+   "popularitat_hdrr": 31,
+   "isrc": "BE5KW2601343",
+   "portada": "https://www.hdrr.info/media/img/covers/480/hardwell-re4son-cover-art-83685c89.webp"
+  },
+  {
+   "titol": "Archangels",
+   "artistes": [
+    "DEEZL",
+    "Exoform"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-06",
+   "punts": 0.0,
+   "motius": [],
+   "versio": false,
+   "comodi": false,
+   "hdrr_url": "https://www.hdrr.info/tracks/archangels",
+   "spotify_id": "40rHiQ2H7YYEXYsGGjMFrH",
+   "spotify_url": "https://open.spotify.com/track/40rHiQ2H7YYEXYsGGjMFrH",
+   "popularitat_hdrr": 17,
+   "isrc": "GBLV62616779",
+   "portada": "https://www.hdrr.info/media/img/covers/480/deezl-archangels-cover-art-b68d18fe.webp"
+  },
+  {
+   "titol": "ARE YOU READY",
+   "artistes": [
+    "Daniele Mondello"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-06",
+   "punts": 0.0,
+   "motius": [],
+   "versio": false,
+   "comodi": false,
+   "hdrr_url": "https://www.hdrr.info/tracks/are-you-ready-16",
+   "spotify_id": "06NnuMxsgP6JakPfvy1bfa",
+   "spotify_url": "https://open.spotify.com/track/06NnuMxsgP6JakPfvy1bfa",
+   "popularitat_hdrr": 0,
+   "isrc": "DGA052621522",
+   "portada": "https://www.hdrr.info/media/img/covers/480/daniele-mondello-are-you-ready-cover-art-943ffe2b.webp"
+  },
+  {
+   "titol": "We Own The Light",
+   "artistes": [
+    "Insuspect",
+    "AEON",
+    "Eternal Records"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-06",
+   "punts": 0.0,
+   "motius": [],
+   "versio": false,
+   "comodi": true,
+   "hdrr_url": "https://www.hdrr.info/tracks/we-own-the-light",
+   "spotify_id": "0UiaiacjP6mPi6pvepVvS9",
+   "spotify_url": "https://open.spotify.com/track/0UiaiacjP6mPi6pvepVvS9",
+   "popularitat_hdrr": 0,
+   "isrc": "QTA7X2635646",
+   "portada": "https://www.hdrr.info/media/img/covers/480/insuspect-we-own-the-light-cover-art-97e5daec.webp"
+  }
+ ],
+ "resta": [
+  {
+   "titol": "Away From You",
+   "artistes": [
+    "Thundernoize",
+    "Lil Fr3sh"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Blue Skies",
+   "artistes": [
+    "Dirty Workz",
+    "Savryx"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Dawn of a New World",
+   "artistes": [
+    "Udex"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "DESTROY THEM WITH LASERS",
+   "artistes": [
+    "Asow",
+    "KIOR"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Ecuador",
+   "artistes": [
+    "High Resistance",
+    "Macby"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Fiction Within",
+   "artistes": [
+    "Ecstatic"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Goodbye",
+   "artistes": [
+    "Charmendo"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Kick Your Legs In The Air",
+   "artistes": [
+    "Mental Theo",
+    "PLN-B"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Lost In Dreams",
+   "artistes": [
+    "Deepack"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Mind Shift",
+   "artistes": [
+    "DesertMeyer"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Nothing Can Hold Me Back",
+   "artistes": [
+    "Noizephere"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Our Kingdom",
+   "artistes": [
+    "Hatom"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Out Of Office",
+   "artistes": [
+    "Harris & Ford",
+    "Heleen"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Press Start",
+   "artistes": [
+    "Revizion",
+    "Re-Vane"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Quiet Whisper",
+   "artistes": [
+    "Lost Decibels",
+    "Rexuz"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Shake That Booty",
+   "artistes": [
+    "MI37",
+    "Amkiz",
+    "Xtortion"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "State Of Mind",
+   "artistes": [
+    "Bass Chaserz",
+    "DJ Lady Tess"
+   ],
+   "genere": "Rawstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Take Me Back",
+   "artistes": [
+    "JOKA",
+    "PRISAM"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Turn The Lights Off",
+   "artistes": [
+    "Bravez"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Two Souls One Sound",
+   "artistes": [
+    "DJKyzen",
+    "T-Soulz"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "We Own The Light",
+   "artistes": [
+    "Insuspect",
+    "AEON",
+    "Eternal Records"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Zaag With Me",
+   "artistes": [
+    "More Kords"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Blow It Up - Extended",
+   "artistes": [
+    "Potato"
+   ],
+   "genere": "Hardstyle",
+   "punts": -20.0
+  },
+  {
+   "titol": "Broken Forever - Speed up Mix",
+   "artistes": [
+    "B-Stork"
+   ],
+   "genere": "Hardstyle",
+   "punts": -20.0
+  },
+  {
+   "titol": "By My Side - Radio Edit",
+   "artistes": [
+    "The Hunter"
+   ],
+   "genere": "Hardstyle",
+   "punts": -20.0
+  },
+  {
+   "titol": "Movin' to the Sun - Timster Remix Edit",
+   "artistes": [
+    "Timster",
+    "Fakebook"
+   ],
+   "genere": "Hardstyle",
+   "punts": -20.0
+  },
+  {
+   "titol": "Underwater - Extended Mix",
+   "artistes": [
+    "DÃWEN"
+   ],
+   "genere": "Euphoric Hardstyle",
+   "punts": -20.0
+  }
+ ],
+ "estadistiques": {
+  "llegits": 60,
+  "del_dia": 30,
+  "despres_filtre": 30,
+  "artistes_top100": 5,
+  "temes_chart_propi": 0
+ },
+ "avisos": [
+  "Top 100: nomes he llegit 3 temes, la puntuacio per artistes sera parcial"
+ ]
+}
