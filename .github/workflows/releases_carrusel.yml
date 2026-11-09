@@ -1,0 +1,110 @@
+name: Releases Carrusel
+
+on:
+  workflow_dispatch:
+    inputs:
+      data:
+        description: 'JSON amb el tema triat (titol, artistes, etiqueta, numero, ...)'
+        required: true
+      afegir_playlist:
+        description: 'Assegurar que el tema es a la playlist: si o no'
+        required: false
+        default: 'si'
+
+jobs:
+  generar:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout codi
+        uses: actions/checkout@v4
+
+      - name: Instal·lar dependencies
+        run: |
+          pip install requests pillow
+          echo "Dependencies OK"
+
+      - name: Descarregar fonts
+        run: |
+          mkdir -p ~/fonts
+          wget -q "https://github.com/google/fonts/raw/main/ofl/bebasneue/BebasNeue-Regular.ttf" -O ~/fonts/BebasNeue.ttf
+          wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-SemiBold.ttf" -O ~/fonts/Montserrat-SemiBold.ttf
+          wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-ExtraBold.ttf" -O ~/fonts/Montserrat-ExtraBold.ttf
+          wget -q "https://github.com/JulietaUla/Montserrat/raw/master/fonts/ttf/Montserrat-Medium.ttf" -O ~/fonts/Montserrat-Medium.ttf
+          echo "Fonts: $(ls ~/fonts/ | wc -l)"
+
+      - name: Generar carrusel
+        env:
+          DATA: ${{ github.event.inputs.data }}
+          SPOTIFY_CLIENT_ID: ${{ secrets.ODOV_SPOTIFY_CLIENT_ID }}
+          SPOTIFY_REFRESH_TOKEN: ${{ secrets.ODOV_SPOTIFY_REFRESH_TOKEN }}
+        run: python3 releases_carrusel.py
+
+      - name: Pujar imatges a GitHub Releases
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+        run: |
+          python3 << 'PYEOF'
+          import os, glob, requests
+          repo = "${{ github.repository }}"
+          tag = "releases_generat"
+          token = os.environ['GITHUB_TOKEN']
+          headers = {"Authorization": f"token {token}"}
+
+          r = requests.get(f"https://api.github.com/repos/{repo}/releases/tags/{tag}", headers=headers)
+          if r.status_code == 200:
+              release = r.json()
+              upload_url = release['upload_url'].split('{')[0]
+              print("Release existent trobat")
+              for a in release.get('assets', []):
+                  if a['name'].startswith('slide_'):
+                      requests.delete(f"https://api.github.com/repos/{repo}/releases/assets/{a['id']}", headers=headers)
+          else:
+              print("Creant release nou...")
+              r = requests.post(f"https://api.github.com/repos/{repo}/releases", headers=headers,
+                  json={"tag_name": tag, "name": tag, "draft": False})
+              if r.status_code not in (200, 201):
+                  print(f"ERROR creant release: {r.status_code}")
+                  print(r.text)
+                  exit(1)
+              upload_url = r.json()['upload_url'].split('{')[0]
+
+          fitxers = sorted(glob.glob(os.path.expanduser("~/output/slide_*.png")))
+          if not fitxers:
+              print("ERROR: no hi ha cap imatge per pujar")
+              exit(1)
+          for path in fitxers:
+              nom = os.path.basename(path)
+              with open(path, 'rb') as f:
+                  r2 = requests.post(f"{upload_url}?name={nom}",
+                      headers={**headers, "Content-Type": "image/png"}, data=f)
+              print(f"Pujat {nom}: {r2.status_code}")
+          PYEOF
+
+      - name: Afegir el tema a la playlist si no hi es
+        if: ${{ github.event.inputs.afegir_playlist != 'no' }}
+        continue-on-error: true
+        env:
+          SPOTIFY_CLIENT_ID: ${{ secrets.ODOV_SPOTIFY_CLIENT_ID }}
+          SPOTIFY_REFRESH_TOKEN: ${{ secrets.ODOV_SPOTIFY_REFRESH_TOKEN }}
+          SPOTIFY_PLAYLIST_ID: ${{ secrets.ODOV_SPOTIFY_PLAYLIST_ID }}
+          DATA: ${{ github.event.inputs.data }}
+        run: |
+          export AFEGIR_ID=$(python3 -c "import json,os;print(json.loads(os.environ['DATA']).get('spotify_id',''))")
+          export AFEGIR_TITOL=$(python3 -c "import json,os;print(json.loads(os.environ['DATA']).get('titol',''))")
+          if [ -n "$AFEGIR_ID" ]; then python3 releases_playlist.py; else echo "Sense spotify_id: no toco la playlist"; fi
+
+      - name: Guardar numero d'edicio i registre
+        continue-on-error: true
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for f in releases_numero.json releases_playlist_log.json; do
+            [ -f "$f" ] && git add "$f"
+          done
+          git diff --cached --quiet || git commit -m "Releases: numero d'edicio"
+          git pull --rebase origin main || true
+          git push
