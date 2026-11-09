@@ -346,9 +346,8 @@ data_env = os.environ.get('DATA', '').strip()
 if data_env:
     avui = datetime.strptime(data_env, '%Y-%m-%d').date()
 else:
-    avui = (ARA + timedelta(hours=1)).date()   # Europa/Madrid aprox. (UTC+1/+2)
-    if ARA.hour >= 22:
-        avui = (ARA + timedelta(hours=2)).date()
+    from zoneinfo import ZoneInfo
+    avui = datetime.now(ZoneInfo('Europe/Madrid')).date()   # data a Catalunya (compta l'horari d'estiu/hivern)
 print(f"Data objectiu: {avui}\n")
 
 desde = avui - timedelta(days=DIES - 1)
