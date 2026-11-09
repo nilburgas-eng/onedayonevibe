@@ -140,6 +140,27 @@ print(f"La playlist te {len(actual)} temes")
 existents = {x['id'] for x in actual}
 existents_titols = {(base_titol(x['nom']), norm(x['artista1'])) for x in actual if x['nom']}
 
+# --- mode "afegir un tema concret" (el fa servir el generador de carrusels) ---
+forcat = os.environ.get('AFEGIR_ID', '').strip()
+if forcat:
+    if forcat in existents:
+        print("El tema ja es a la playlist: no cal afegir-lo.")
+        n_forcat = 0
+    else:
+        n_forcat = afegir_a_dalt([f"spotify:track:{forcat}"], len(actual))
+        print(f"Tema afegit a dalt de la playlist: {n_forcat}")
+    try:
+        with open(LOG_PATH, encoding='utf-8') as f:
+            log = json.load(f)
+    except Exception:
+        log = {'dies': []}
+    if n_forcat:
+        log['dies'].append({'data': ARA.date().isoformat(), 'executat': ARA.isoformat(timespec='seconds'),
+                            'afegits': [{'titol': os.environ.get('AFEGIR_TITOL', ''), 'spotify_id': forcat, 'manual': True}], 'eliminats': 0})
+        with open(LOG_PATH, 'w', encoding='utf-8') as f:
+            json.dump(log, f, ensure_ascii=False, indent=1)
+    sys.exit(0)
+
 # --- 1. finestra d'un any ---
 limit = ARA - timedelta(days=DIES_FINESTRA)
 vells = [x for x in actual if x['added_at'] and (parse_dt(x['added_at']) or ARA) < limit]
