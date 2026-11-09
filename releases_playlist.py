@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 import requests
 
 # ODOV Daily Hardstyle Releases - pas 2: mantenir la playlist de Spotify sense intervencio.
-#  - afegeix TOTS els temes nous valids (de releases_candidats.json -> "tots"), els millors a dalt
+#  - afegeix els millors temes nous de cada dia (maxim MAX_PER_DIA), els millors a dalt
 #  - no repeteix temes ni versions del mateix tema (radio edit, extended...)
 #  - treu nomes els temes de mes d'un any
 # No depen de TikTok: s'executa tant si publiques com si no.
@@ -17,6 +17,7 @@ PLAYLIST = os.environ.get('SPOTIFY_PLAYLIST_ID', '').strip()
 CANDIDATS_PATH = 'releases_candidats.json'
 LOG_PATH = 'releases_playlist_log.json'
 
+MAX_PER_DIA = 5          # maxim de temes per data de sortida que entren a la playlist
 DIES_FINESTRA = 365       # es treuen els temes de mes d'un any
 MAX_AFEGIR_EXEC = 300     # seguretat: mai afegir mes d'aixo en una execucio
 MAX_ELIMINAR_EXEC = 100   # seguretat: mai treure mes d'aixo d'un cop
@@ -160,6 +161,9 @@ except Exception as e:
     print(f"No puc llegir {CANDIDATS_PATH}: {e}")
     cand = {}
 
+# quants temes de cada data ja hi son a la playlist (per no passar del maxim si hi ha dues execucions al dia)
+from collections import Counter
+per_data = Counter(c.get('data') for c in cand.get('tots', []) if c.get('spotify_id') in existents)
 triats, vistos = [], set()
 for c in cand.get('tots', []):          # ja ve ordenat: dia mes recent primer, i dins del dia, millor puntuacio primer
     sid = c.get('spotify_id')
@@ -173,6 +177,9 @@ for c in cand.get('tots', []):          # ja ve ordenat: dia mes recent primer, 
     if clau in existents_titols:
         print(f"   ja hi ha una versio d'aquest tema: {c['titol']}")
         continue
+    if per_data[c.get('data')] >= MAX_PER_DIA:
+        continue
+    per_data[c.get('data')] += 1
     vistos.add(sid)
     existents_titols.add(clau)
     triats.append(c)
