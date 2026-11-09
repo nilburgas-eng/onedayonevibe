@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>onedayonevibe — Hard Dance Releases</title>
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0d0d0d; color: #fff; min-height: 100vh; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px 0; }
+    h1 { font-size: 28px; font-weight: 800; color: #00BFFF; margin-bottom: 4px; }
+    .subtitle { font-size: 14px; color: #666; margin-bottom: 30px; }
+    .card { background: #1a1a1a; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+    .card h2 { font-size: 14px; font-weight: 600; color: #00BFFF; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
+    label { display: block; font-size: 13px; color: #999; margin-bottom: 6px; }
+    input[type=text], textarea, select { width: 100%; background: #2a2a2a; border: 1px solid #333; border-radius: 8px; padding: 12px; color: #fff; font-size: 15px; margin-bottom: 14px; outline: none; font-family: inherit; }
+    input:focus, textarea:focus, select:focus { border-color: #00BFFF; }
+    .btn { width: 100%; padding: 16px; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; border: none; margin-bottom: 12px; }
+    .btn:active { opacity: 0.8; }
+    .btn-primary { background: #00BFFF; color: #000; }
+    .btn-green { background: #1DB954; color: #000; }
+    .btn-secondary { background: #2a2a2a; color: #fff; border: 1px solid #444; }
+    .btn-danger { background: #ff4444; color: #fff; }
+    .status { background: #1a1a1a; border-radius: 12px; padding: 16px; margin-bottom: 16px; display: none; }
+    .status.visible { display: block; }
+    .status-text { font-size: 14px; line-height: 1.6; }
+    .status-ok { color: #00ff88; }
+    .status-error { color: #ff4444; }
+    .status-info { color: #00BFFF; }
+    .cand { background: #222; border-radius: 10px; padding: 12px; margin-bottom: 12px; border-left: 4px solid #00BFFF; }
+    .cand.comodi { border-left-color: #ffb74d; }
+    .cand.triat { border-left-color: #1DB954; background: #1d2a22; }
+    .cand-fila { display: flex; gap: 12px; align-items: flex-start; }
+    .cand img, .cand .sense-img { width: 72px; height: 72px; border-radius: 8px; object-fit: cover; background: #111; flex-shrink: 0; }
+    .cand-info { flex: 1; min-width: 0; }
+    .cand-titol { font-size: 15px; font-weight: 700; word-break: break-word; }
+    .cand-art { font-size: 13px; color: #bbb; margin-top: 2px; word-break: break-word; }
+    .tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; background: #00BFFF; color: #000; margin-top: 6px; margin-right: 6px; }
+    .tag.gris { background: #333; color: #ddd; }
+    .tag.taronja { background: #ffb74d; color: #000; }
+    .motius { font-size: 12px; color: #888; margin-top: 6px; line-height: 1.4; }
+    .cand-botons { display: flex; gap: 8px; margin-top: 10px; }
+    .btn-mini { flex: 1; text-align: center; text-decoration: none; background: #2a2a2a; color: #fff; border: 1px solid #444; border-radius: 8px; padding: 10px; font-size: 14px; font-weight: 700; cursor: pointer; }
+    .btn-mini.verd { background: #1DB954; color: #000; border-color: #1DB954; }
+    .altre { display: flex; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid #2a2a2a; }
+    .altre-info { flex: 1; min-width: 0; font-size: 13px; }
+    .altre-info b { display: block; font-size: 14px; word-break: break-word; }
+    .altre .btn-mini { flex: 0 0 auto; padding: 8px 14px; }
+    details summary { cursor: pointer; color: #00BFFF; font-size: 14px; margin-bottom: 10px; }
+    .fila { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; font-size: 14px; color: #ccc; }
+    .fila input { width: 20px; height: 20px; margin: 0; }
+    .nota { font-size: 12px; color: #666; margin-bottom: 14px; line-height: 1.5; }
+    .dues { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .imatge-previa { width: 100%; max-width: 280px; display: block; margin: 0 auto 10px; border-radius: 10px; background: #111; }
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>@onedayonevibe</h1>
+    <p class="subtitle">Daily Hard Dance Releases — Carrusel</p>
+
+    <div class="card">
+        <h2>🎯 Pas 1 — Candidats d'avui</h2>
+        <button class="btn btn-primary" onclick="carregarCandidats()">🔄 Carregar candidats</button>
+        <div id="info-cand" class="nota"></div>
+        <div id="candidats"></div>
+        <details id="altres-box" style="display:none;">
+            <summary>Altres temes d'avui i d'ahir</summary>
+            <div id="altres"></div>
+        </details>
+    </div>
+
+    <div class="card">
+        <h2>🔗 O tria un tema a mà</h2>
+        <label>Enllaç de Spotify del tema (open.spotify.com/track/…)</label>
+        <input type="text" id="link-manual" placeholder="https://open.spotify.com/track/..." />
+        <button class="btn btn-secondary" onclick="triarManual()">Usar aquest enllaç</button>
+        <p class="nota">El títol, els artistes i la portada s'ompliran sols des de Spotify. Si vols, pots escriure'ls tu al pas 2.</p>
+    </div>
+
+    <div id="status" class="status">
+        <div id="status-text" class="status-text"></div>
+    </div>
+
+    <div id="editor" style="display:none;">
+        <div class="card">
+            <h2>🎛️ Pas 2 — Carrusel</h2>
+            <div id="triat-resum"></div>
+            <label>Títol del tema (si és massa llarg, es talla amb «…»)</label>
+            <input type="text" id="f-titol" oninput="refrescarCaption()" />
+            <label>Artistes</label>
+            <input type="text" id="f-artistes" oninput="refrescarCaption()" />
+            <div class="dues">
+                <div>
+                    <label>Etiqueta de la imatge 2 (buida = cap)</label>
+                    <input type="text" id="f-etiqueta" value="HARD DANCE" />
+                </div>
+                <div>
+                    <label>Número d'edició (0 = cap)</label>
+                    <input type="text" id="f-numero" inputmode="numeric" value="1" />
+                </div>
+            </div>
+            <label>Nom de la playlist (surt a la imatge 2 i a la descripció)</label>
+            <input type="text" id="f-playlist" oninput="desarPlaylist(); refrescarCaption()" />
+            <label>Hashtag variable</label>
+            <select id="f-hashtag" onchange="refrescarCaption()">
+                <option value="hardstyle">#hardstyle</option>
+                <option value="rawstyle">#rawstyle</option>
+                <option value="euphorichardstyle">#euphorichardstyle</option>
+                <option value="hardtechno">#hardtechno</option>
+                <option value="uptempo">#uptempo</option>
+                <option value="hardcore">#hardcore</option>
+                <option value="frenchcore">#frenchcore</option>
+                <option value="">(cap)</option>
+            </select>
+            <div class="fila"><input type="checkbox" id="f-playlist-add" checked /><label for="f-playlist-add" style="margin:0;color:#ccc;font-size:14px;">Assegurar que el tema és a la playlist (l'afegeix a dalt si no hi és)</label></div>
+        </div>
+
+        <div class="card">
+            <h2>📋 Descripció + hashtags (per TikTok)</h2>
+            <textarea id="caption-box" rows="5"></textarea>
+            <button class="btn btn-secondary" onclick="copiarCaption()">📋 Copiar</button>
+            <p class="nota">Si canvies el títol, la playlist o el hashtag, la descripció es torna a generar. L'@ de l'artista l'afegeixes tu a TikTok.</p>
+        </div>
+
+        <button class="btn btn-green" onclick="generarCarrusel()">🎬 Generar carrusel</button>
+    </div>
+
+    <div class="card">
+        <h2>⬇️ Descarregar / Esborrar</h2>
+        <button class="btn btn-secondary" onclick="veureEstat()">📊 Consultar estat</button>
+        <button class="btn btn-secondary" onclick="llistarImatges()">🖼️ Carregar imatges del carrusel</button>
+        <div id="imatges-llista"></div>
+        <button class="btn btn-danger" onclick="esborrarRelease()">🗑️ Esborrar Release</button>
+        <button class="btn btn-secondary" onclick="canviarToken()">🔑 Canviar token</button>
+    </div>
+</div>
+
+<script>
+const GITHUB_REPO = "nilburgas-eng/onedayonevibe";
+const TAG = "releases_generat";
+const PLAYLIST_PER_DEFECTE = "OneDayOneVibe | Daily Hard Dance Releases";
+let GITHUB_TOKEN = '';
+try { GITHUB_TOKEN = localStorage.getItem('github_token') || ''; } catch (e) {}
+let cand = null;
+let sel = null;      // {spotify_id, titol, artistes, genere, portada, hdrr_url}
+let ultimNumero = null;
+
+window.onload = function() {
+    if (!GITHUB_TOKEN) {
+        GITHUB_TOKEN = prompt('Introdueix el teu GitHub Token:') || '';
+        if (GITHUB_TOKEN) { try { localStorage.setItem('github_token', GITHUB_TOKEN); } catch (e) {} }
+    }
+    let nom = PLAYLIST_PER_DEFECTE;
+    try { nom = localStorage.getItem('releases_playlist_nom') || nom; } catch (e) {}
+    document.getElementById('f-playlist').value = nom;
+};
+
+function esc(t) {
+    return String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+function desarPlaylist() {
+    try { localStorage.setItem('releases_playlist_nom', document.getElementById('f-playlist').value); } catch (e) {}
+}
+function canviarToken() {
+    const nou = prompt('Introdueix el nou GitHub Token:');
+    if (nou) {
+        GITHUB_TOKEN = nou;
+        try { localStorage.setItem('github_token', nou); } catch (e) {}
+        mostrarStatus('✅ Token actualitzat!', 'ok');
+    }
+}
+function mostrarStatus(text, tipus) {
+    const el = document.getElementById('status');
+    el.classList.add('visible');
+    document.getElementById('status-text').innerHTML = `<span class="status-${tipus}">${text}</span>`;
+}
+async function dispararWorkflow(workflow, inputs) {
+    const r = await fetch(
+        `https://api.github.com/repos/${GITHUB_REPO}/actions/workflows/${workflow}/dispatches`,
+        {
+            method: 'POST',
+            headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ref: 'main', inputs })
+        }
+    );
+    let detall = '';
+    if (r.status !== 204) {
+        try { detall = (await r.json()).message || ''; } catch (e) {}
+    }
+    return { status: r.status, detall };
+}
+async function llegirRepoJson(path) {
+    const r = await fetch(
+        `https://api.github.com/repos/${GITHUB_REPO}/contents/${path}?t=${Date.now()}`,
+        { headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3.raw' } }
+    );
+    if (r.status !== 200) return null;
+    return await r.json();
+}
+
+// ---------------------------------------------------------------- candidats
+function imgPortada(url) {
+    return url ? `<img src="${esc(url)}" referrerpolicy="no-referrer" alt="">` : '<div class="sense-img"></div>';
+}
+
+async function carregarCandidats() {
+    mostrarStatus('⏳ Carregant candidats...', 'info');
+    try {
+        cand = await llegirRepoJson('releases_candidats.json');
+        if (!cand) { mostrarStatus('❌ Encara no hi ha candidats. Executa el workflow «Releases Candidats» a GitHub.', 'error'); return; }
+        const llista = cand.candidats || [];
+        const cont = document.getElementById('candidats');
+        cont.innerHTML = '';
+        const gen = cand.generat ? new Date(cand.generat).toLocaleString('ca-ES') : '';
+        document.getElementById('info-cand').innerHTML =
+            `Data: <b>${esc(cand.data)}</b>${gen ? ' · generat ' + esc(gen) : ''}` +
+            ((cand.avisos || []).length ? `<br>⚠️ ${(cand.avisos || []).map(esc).join('<br>⚠️ ')}` : '');
+        if (llista.length === 0) {
+            cont.innerHTML = '<p class="nota">Avui no hi ha cap candidat. Pots mirar «Altres temes» o triar un tema a mà. Recorda: no cal publicar cada dia.</p>';
+        }
+        llista.forEach((c, i) => {
+            const div = document.createElement('div');
+            div.className = 'cand' + (c.comodi ? ' comodi' : '');
+            div.id = 'cand-' + i;
+            div.innerHTML = `
+                <div class="cand-fila">
+                    ${imgPortada(c.portada)}
+                    <div class="cand-info">
+                        <div class="cand-titol">${esc(c.titol)}</div>
+                        <div class="cand-art">${esc((c.artistes || []).join(', '))}</div>
+                        <span class="tag">${esc(c.genere || '')}</span>
+                        ${c.comodi ? '<span class="tag taronja">🎲 comodí</span>' : '<span class="tag gris">' + esc(c.punts) + ' punts</span>'}
+                        ${c.versio ? '<span class="tag gris">versió</span>' : ''}
+                        <div class="motius">${(c.motius || []).map(esc).join('<br>') || (c.comodi ? 'Tema triat a l\'atzar entre la resta' : 'Sense punts: cap artista al Top 100 ni al teu chart')}</div>
+                    </div>
+                </div>
+                <div class="cand-botons">
+                    ${c.spotify_url ? `<a class="btn-mini" href="${esc(c.spotify_url)}" target="_blank" rel="noopener">▶ Escoltar</a>` : ''}
+                    <button class="btn-mini verd" onclick="triarCandidat(${i})">✅ Triar</button>
+                </div>`;
+            cont.appendChild(div);
+        });
+        // altres temes (tots), sense els que ja son candidats
+        const ids = new Set(llista.map(c => c.spotify_id));
+        const altres = (cand.tots || []).filter(t => t.spotify_id && !ids.has(t.spotify_id));
+        const box = document.getElementById('altres');
+        box.innerHTML = '';
+        altres.forEach((t, i) => {
+            const d = document.createElement('div');
+            d.className = 'altre';
+            d.innerHTML = `<div class="altre-info"><b>${esc(t.titol)}</b>${esc((t.artistes || []).join(', '))}<br><span style="color:#666">${esc(t.genere)} · ${esc(t.data)} · ${esc(t.punts)} punts</span></div>
+                           <button class="btn-mini verd" onclick="triarAltre(${i})">Triar</button>`;
+            box.appendChild(d);
+        });
+        cand._altres = altres;
+        document.getElementById('altres-box').style.display = altres.length ? 'block' : 'none';
+        mostrarStatus(`✅ ${llista.length} candidats carregats.`, 'ok');
+    } catch (e) {
+        mostrarStatus('❌ Error carregant: ' + e.message, 'error');
+    }
+}
+
+function hashtagDeGenere(g) {
+    const x = (g || '').toLowerCase();
+    if (x.includes('euphoric')) return 'euphorichardstyle';
+    if (x.includes('hard techno')) return 'hardtechno';
+    if (x.includes('uptempo')) return 'uptempo';
+    if (x.includes('frenchcore')) return 'frenchcore';
+    if (x.includes('hardcore')) return 'hardcore';
+    if (x.includes('raw')) return 'rawstyle';
+    return 'hardstyle';
+}
+
+async function triar(o, idCard) {
+    sel = o;
+    document.querySelectorAll('.cand').forEach(el => el.classList.remove('triat'));
+    if (idCard) { const el = document.getElementById(idCard); if (el) el.classList.add('triat'); }
+    document.getElementById('editor').style.display = 'block';
+    document.getElementById('f-titol').value = o.titol || '';
+    document.getElementById('f-artistes').value = o.artistes || '';
+    document.getElementById('f-hashtag').value = hashtagDeGenere(o.genere);
+    document.getElementById('triat-resum').innerHTML = o.spotify_id
+        ? `<div class="cand triat"><div class="cand-fila">${imgPortada(o.portada)}<div class="cand-info"><div class="cand-titol">${esc(o.titol || 'Tema triat a mà')}</div><div class="cand-art">${esc(o.artistes || 'Spotify omplirà títol i artistes')}</div></div></div></div>`
+        : '';
+    // numero d'edicio proposat
+    if (ultimNumero === null) {
+        const n = await llegirRepoJson('releases_numero.json');
+        ultimNumero = n || {};
+    }
+    let prop = 1;
+    if (ultimNumero.ultim) prop = (ultimNumero.spotify_id && ultimNumero.spotify_id === o.spotify_id) ? ultimNumero.ultim : ultimNumero.ultim + 1;
+    document.getElementById('f-numero').value = prop;
+    refrescarCaption();
+    document.getElementById('editor').scrollIntoView({ behavior: 'smooth' });
+}
+
+function triarCandidat(i) {
+    const c = cand.candidats[i];
+    triar({ spotify_id: c.spotify_id, titol: c.titol, artistes: (c.artistes || []).join(', '), genere: c.genere, portada: c.portada, hdrr_url: c.hdrr_url }, 'cand-' + i);
+}
+function triarAltre(i) {
+    const t = cand._altres[i];
+    triar({ spotify_id: t.spotify_id, titol: t.titol, artistes: (t.artistes || []).join(', '), genere: t.genere, portada: '', hdrr_url: t.hdrr_url }, '');
+}
+function triarManual() {
+    const v = document.getElementById('link-manual').value.trim();
+    const m = v.match(/track[\/:]([A-Za-z0-9]{10,30})/);
+    if (!m) { mostrarStatus('❌ Això no sembla un enllaç de tema de Spotify (ha de contenir /track/…)', 'error'); return; }
+    triar({ spotify_id: m[1], titol: '', artistes: '', genere: '', portada: '', hdrr_url: '' }, '');
+    mostrarStatus('✅ Tema afegit. Spotify omplirà títol, artistes i portada quan generis (o escriu-los tu).', 'ok');
+}
+
+// ---------------------------------------------------------------- descripcio
+function nomCurtPlaylist() {
+    const n = document.getElementById('f-playlist').value.trim();
+    const p = n.split('|');
+    return (p.length > 1 ? p[p.length - 1] : n).trim() || 'Daily Hard Dance Releases';
+}
+function refrescarCaption() {
+    const h = document.getElementById('f-hashtag').value;
+    const caption = `New banger in the ${nomCurtPlaylist()} playlist. Link in bio!\n\n#harddance #newmusic #onedayonevibe` + (h ? ` #${h}` : '');
+    document.getElementById('caption-box').value = caption;
+}
+function copiarCaption() {
+    const box = document.getElementById('caption-box');
+    box.focus();
+    box.select();
+    box.setSelectionRange(0, 999999);
+    try {
+        const ok = document.execCommand('copy');
+        mostrarStatus(ok ? '✅ Descripció copiada!' : '⚠️ No s\'ha pogut copiar. Selecciona el text i copia\'l a mà.', ok ? 'ok' : 'error');
+    } catch (e) {
+        mostrarStatus('⚠️ No s\'ha pogut copiar. Selecciona el text i copia\'l a mà.', 'error');
+    }
+}
+
+// ---------------------------------------------------------------- generar
+async function generarCarrusel() {
+    if (!sel) { mostrarStatus('❌ Tria primer un tema', 'error'); return; }
+    const titol = document.getElementById('f-titol').value.trim();
+    const artistes = document.getElementById('f-artistes').value.trim();
+    if (!sel.spotify_id && !titol) { mostrarStatus('❌ Falta el títol del tema', 'error'); return; }
+    const dades = {
+        spotify_id: sel.spotify_id || '',
+        titol, artistes,
+        etiqueta: document.getElementById('f-etiqueta').value.trim(),
+        numero: parseInt(document.getElementById('f-numero').value, 10) || 0,
+        playlist_nom: document.getElementById('f-playlist').value.trim(),
+        portada_hdrr: sel.portada || ''
+    };
+    mostrarStatus('⏳ Generant carrusel...', 'info');
+    const res = await dispararWorkflow('releases_carrusel.yml', {
+        data: JSON.stringify(dades),
+        afegir_playlist: document.getElementById('f-playlist-add').checked ? 'si' : 'no'
+    });
+    if (res.status === 204) {
+        mostrarStatus('✅ Generació iniciada!<br>⏳ Tarda 1-2 min. Després «Carregar imatges del carrusel».', 'ok');
+    } else {
+        mostrarStatus(`❌ Error ${res.status}: ${esc(res.detall)}`, 'error');
+    }
+}
+
+// ---------------------------------------------------------------- descarregar
+async function veureEstat() {
+    mostrarStatus('⏳ Consultant estat...', 'info');
+    const r = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/actions/runs?per_page=5`,
+        { headers: { 'Authorization': `token ${GITHUB_TOKEN}` } });
+    const data = await r.json();
+    const runs = data.workflow_runs;
+    if (!runs || runs.length === 0) { mostrarStatus('❌ No hi ha workflows recents', 'error'); return; }
+    let html = '<b>Últims workflows:</b><br><br>';
+    for (const run of runs) {
+        const icon = run.status === 'completed' ? (run.conclusion === 'success' ? '✅' : '❌') : '⏳';
+        html += `${icon} <b>${esc(run.name)}</b> — ${esc(run.conclusion || run.status)}<br>`;
+        html += `&nbsp;&nbsp;&nbsp;${new Date(run.created_at).toLocaleString()}<br><br>`;
+    }
+    mostrarStatus(html, 'info');
+}
+
+async function llistarImatges() {
+    mostrarStatus('⏳ Carregant imatges...', 'info');
+    const r = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/tags/${TAG}`,
+        { headers: { 'Authorization': `token ${GITHUB_TOKEN}` } });
+    if (r.status !== 200) { mostrarStatus('❌ Encara no hi ha imatges generades', 'error'); return; }
+    const release = await r.json();
+    const imatges = (release.assets || []).filter(a => /^slide_.*\.png$/.test(a.name)).sort((a, b) => a.name.localeCompare(b.name));
+    if (imatges.length === 0) { mostrarStatus('❌ Encara no hi ha imatges generades', 'error'); return; }
+    const cont = document.getElementById('imatges-llista');
+    cont.innerHTML = '';
+    imatges.forEach((a, i) => {
+        const im = document.createElement('img');
+        im.className = 'imatge-previa';
+        im.src = a.browser_download_url + '?t=' + Date.now();
+        im.alt = a.name;
+        cont.appendChild(im);
+        const b = document.createElement('button');
+        b.className = 'btn btn-secondary';
+        b.textContent = `⬇️ Imatge ${i + 1}`;
+        b.onclick = () => window.open(a.browser_download_url, '_blank');
+        cont.appendChild(b);
+    });
+    mostrarStatus(`✅ ${imatges.length} imatges. Toca'n un botó i, a la pàgina que s'obre, mantén premuda la imatge per desar-la.`, 'ok');
+}
+
+async function esborrarRelease() {
+    mostrarStatus('⏳ Esborrant...', 'info');
+    const r = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/tags/${TAG}`,
+        { headers: { 'Authorization': `token ${GITHUB_TOKEN}` } });
+    if (r.status !== 200) { mostrarStatus('❌ Release no trobat', 'error'); return; }
+    const release = await r.json();
+    await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/${release.id}`,
+        { method: 'DELETE', headers: { 'Authorization': `token ${GITHUB_TOKEN}` } });
+    await fetch(`https://api.github.com/repos/${GITHUB_REPO}/git/refs/tags/${TAG}`,
+        { method: 'DELETE', headers: { 'Authorization': `token ${GITHUB_TOKEN}` } });
+    document.getElementById('imatges-llista').innerHTML = '';
+    mostrarStatus('✅ Release esborrat!', 'ok');
+}
+</script>
+</body>
+</html>
