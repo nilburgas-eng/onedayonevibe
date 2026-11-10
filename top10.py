@@ -49,8 +49,10 @@ DURADA_TOP1       = 12
 DURADA_OUTRO      = 2.0
 FADE_DURADA       = 0.3
 
-VIDEO_OPTS = "-c:v libx264 -preset slow -crf 18 -pix_fmt yuv420p"
-YTDLP_FORMAT = 'bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[ext=mp4]/best'
+# Qualitat: els clips intermedis es guarden gairebe sense perdua (crf 12) i el video final es codifica una sola vegada mes (crf 16)
+VIDEO_OPTS = "-c:v libx264 -preset slow -crf 16 -profile:v high -maxrate 24M -bufsize 48M -pix_fmt yuv420p -colorspace bt709 -color_primaries bt709 -color_trc bt709 -movflags +faststart"
+VIDEO_OPTS_CLIP = "-c:v libx264 -preset fast -crf 12 -pix_fmt yuv420p -colorspace bt709 -color_primaries bt709 -color_trc bt709"
+YTDLP_FORMAT = 'bestvideo[height<=2160][vcodec!^=av01]+bestaudio[ext=m4a]/bestvideo[height<=2160][vcodec!^=av01]+bestaudio/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best'
 
 SPEED_FACTOR = 1.03   # acceleracio subtil audio+video. 1.0 = desactivat
 
@@ -337,9 +339,9 @@ for track in tracks:
         print(f"   No s'ha trobat videoclip — usant portada")
         output_path = f"{OUTPUT}/clip_{pos:02d}.mp4"
         if os.path.exists(thumb_path):
-            os.system(f'ffmpeg -loop 1 -i "{thumb_path}" -f lavfi -i anullsrc=r=44100:cl=stereo -t {durada} -vf "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,fps=30" {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 -shortest "{output_path}" -y -loglevel error')
+            os.system(f'ffmpeg -loop 1 -i "{thumb_path}" -f lavfi -i anullsrc=r=48000:cl=stereo -t {durada} -vf "scale=1080:1920:flags=lanczos:force_original_aspect_ratio=increase,crop=1080:1920,fps=30" {VIDEO_OPTS_CLIP} -r 30 -c:a aac -b:a 320k -ar 48000 -shortest "{output_path}" -y -loglevel error')
         else:
-            os.system(f'ffmpeg -f lavfi -i color=c=black:s=1080x1920:d={durada} -f lavfi -i anullsrc=r=44100:cl=stereo -t {durada} -r 30 {VIDEO_OPTS} -c:a aac -b:a 192k -ar 44100 -shortest "{output_path}" -y -loglevel error')
+            os.system(f'ffmpeg -f lavfi -i color=c=black:s=1080x1920:d={durada} -f lavfi -i anullsrc=r=48000:cl=stereo -t {durada} -r 30 {VIDEO_OPTS_CLIP} -c:a aac -b:a 320k -ar 48000 -shortest "{output_path}" -y -loglevel error')
         clips_paths.append((pos, output_path))
         continue
 
@@ -430,10 +432,10 @@ for track in tracks:
 
     inputs = " ".join(input_parts)
 
-    fc_parts = ["[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920:(iw-1080)/2:(ih-1920)/2[bg]"]
+    fc_parts = ["[0:v]scale=1080:1920:flags=lanczos:force_original_aspect_ratio=increase,crop=1080:1920:(iw-1080)/2:(ih-1920)/2,unsharp=5:5:0.4:5:5:0.0[bg]"]
     if has_thumb:
         fc_parts.append(
-            f"[{thumb_idx}:v]scale={COVER_W}:{COVER_H}:force_original_aspect_ratio=decrease,"
+            f"[{thumb_idx}:v]scale={COVER_W}:{COVER_H}:flags=lanczos:force_original_aspect_ratio=decrease,"
             f"pad={COVER_W}:{COVER_H}:(ow-iw)/2:(oh-ih)/2:color=black@0,setsar=1[cover]"
         )
         fc_parts.append(f"[bg][cover]overlay={COVER_X}:{COVER_Y}[withcover]")
@@ -445,11 +447,11 @@ for track in tracks:
 
     if es_primer and STICKER_PER_CLIP:
         fc_parts.append(
-            f"[{sticker_follow_idx}:v]scale={STICKER_W}:-1,format=rgba,"
+            f"[{sticker_follow_idx}:v]scale={STICKER_W}:-1:flags=lanczos,format=rgba,"
             f"fade=t=in:st=2.0:d=0.3:alpha=1,fade=t=out:st=3.8:d=0.3:alpha=1[stfollow]"
         )
         fc_parts.append(
-            f"[{sticker_thanks_idx}:v]scale={STICKER_W}:-1,format=rgba,"
+            f"[{sticker_thanks_idx}:v]scale={STICKER_W}:-1:flags=lanczos,format=rgba,"
             f"fade=t=in:st=3.8:d=0.3:alpha=1,fade=t=out:st=5.3:d=0.3:alpha=1[stthanks]"
         )
         fc_parts.append(f"[txted][stfollow]overlay=(W-w)/2:{STICKER_Y}:enable='between(t,2.0,4.1)'[stk1]")
@@ -458,14 +460,14 @@ for track in tracks:
         fc_parts.append("[txted]copy[out]")
 
     if LOGO_PER_CLIP:
-        fc_parts.append(f"[{logo_idx}:v]scale={LOGO_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo]")
+        fc_parts.append(f"[{logo_idx}:v]scale={LOGO_W}:-1:flags=lanczos,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo]")
         fc_parts.append(f"[out][logo]overlay=W-w-{LOGO_MARGIN}:{LOGO_MARGIN}[final]")
         mapa_final = "[final]"
     else:
         mapa_final = "[out]"
 
     fc = ";".join(fc_parts)
-    cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map "[aout]" {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
+    cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map "[aout]" {VIDEO_OPTS_CLIP} -r 30 -c:a aac -b:a 320k -ar 48000 "{output_path}" -y -loglevel error'
 
     result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
     mida = os.path.getsize(output_path) if os.path.exists(output_path) else 0
@@ -536,7 +538,7 @@ if PROVA_FOLLOW_MIG and (LOGO_ACTIU or STICKER_ACTIU):
         logo_i = idx
         idx += 1
         overlay_filters.append(
-            f"[{logo_i}:v]scale={LOGO_CENTRE_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[lgone]")
+            f"[{logo_i}:v]scale={LOGO_CENTRE_W}:-1:flags=lanczos,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[lgone]")
         overlay_filters.append(f"{actual}[lgone]overlay=(W-w)/2:{LOGO_CENTRE_CY}-h/2[vl2]")
         actual = "[vl2]"
 
@@ -551,7 +553,7 @@ if PROVA_FOLLOW_MIG and (LOGO_ACTIU or STICKER_ACTIU):
         follow_i = idx
         idx += 1
         overlay_filters.append(
-            f"[{follow_i}:v]scale={FOLLOW_W}:-1,format=rgba,crop=iw:ih*{y1f - y0f:.5f}:0:ih*{y0f:.5f},"
+            f"[{follow_i}:v]scale={FOLLOW_W}:-1:flags=lanczos,format=rgba,crop=iw:ih*{y1f - y0f:.5f}:0:ih*{y0f:.5f},"
             f"fade=t=in:st={t0:.3f}:d={CTA_FADE}:alpha=1,"
             f"fade=t=out:st={t0 + FOLLOW_DURADA - CTA_FADE:.3f}:d={CTA_FADE}:alpha=1[stf]")
         etiqueta = "[vl3]" if THANKS_MIG else "[vout]"
@@ -564,7 +566,7 @@ if PROVA_FOLLOW_MIG and (LOGO_ACTIU or STICKER_ACTIU):
             thanks_i = idx
             idx += 1
             overlay_filters.append(
-                f"[{thanks_i}:v]scale={FOLLOW_W}:-1,format=rgba,crop=iw:ih*{y1t - y0t:.5f}:0:ih*{y0t:.5f},"
+                f"[{thanks_i}:v]scale={FOLLOW_W}:-1:flags=lanczos,format=rgba,crop=iw:ih*{y1t - y0t:.5f}:0:ih*{y0t:.5f},"
                 f"fade=t=in:st={t_th:.3f}:d={CTA_FADE}:alpha=1,"
                 f"fade=t=out:st={t_th + THANKS_DURADA - CTA_FADE:.3f}:d={CTA_FADE}:alpha=1[stt]")
             overlay_filters.append(
@@ -578,7 +580,7 @@ if PROVA_FOLLOW_MIG and (LOGO_ACTIU or STICKER_ACTIU):
 
 filter_complex = ";".join(video_filters + overlay_filters + audio_filters)
 output_final = f"{OUTPUT}/top10_final.mp4"
-cmd = f'ffmpeg {inputs_str}{extra_inputs} -filter_complex "{filter_complex}" -map "{mapa_video}" -map "[afinal]" {VIDEO_OPTS} -c:a aac -b:a 192k {limit_durada} "{output_final}" -y -loglevel error'
+cmd = f'ffmpeg {inputs_str}{extra_inputs} -filter_complex "{filter_complex}" -map "{mapa_video}" -map "[afinal]" {VIDEO_OPTS} -c:a aac -b:a 256k -ar 48000 {limit_durada} "{output_final}" -y -loglevel error'
 ret_final = os.system(cmd)
 if ret_final != 0 or not os.path.exists(output_final) or os.path.getsize(output_final) < 10000:
     print(f"ERROR: muntatge final ha fallat (codi {ret_final})")
