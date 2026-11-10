@@ -1,5 +1,15 @@
 import os, json, re, subprocess, base64, shutil, random
+try:
+    from portada import genera_portada, separa_titol_event
+except Exception as _e:      # si falta portada.py al repo, el video es fa igualment sense portada
+    print(f"AVIS: no es pot carregar portada.py ({_e}); no es generara la portada")
+    def genera_portada(*a, **k):
+        return None
+    def separa_titol_event(t):
+        return (t, "")
+PORTADA_SRCS = {}            # pos -> (video, t_ini, t_fi): d'on es treu el fotograma de la portada
 import requests
+import odov_comu as OC
 try:
     from PIL import ImageFont
     PIL_OK = True
@@ -47,7 +57,9 @@ BLUR_NOM_PASSOS_REVEAL  = [11, 6, 3]
 RECAP_DURADA      = 1.5   # abans 1.0; el crossfade d'entrada se'n menja 0.3
 FADE_DURADA       = 0.3
 
-VIDEO_OPTS = "-c:v libx264 -preset slow -crf 18 -pix_fmt yuv420p"
+# Qualitat: els clips intermedis es guarden gairebe sense perdua (crf 12) i el video final es codifica una sola vegada mes (crf 16)
+VIDEO_OPTS = "-c:v libx264 -preset slow -crf 16 -profile:v high -maxrate 24M -bufsize 48M -pix_fmt yuv420p -colorspace bt709 -color_primaries bt709 -color_trc bt709 -movflags +faststart"
+VIDEO_OPTS_CLIP = "-c:v libx264 -preset fast -crf 12 -pix_fmt yuv420p -colorspace bt709 -color_primaries bt709 -color_trc bt709"
 
 SPEED_FACTOR = 1.03
 
@@ -57,14 +69,14 @@ COLOR_WHITE  = "white"
 COVER_W  = 420
 COVER_H  = 420
 COVER_X  = (1080 - COVER_W) // 2
-COVER_Y  = 460
+COVER_Y  = 490
 
-Y_TITOL1    = 190
+Y_TITOL1    = 250
 BAR_X       = COVER_X
 BAR_Y       = COVER_Y + COVER_H + 40
 BAR_W       = COVER_W
 BAR_SEGMENTS = 60   # la barra de compte enrere es dibuixa com a 60 segments que van desapareixent
-BANDA_TOP_H       = 430    # banda fosca sota el titol i l'etiqueta N/8
+BANDA_TOP_H       = 470    # banda fosca sota el titol i l'etiqueta N/8
 BANDA_RESULTAT_H  = 280    # banda fosca sota la barra, amb nom i artista
 BANDA_OPACITAT    = 0.35
 Y_RESULTAT1 = BAR_Y + 60
@@ -142,39 +154,17 @@ def trobar_fitxer_per_prefix(prefix):
 
 
 def get_spotify_token():
-    try:
-        creds = base64.b64encode(f"{SPOTIFY_CLIENT_ID}:{SPOTIFY_SECRET}".encode()).decode()
-        r = requests.post("https://accounts.spotify.com/api/token",
-            headers={"Authorization": f"Basic {creds}"},
-            data={"grant_type": "client_credentials"})
-        return r.json().get('access_token')
-    except:
-        return None
+    return OC.spotify_token(SPOTIFY_CLIENT_ID, SPOTIFY_SECRET)
 
 def get_spotify_cover(nom_canco, artista, token):
-    try:
-        headers = {"Authorization": f"Bearer {token}"}
-        query = f"track:{nom_canco} artist:{artista}"
-        r = requests.get(f"https://api.spotify.com/v1/search?q={requests.utils.quote(query)}&type=track&limit=1", headers=headers)
-        items = r.json().get('tracks', {}).get('items', [])
-        if items:
-            return requests.get(items[0]['album']['images'][0]['url']).content
-    except:
-        pass
-    return None
+    """Spotify -> Deezer -> iTunes (odov_comu.py). Funciona tambe sense token de Spotify."""
+    d, font = OC.obtenir_portada(nom_canco, artista, token)
+    if d:
+        print(f"   (portada trobada a {font})")
+    return d
 
 def get_spotify_artist_image(artista, token):
-    if not artista:
-        return None
-    try:
-        headers = {"Authorization": f"Bearer {token}"}
-        r = requests.get(f"https://api.spotify.com/v1/search?q={requests.utils.quote(artista)}&type=artist&limit=1", headers=headers)
-        items = r.json().get('artists', {}).get('items', [])
-        if items and items[0].get('images'):
-            return requests.get(items[0]['images'][0]['url']).content
-    except:
-        pass
-    return None
+    return OC.foto_artista_spotify(artista, token)
 
 def get_durada_video_remot(url):
     try:
@@ -195,7 +185,7 @@ def get_durada_video_remot(url):
 def baixar_tros_fons(url, inici, durada_tros, output_path):
     fi = inici + durada_tros
     cmd = (
-        f'yt-dlp -f "bestvideo[height<=1440][ext=mp4]/best[ext=mp4]/best" '
+        f'yt-dlp -f "bestvideo[height<=2160][vcodec!^=av01]/bestvideo[height<=1440]/best[height<=1440]/best" '
         f'--download-sections "*{inici:.2f}-{fi:.2f}" --force-keyframes-at-cuts '
         f'--merge-output-format mp4 --cookies cookies.txt --js-runtime node '
         f'--remote-components ejs:github -o "{output_path}" "{url}" -q'
@@ -315,7 +305,7 @@ for track in tracks:
     os.makedirs(os.path.expanduser("~/videos"), exist_ok=True)
 
     # ---------- PORTADA (ordre fix: Spotify tema -> artista -> YouTube propi) ----------
-    if spotify_token:
+    if True:
         cover_data = get_spotify_cover(nom, artista, spotify_token)
         if cover_data:
             with open(thumb_path, 'wb') as f:
@@ -339,11 +329,11 @@ for track in tracks:
     # ---------- CANCO ----------
     if yt_url:
         print(f"   URL manual: {yt_url}")
-        ret = os.system(f'yt-dlp -f "bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[ext=mp4]/best" --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{yt_url}" --no-playlist -q')
+        ret = os.system(f'yt-dlp -f "bestvideo[height<=2160][vcodec!^=av01]+bestaudio[ext=m4a]/bestvideo[height<=2160][vcodec!^=av01]+bestaudio/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best" --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{yt_url}" --no-playlist -q')
     else:
         font_cerca = f"ytsearch1:{artista} {nom} official audio"
         print(f"   Cerca: {artista} {nom}")
-        ret = os.system(f'yt-dlp -f "bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[ext=mp4]/best" --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{font_cerca}" --no-playlist -q')
+        ret = os.system(f'yt-dlp -f "bestvideo[height<=2160][vcodec!^=av01]+bestaudio[ext=m4a]/bestvideo[height<=2160][vcodec!^=av01]+bestaudio/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best" --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{font_cerca}" --no-playlist -q')
 
     if ret != 0 or not os.path.exists(video_path) or os.path.getsize(video_path) < 10000:
         print(f"   ERROR: no s'ha pogut baixar l'audio - ronda descartada")
@@ -373,6 +363,9 @@ for track in tracks:
             usar_fons_visual = True
         else:
             print(f"   AVIS: no s'ha pogut baixar el tram generic, s'usa el video propi")
+
+    PORTADA_SRCS[pos] = ((fons_path, PADDING_FONS + 0.1 * durada, PADDING_FONS + 0.9 * durada) if usar_fons_visual
+                         else (video_path, inici + 0.1 * durada, inici + 0.9 * durada))
 
     output_path = f"{OUTPUT}/clip_{pos:02d}.mp4"
     nom_net = nom.replace("'", "").replace('"', '').replace(':', '-').strip().rstrip(' -\u2013\u2014')
@@ -441,14 +434,14 @@ for track in tracks:
 
     inputs = " ".join(input_parts)
 
-    fc_parts = [f"[{visual_idx}:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920:(iw-1080)/2:(ih-1920)/2[bg]"]
+    fc_parts = [f"[{visual_idx}:v]scale=1080:1920:flags=lanczos:force_original_aspect_ratio=increase,crop=1080:1920:(iw-1080)/2:(ih-1920)/2,unsharp=5:5:0.4:5:5:0.0[bg]"]
 
     current = "bg"
     if has_thumb:
         n_nivells = 2 + len(BLUR_PASSOS_REVEAL)   # blur inicial + passos + nitid
         raws = [f"cvraw{j}" for j in range(n_nivells)]
         fc_parts.append(
-            f"[{thumb_idx}:v]scale={COVER_W}:{COVER_H}:force_original_aspect_ratio=decrease,"
+            f"[{thumb_idx}:v]scale={COVER_W}:{COVER_H}:flags=lanczos:force_original_aspect_ratio=decrease,"
             f"pad={COVER_W}:{COVER_H}:(ow-iw)/2:(oh-ih)/2:color=black@0.9,setsar=1,"
             f"split={n_nivells}" + "".join(f"[{r}]" for r in raws)
         )
@@ -521,11 +514,11 @@ for track in tracks:
 
     if es_primer and STICKER_PER_CLIP:
         fc_parts.append(
-            f"[{sticker_follow_idx}:v]scale={STICKER_W}:-1,format=rgba,"
+            f"[{sticker_follow_idx}:v]scale={STICKER_W}:-1:flags=lanczos,format=rgba,"
             f"fade=t=in:st=0.3:d=0.3:alpha=1,fade=t=out:st=1.4:d=0.3:alpha=1[stfollow]"
         )
         fc_parts.append(
-            f"[{sticker_thanks_idx}:v]scale={STICKER_W}:-1,format=rgba,"
+            f"[{sticker_thanks_idx}:v]scale={STICKER_W}:-1:flags=lanczos,format=rgba,"
             f"fade=t=in:st=1.4:d=0.3:alpha=1,fade=t=out:st=2.5:d=0.3:alpha=1[stthanks]"
         )
         fc_parts.append(f"[txted][stfollow]overlay=(W-w)/2:{STICKER_Y}:enable='between(t,0.3,1.7)'[stk1]")
@@ -534,14 +527,14 @@ for track in tracks:
         fc_parts.append("[txted]copy[out]")
 
     if LOGO_PER_CLIP:
-        fc_parts.append(f"[{logo_idx}:v]scale={LOGO_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo]")
+        fc_parts.append(f"[{logo_idx}:v]scale={LOGO_W}:-1:flags=lanczos,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo]")
         fc_parts.append(f"[out][logo]overlay=W-w-{LOGO_MARGIN}:{LOGO_MARGIN}[final]")
         mapa_final = "[final]"
     else:
         mapa_final = "[out]"
 
     fc = ";".join(fc_parts)
-    cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map "[aout]" {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
+    cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map "[aout]" {VIDEO_OPTS_CLIP} -r 30 -c:a aac -b:a 320k -ar 48000 "{output_path}" -y -loglevel error'
 
     result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
     mida = os.path.getsize(output_path) if os.path.exists(output_path) else 0
@@ -563,7 +556,7 @@ txt_recap.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{compte_text}':font
 txt_recap.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='{SUBTITOL}':fontsize=28:fontcolor={COLOR_ACCENT}@0.75:borderw=1:bordercolor=black@0.5:x=(w-text_w)/2:y=1608")
 txt_recap_str = ",".join(txt_recap)
 
-input_parts_recap = [f'-f lavfi -i color=c=0x0d0d0d:s=1080x1920:d={RECAP_DURADA}', '-f lavfi -i anullsrc=r=44100:cl=stereo']
+input_parts_recap = [f'-f lavfi -i color=c=0x0d0d0d:s=1080x1920:d={RECAP_DURADA}', '-f lavfi -i anullsrc=r=48000:cl=stereo']
 seguent_idx_recap = 2
 logo_idx_recap = None
 if LOGO_PER_CLIP:
@@ -574,14 +567,14 @@ inputs_recap = " ".join(input_parts_recap)
 
 fc_recap = [f"[0:v]{txt_recap_str}[txted]"]
 if LOGO_PER_CLIP:
-    fc_recap.append(f"[{logo_idx_recap}:v]scale={LOGO_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo]")
+    fc_recap.append(f"[{logo_idx_recap}:v]scale={LOGO_W}:-1:flags=lanczos,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo]")
     fc_recap.append(f"[txted][logo]overlay=W-w-{LOGO_MARGIN}:{LOGO_MARGIN}[out]")
     mapa_recap = "[out]"
 else:
     mapa_recap = "[txted]"
 fc_recap_str = ";".join(fc_recap)
 
-cmd_recap = f'ffmpeg {inputs_recap} -t {RECAP_DURADA} -filter_complex "{fc_recap_str}" -map "{mapa_recap}" -map 1:a {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 -shortest "{recap_path}" -y -loglevel error'
+cmd_recap = f'ffmpeg {inputs_recap} -t {RECAP_DURADA} -filter_complex "{fc_recap_str}" -map "{mapa_recap}" -map 1:a {VIDEO_OPTS_CLIP} -r 30 -c:a aac -b:a 320k -ar 48000 -shortest "{recap_path}" -y -loglevel error'
 result_recap = subprocess.run(cmd_recap, shell=True, capture_output=True, text=True)
 mida_recap = os.path.getsize(recap_path) if os.path.exists(recap_path) else 0
 if mida_recap > 1000:
@@ -657,7 +650,7 @@ if PROVA_FOLLOW_MIG and (LOGO_ACTIU or STICKER_ACTIU):
         logo_i = idx
         idx += 1
         overlay_filters.append(
-            f"[{logo_i}:v]scale={LOGO_CENTRE_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[lgone]")
+            f"[{logo_i}:v]scale={LOGO_CENTRE_W}:-1:flags=lanczos,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[lgone]")
         overlay_filters.append(f"{actual}[lgone]overlay=(W-w)/2:{LOGO_CENTRE_CY}-h/2[vl2]")
         actual = "[vl2]"
 
@@ -672,7 +665,7 @@ if PROVA_FOLLOW_MIG and (LOGO_ACTIU or STICKER_ACTIU):
         follow_i = idx
         idx += 1
         overlay_filters.append(
-            f"[{follow_i}:v]scale={FOLLOW_W}:-1,format=rgba,crop=iw:ih*{y1f - y0f:.5f}:0:ih*{y0f:.5f},"
+            f"[{follow_i}:v]scale={FOLLOW_W}:-1:flags=lanczos,format=rgba,crop=iw:ih*{y1f - y0f:.5f}:0:ih*{y0f:.5f},"
             f"fade=t=in:st={t0:.3f}:d={CTA_FADE}:alpha=1,"
             f"fade=t=out:st={t0 + FOLLOW_DURADA - CTA_FADE:.3f}:d={CTA_FADE}:alpha=1[stf]")
         etiqueta = "[vl3]" if THANKS_MIG else "[vout]"
@@ -685,7 +678,7 @@ if PROVA_FOLLOW_MIG and (LOGO_ACTIU or STICKER_ACTIU):
             thanks_i = idx
             idx += 1
             overlay_filters.append(
-                f"[{thanks_i}:v]scale={FOLLOW_W}:-1,format=rgba,crop=iw:ih*{y1t - y0t:.5f}:0:ih*{y0t:.5f},"
+                f"[{thanks_i}:v]scale={FOLLOW_W}:-1:flags=lanczos,format=rgba,crop=iw:ih*{y1t - y0t:.5f}:0:ih*{y0t:.5f},"
                 f"fade=t=in:st={t_th:.3f}:d={CTA_FADE}:alpha=1,"
                 f"fade=t=out:st={t_th + THANKS_DURADA - CTA_FADE:.3f}:d={CTA_FADE}:alpha=1[stt]")
             overlay_filters.append(
@@ -699,7 +692,7 @@ if PROVA_FOLLOW_MIG and (LOGO_ACTIU or STICKER_ACTIU):
 
 filter_complex = ";".join(video_filters + overlay_filters + audio_filters)
 output_final = f"{OUTPUT}/guessthetrack_final.mp4"
-cmd = f'ffmpeg {inputs_str}{extra_inputs} -filter_complex "{filter_complex}" -map "{mapa_video}" -map "[afinal]" {VIDEO_OPTS} -c:a aac -b:a 192k {limit_durada} "{output_final}" -y -loglevel error'
+cmd = f'ffmpeg {inputs_str}{extra_inputs} -filter_complex "{filter_complex}" -map "{mapa_video}" -map "[afinal]" {VIDEO_OPTS} -c:a aac -b:a 256k -ar 48000 {limit_durada} "{output_final}" -y -loglevel error'
 ret_final = os.system(cmd)
 if ret_final != 0 or not os.path.exists(output_final) or os.path.getsize(output_final) < 10000:
     print(f"ERROR: muntatge final ha fallat (codi {ret_final})")
@@ -707,3 +700,16 @@ else:
     r = subprocess.run(["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", output_final], capture_output=True, text=True)
     durada_total = float(json.loads(r.stdout)['format']['duration'])
     print(f"Video final generat! Durada: {durada_total:.1f}s amb {n_clips} rondes")
+
+# ---------------- portada de TikTok (extra; si falla, el video ja esta fet) ----------------
+try:
+    _src = PORTADA_SRCS.get(1) or (PORTADA_SRCS[min(PORTADA_SRCS)] if PORTADA_SRCS else None)
+    if _src and os.path.exists(output_final):
+        print("\nGenerant la portada...")
+        _k, _t, _s = "", (f"GUESS THE {TITOL_X.upper()} DROP" if TITOL_X else "GUESS THE DROP"), ""
+        genera_portada(video=_src[0], t_ini=_src[1], t_fi=_src[2], kicker=_k, titol=_t, subtitol=_s,
+                       sortida=f"{OUTPUT}/guessthetrack_portada.png")
+    else:
+        print("\nPortada: no hi ha cap video d'on treure el fotograma")
+except Exception as _e:
+    print(f"AVIS: portada no generada ({type(_e).__name__}: {_e})")
