@@ -1,27 +1,12 @@
 {
- "data": "2026-11-09",
- "generat": "2026-11-09T22:17:16+00:00",
+ "data": "2026-11-10",
+ "generat": "2026-11-10T14:59:27+00:00",
  "font": "hdrr.info",
  "candidats": [],
- "tots": [
-  {
-   "titol": "RUCKUS",
-   "artistes": [
-    "Fyloh",
-    "NVXRRX",
-    "ENVY"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-08",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "18v7jrlDVwYxWvx46GLwUW",
-   "hdrr_url": "https://www.hdrr.info/tracks/ruckus-2"
-  }
- ],
+ "tots": [],
  "resta": [],
  "estadistiques": {
-  "llegits": 40,
+  "llegits": 20,
   "del_dia": 0,
   "despres_filtre": 0,
   "artistes_top100": 126,
