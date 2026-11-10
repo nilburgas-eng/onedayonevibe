@@ -29,7 +29,9 @@ DURADA_OUTRO = 2.0
 FADE_DURADA  = 0.3
 PADDING      = 2.0   # marge de seguretat al baixar cada tram exacte
 
-VIDEO_OPTS = "-c:v libx264 -preset slow -crf 18 -pix_fmt yuv420p"
+# Qualitat: els clips intermedis es guarden gairebe sense perdua (crf 12) i el video final es codifica una sola vegada mes (crf 16)
+VIDEO_OPTS = "-c:v libx264 -preset slow -crf 16 -profile:v high -maxrate 24M -bufsize 48M -pix_fmt yuv420p -colorspace bt709 -color_primaries bt709 -color_trc bt709 -movflags +faststart"
+VIDEO_OPTS_CLIP = "-c:v libx264 -preset fast -crf 12 -pix_fmt yuv420p -colorspace bt709 -color_primaries bt709 -color_trc bt709"
 
 LOGO_PATH    = "logo.png"
 LOGO_W       = 90
@@ -149,7 +151,7 @@ def baixar_tram(url, inici, durada_tram, output_path):
     """Baixa nomes el tram [inici, inici+durada_tram] del video font, sense baixar-lo sencer.
     Reintenta si YouTube dona errors temporals (5XX); l'ultim intent usa un format mes simple."""
     fi = inici + durada_tram
-    format_principal = "bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[ext=mp4]/best"
+    format_principal = "bestvideo[height<=2160][vcodec!^=av01]+bestaudio[ext=m4a]/bestvideo[height<=2160][vcodec!^=av01]+bestaudio/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best"
     format_reserva = "best[height<=1080][ext=mp4]/best[ext=mp4]/best"
     intents = [(format_principal, 0), (format_principal, 8), (format_reserva, 15)]
     r = None
@@ -262,7 +264,7 @@ for i, track in enumerate(tracks_ordenats):
         filtres.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='{SUBTITOL}':fontsize=30:fontcolor=0x00BFFF@0.75:shadowcolor=black@0.20:shadowx=0:shadowy=1:x=(w-text_w)/2:y=(h/2)+248:enable='gte(t,{t_aparicio})'")
 
     vf = ",".join(filtres)
-    fc_base = f'[0:v]crop=ih*9/16:ih:(iw-ih*9/16)/2:0,scale=1080:1920,setsar=1,colorchannelmixer=ra=0.85:ga=0.85:ba=0.85,{vf}[txted]'
+    fc_base = f'[0:v]crop=ih*9/16:ih:(iw-ih*9/16)/2:0,scale=1080:1920:flags=lanczos,setsar=1,colorchannelmixer=ra=0.85:ga=0.85:ba=0.85,{vf}[txted]'
     input_parts = [f'-ss {offset_dins_tram:.2f} -i "{tram_path}"']
     seguent_idx = 1
 
@@ -287,11 +289,11 @@ for i, track in enumerate(tracks_ordenats):
     fc_parts = [fc_base]
     if es_primer and STICKER_PER_CLIP:
         fc_parts.append(
-            f"[{sticker_follow_idx}:v]scale={STICKER_W}:-1,format=rgba,"
+            f"[{sticker_follow_idx}:v]scale={STICKER_W}:-1:flags=lanczos,format=rgba,"
             f"fade=t=in:st=2.0:d=0.3:alpha=1,fade=t=out:st=3.8:d=0.3:alpha=1[stfollow]"
         )
         fc_parts.append(
-            f"[{sticker_thanks_idx}:v]scale={STICKER_W}:-1,format=rgba,"
+            f"[{sticker_thanks_idx}:v]scale={STICKER_W}:-1:flags=lanczos,format=rgba,"
             f"fade=t=in:st=3.8:d=0.3:alpha=1,fade=t=out:st=5.3:d=0.3:alpha=1[stthanks]"
         )
         fc_parts.append(f"[txted][stfollow]overlay=(W-w)/2:{STICKER_Y}:enable='between(t,2.0,4.1)'[stk1]")
@@ -300,7 +302,7 @@ for i, track in enumerate(tracks_ordenats):
         fc_parts.append("[txted]copy[out]")
 
     if LOGO_PER_CLIP:
-        fc_parts.append(f"[{logo_idx}:v]scale={LOGO_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo]")
+        fc_parts.append(f"[{logo_idx}:v]scale={LOGO_W}:-1:flags=lanczos,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo]")
         fc_parts.append(f"[out][logo]overlay=W-w-{LOGO_MARGIN}:{LOGO_MARGIN}[final]")
         mapa_final = "[final]"
     else:
@@ -309,7 +311,7 @@ for i, track in enumerate(tracks_ordenats):
     fc = ";".join(fc_parts)
     fc_audio, mapa_audio, opts_audio = audio_estereo(tram_path)
     fc = fc + fc_audio
-    cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map {mapa_audio} {VIDEO_OPTS} -c:a aac {opts_audio} -b:a 192k "{output_path}" -y -loglevel error'
+    cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map {mapa_audio} {VIDEO_OPTS_CLIP} -c:a aac {opts_audio} -b:a 320k -ar 48000 "{output_path}" -y -loglevel error'
     result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
 
     mida = os.path.getsize(output_path) if os.path.exists(output_path) else 0
@@ -395,7 +397,7 @@ if PROVA_FOLLOW_MIG and (LOGO_ACTIU or STICKER_ACTIU):
         logo_i = idx
         idx += 1
         overlay_filters.append(
-            f"[{logo_i}:v]scale={LOGO_CENTRE_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[lgone]")
+            f"[{logo_i}:v]scale={LOGO_CENTRE_W}:-1:flags=lanczos,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[lgone]")
         overlay_filters.append(f"{actual}[lgone]overlay=(W-w)/2:{LOGO_CENTRE_CY}-h/2[vl2]")
         actual = "[vl2]"
 
@@ -410,7 +412,7 @@ if PROVA_FOLLOW_MIG and (LOGO_ACTIU or STICKER_ACTIU):
         follow_i = idx
         idx += 1
         overlay_filters.append(
-            f"[{follow_i}:v]scale={FOLLOW_W}:-1,format=rgba,crop=iw:ih*{y1f - y0f:.5f}:0:ih*{y0f:.5f},"
+            f"[{follow_i}:v]scale={FOLLOW_W}:-1:flags=lanczos,format=rgba,crop=iw:ih*{y1f - y0f:.5f}:0:ih*{y0f:.5f},"
             f"fade=t=in:st={t0:.3f}:d={CTA_FADE}:alpha=1,"
             f"fade=t=out:st={t0 + FOLLOW_DURADA - CTA_FADE:.3f}:d={CTA_FADE}:alpha=1[stf]")
         etiqueta = "[vl3]" if THANKS_MIG else "[vout]"
@@ -423,7 +425,7 @@ if PROVA_FOLLOW_MIG and (LOGO_ACTIU or STICKER_ACTIU):
             thanks_i = idx
             idx += 1
             overlay_filters.append(
-                f"[{thanks_i}:v]scale={FOLLOW_W}:-1,format=rgba,crop=iw:ih*{y1t - y0t:.5f}:0:ih*{y0t:.5f},"
+                f"[{thanks_i}:v]scale={FOLLOW_W}:-1:flags=lanczos,format=rgba,crop=iw:ih*{y1t - y0t:.5f}:0:ih*{y0t:.5f},"
                 f"fade=t=in:st={t_th:.3f}:d={CTA_FADE}:alpha=1,"
                 f"fade=t=out:st={t_th + THANKS_DURADA - CTA_FADE:.3f}:d={CTA_FADE}:alpha=1[stt]")
             overlay_filters.append(
@@ -437,7 +439,7 @@ if PROVA_FOLLOW_MIG and (LOGO_ACTIU or STICKER_ACTIU):
 
 filter_complex = ";".join(video_filters + overlay_filters + audio_filters)
 output_final = f"{OUTPUT}/top5_final.mp4"
-cmd = f'ffmpeg {inputs_str}{extra_inputs} -filter_complex "{filter_complex}" -map "{mapa_video}" -map "[afinal]" {VIDEO_OPTS} -c:a aac -b:a 192k {limit_durada} "{output_final}" -y -loglevel error'
+cmd = f'ffmpeg {inputs_str}{extra_inputs} -filter_complex "{filter_complex}" -map "{mapa_video}" -map "[afinal]" {VIDEO_OPTS} -c:a aac -b:a 256k -ar 48000 {limit_durada} "{output_final}" -y -loglevel error'
 ret_final = os.system(cmd)
 if ret_final != 0 or not os.path.exists(output_final) or os.path.getsize(output_final) < 10000:
     print(f"ERROR: muntatge final ha fallat (codi {ret_final})")
