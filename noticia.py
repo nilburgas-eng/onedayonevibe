@@ -30,7 +30,9 @@ TIMESTAMP_MANUAL = os.environ.get('TIMESTAMP_MANUAL', '')
 DURADA           = float(os.environ.get('DURADA', '10'))
 COMPTE           = "@onedayonevibe"
 
-VIDEO_OPTS = "-c:v libx264 -preset slow -crf 18 -pix_fmt yuv420p"
+# Qualitat: els clips intermedis es guarden gairebe sense perdua (crf 12) i el video final es codifica una sola vegada mes (crf 16)
+VIDEO_OPTS = "-c:v libx264 -preset slow -crf 16 -profile:v high -maxrate 24M -bufsize 48M -pix_fmt yuv420p -colorspace bt709 -color_primaries bt709 -color_trc bt709 -movflags +faststart"
+VIDEO_OPTS_CLIP = "-c:v libx264 -preset fast -crf 12 -pix_fmt yuv420p -colorspace bt709 -color_primaries bt709 -color_trc bt709"
 
 COLOR_ACCENT = "0x00BFFF"
 
@@ -99,7 +101,7 @@ if VIDEO_MANUAL:
         ret = 0
 elif YT_URL:
     print(f"URL YouTube: {YT_URL}")
-    ret = os.system(f'yt-dlp -f "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best[ext=mp4]/best" --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{YT_URL}" --no-playlist -q')
+    ret = os.system(f'yt-dlp -f "bestvideo[height<=2160][vcodec!^=av01]+bestaudio[ext=m4a]/bestvideo[height<=2160][vcodec!^=av01]+bestaudio/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best" --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{YT_URL}" --no-playlist -q')
 else:
     print("ERROR: cal YT_URL o VIDEO_MANUAL")
     exit(1)
@@ -131,21 +133,21 @@ if mostrar_artista:
 txt_str = ",".join(txt)
 
 fc = (
-    "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
-    "crop=1080:1920:(iw-1080)/2:(ih-1920)/2[bg];"
+    "[0:v]scale=1080:1920:flags=lanczos:force_original_aspect_ratio=increase,"
+    "crop=1080:1920:(iw-1080)/2:(ih-1920)/2,unsharp=5:5:0.4:5:5:0.0[bg];"
     "[bg]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored];"
     "[colored]{txt}[out]"
 ).format(txt=txt_str)
 
 inputs = f'-ss {inici} -i "{video_path}"'
 if LOGO_ACTIU:
-    fc += f";[1:v]scale={LOGO_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo];[out][logo]overlay=(W-w)/2:150[final]"
+    fc += f";[1:v]scale={LOGO_W}:-1:flags=lanczos,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo];[out][logo]overlay=(W-w)/2:150[final]"
     inputs += f' -i "{LOGO_PATH}"'
     mapa_final = "[final]"
 else:
     mapa_final = "[out]"
 
-cmd = f'ffmpeg {inputs} -t {DURADA} -filter_complex "{fc}" -map "{mapa_final}" -map 0:a {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 "{output_final}" -y -loglevel error'
+cmd = f'ffmpeg {inputs} -t {DURADA} -filter_complex "{fc}" -map "{mapa_final}" -map 0:a {VIDEO_OPTS} -r 30 -c:a aac -b:a 256k -ar 48000 "{output_final}" -y -loglevel error'
 os.system(cmd)
 
 if os.path.exists(output_final) and os.path.getsize(output_final) > 10000:
