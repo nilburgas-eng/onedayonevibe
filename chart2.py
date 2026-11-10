@@ -3,6 +3,7 @@ import librosa, numpy as np
 from scipy.signal import find_peaks, butter, filtfilt
 import requests
 
+import odov_comu as OC
 OUTPUT = os.path.expanduser("~/output")
 FONTS  = os.path.expanduser("~/fonts")
 os.makedirs(OUTPUT, exist_ok=True)
@@ -32,7 +33,9 @@ DURADA_TOP1       = 12
 DURADA_OUTRO      = 2.0
 FADE_DURADA       = 0.3
 
-VIDEO_OPTS = "-c:v libx264 -preset slow -crf 18 -pix_fmt yuv420p"
+# Qualitat: els clips intermedis es guarden gairebe sense perdua (crf 12) i el video final es codifica una sola vegada mes (crf 16)
+VIDEO_OPTS = "-c:v libx264 -preset slow -crf 16 -profile:v high -maxrate 24M -bufsize 48M -pix_fmt yuv420p -colorspace bt709 -color_primaries bt709 -color_trc bt709 -movflags +faststart"
+VIDEO_OPTS_CLIP = "-c:v libx264 -preset fast -crf 12 -pix_fmt yuv420p -colorspace bt709 -color_primaries bt709 -color_trc bt709"
 
 SPEED_FACTOR = 1.03   # acceleracio subtil audio+video. 1.0 = desactivat
 
@@ -218,27 +221,19 @@ Y_OUTRO2 = 1618
 
 
 def get_spotify_token():
-    try:
-        creds = base64.b64encode(f"{SPOTIFY_CLIENT_ID}:{SPOTIFY_SECRET}".encode()).decode()
-        r = requests.post("https://accounts.spotify.com/api/token",
-            headers={"Authorization": f"Basic {creds}"},
-            data={"grant_type": "client_credentials"})
-        return r.json().get('access_token')
-    except:
-        return None
+    return OC.spotify_token(SPOTIFY_CLIENT_ID, SPOTIFY_SECRET)
 
 
 def get_spotify_cover(nom_canco, artista, token):
-    try:
-        headers = {"Authorization": f"Bearer {token}"}
-        query = f"track:{nom_canco} artist:{artista}"
-        r = requests.get(f"https://api.spotify.com/v1/search?q={requests.utils.quote(query)}&type=track&limit=1", headers=headers)
-        items = r.json().get('tracks', {}).get('items', [])
-        if items:
-            return requests.get(items[0]['album']['images'][0]['url']).content
-    except:
-        pass
-    return None
+    """Spotify -> Deezer -> iTunes (odov_comu.py). Funciona tambe sense token de Spotify."""
+    d, font = OC.obtenir_portada(nom_canco, artista, token)
+    if d:
+        print(f"   (portada trobada a {font})")
+    return d
+
+
+def get_spotify_artist_image(artista, token):
+    return OC.foto_artista_spotify(artista, token)
 
 
 def get_youtube_thumbnail(yt_url):
@@ -599,7 +594,7 @@ for track in tracks:
                     print(f"   Portada directa OK")
             except:
                 pass
-        if (not os.path.exists(thumb_path) or os.path.getsize(thumb_path) < 1000) and spotify_token:
+        if not os.path.exists(thumb_path) or os.path.getsize(thumb_path) < 1000:
             cover_data = get_spotify_cover(nom, artista, spotify_token)
             if cover_data:
                 with open(thumb_path, 'wb') as f:
@@ -645,19 +640,19 @@ for track in tracks:
     elif yt_url:
         font = yt_url
         print(f"   URL manual: {yt_url}")
-        ret = os.system(f'yt-dlp -4 -f "bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[ext=mp4]/best" --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{font}" --no-playlist -q')
+        ret = os.system(f'yt-dlp -4 -f "bestvideo[height<=2160][vcodec!^=av01]+bestaudio[ext=m4a]/bestvideo[height<=2160][vcodec!^=av01]+bestaudio/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best" --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{font}" --no-playlist -q')
     else:
         font = f"ytsearch1:{artista} {nom} official video"
         print(f"   Cerca: {artista} {nom}")
-        ret = os.system(f'yt-dlp -4 -f "bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[ext=mp4]/best" --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{font}" --no-playlist -q')
+        ret = os.system(f'yt-dlp -4 -f "bestvideo[height<=2160][vcodec!^=av01]+bestaudio[ext=m4a]/bestvideo[height<=2160][vcodec!^=av01]+bestaudio/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best" --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{font}" --no-playlist -q')
 
     if ret != 0 or not os.path.exists(video_path) or os.path.getsize(video_path) < 10000:
         print(f"   No s'ha trobat videoclip - usant portada")
         output_path = f"{OUTPUT}/clip_{pos:02d}.mp4"
         if os.path.exists(thumb_path):
-            os.system(f'ffmpeg -loop 1 -i "{thumb_path}" -f lavfi -i anullsrc=r=44100:cl=stereo -t {durada} -vf "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,fps=30" {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 -shortest "{output_path}" -y -loglevel error')
+            os.system(f'ffmpeg -loop 1 -i "{thumb_path}" -f lavfi -i anullsrc=r=48000:cl=stereo -t {durada} -vf "scale=1080:1920:flags=lanczos:force_original_aspect_ratio=increase,crop=1080:1920,fps=30" {VIDEO_OPTS_CLIP} -r 30 -c:a aac -b:a 320k -ar 48000 -shortest "{output_path}" -y -loglevel error')
         else:
-            os.system(f'ffmpeg -f lavfi -i color=c=black:s=1080x1920:d={durada} -f lavfi -i anullsrc=r=44100:cl=stereo -t {durada} -r 30 {VIDEO_OPTS} -c:a aac -b:a 192k -ar 44100 -shortest "{output_path}" -y -loglevel error')
+            os.system(f'ffmpeg -f lavfi -i color=c=black:s=1080x1920:d={durada} -f lavfi -i anullsrc=r=48000:cl=stereo -t {durada} -r 30 {VIDEO_OPTS_CLIP} -c:a aac -b:a 320k -ar 48000 -shortest "{output_path}" -y -loglevel error')
         mida = os.path.getsize(output_path) if os.path.exists(output_path) else 0
         if mida > 1000:
             print(f"   OK clip generat (fallback portada, {mida//1024} KB)")
@@ -698,20 +693,17 @@ for track in tracks:
     n_total = len(tracks)
     bar_progress = int(BAR_W * (n_total - pos + 1) / n_total)
 
+    _amb_portada = os.path.exists(thumb_path) and os.path.getsize(thumb_path) > 1000
+    _x_info = X_INFO if _amb_portada else BAR_X
     txt = []
-    txt.append(f"drawbox=x=0:y=0:w=1080:h=440:color=black@0.24:t=fill")
-    txt.append(f"drawbox=x=0:y=1580:w=1080:h=340:color=black@0.18:t=fill")
-    txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol_l1}':fontsize=68:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
-    txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol_l2}':fontsize=68:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1B}")
-    txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{setmana_disp}':fontsize=32:fontcolor={COLOR_ACCENT}:borderw=2:bordercolor=black@0.6:x=(w-text_w)/2:y={Y_TITOL2}")
-    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='#{pos}':fontsize=130:fontcolor={COLORS_PODI.get(int(pos), 'white')}:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=3:x={X_INFO}:y={Y_NUM}")
-    txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia1}':fontsize=56:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM1}")
-    if nom_linia2:
-        txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia2}':fontsize=56:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM2}")
-    txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='{artista_net}':fontsize=40:fontcolor=white@0.85:borderw=2:bordercolor=black@0.8:shadowx=0:shadowy=2:x={BAR_X}:y={Y_ARTISTA}")
-    txt.append(f"drawbox=x={BAR_X}:y={Y_BAR}:w={BAR_W}:h=5:color=white@0.15:t=fill")
-    txt.append(f"drawbox=x={BAR_X}:y={Y_BAR}:w={bar_progress}:h=5:color={COLOR_ACCENT}@0.9:t=fill")
-
+    txt += OC.degradat_dalt(560, 0.55) + OC.degradat_baix(1480, 0.5)
+    _hdr, _ = OC.capcalera([dict(text=OC.neteja(titol_l1), font=FONT_BEBAS, mida=84, color='white', gap=14), dict(text=OC.neteja(titol_l2), font=FONT_BEBAS, mida=84, color='white', gap=8), dict(text=OC.neteja(setmana_disp), font=FONT_SEMIBOLD, mida=40, color=COLOR_ACCENT, gap=16, filets=True, vora=2, ombra=2)])
+    txt += _hdr
+    _fitxa, _y_fi, _ = OC.fitxa(pos, nom, artista, _x_info, Y_NUM, dict(extrabold=FONT_EXTRABOLD, semibold=FONT_SEMIBOLD, medium=FONT_MEDIUM), color_num=COLORS_PODI.get(int(pos), 'white'))
+    txt += _fitxa
+    _y_bar = max(840, int(_y_fi) + 30)
+    txt.append(f"drawbox=x={BAR_X}:y={_y_bar}:w={BAR_W}:h=5:color=white@0.15:t=fill")
+    txt.append(f"drawbox=x={BAR_X}:y={_y_bar}:w={bar_progress}:h=5:color={COLOR_ACCENT}@0.9:t=fill")
     if es_ultim:
         compte_text = COMPTE.replace("'", "")
         t_aparicio = durada - DURADA_OUTRO + 0.3
@@ -749,7 +741,7 @@ for track in tracks:
             ample_num = f_num.getlength(f"#{pos}")
             bb_num = f_num.getbbox(f"#{pos}", anchor='ls')     # drawtext posa la part de dalt de les xifres a y=Y_NUM
             centre_num = Y_NUM + (bb_num[3] - bb_num[1]) / 2
-            badge_x = int(X_INFO + ample_num + BADGE_GAP)
+            badge_x = int(_x_info + ample_num + BADGE_GAP)
             badge_y = int(centre_num - bh / 2 + BADGE_DY)
             input_parts.append(f'-loop 1 -framerate 30 -i "{badge_path}"')
             badge_idx = seguent_idx
@@ -771,10 +763,10 @@ for track in tracks:
 
     inputs = " ".join(input_parts)
 
-    fc_parts = ["[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920:(iw-1080)/2:(ih-1920)/2[bg]"]
+    fc_parts = ["[0:v]scale=1080:1920:flags=lanczos:force_original_aspect_ratio=increase,crop=1080:1920:(iw-1080)/2:(ih-1920)/2,unsharp=5:5:0.4:5:5:0.0[bg]"]
     if has_thumb:
         fc_parts.append(
-            f"[{thumb_idx}:v]scale={COVER_W}:{COVER_H}:force_original_aspect_ratio=decrease,"
+            f"[{thumb_idx}:v]scale={COVER_W}:{COVER_H}:flags=lanczos:force_original_aspect_ratio=decrease,"
             f"pad={COVER_W}:{COVER_H}:(ow-iw)/2:(oh-ih)/2:color=black@0,setsar=1[cover]"
         )
         fc_parts.append(f"[bg][cover]overlay={COVER_X}:{COVER_Y}[withcover]")
@@ -791,11 +783,11 @@ for track in tracks:
 
     if es_primer and STICKER_PER_CLIP:
         fc_parts.append(
-            f"[{sticker_follow_idx}:v]scale={STICKER_W}:-1,format=rgba,"
+            f"[{sticker_follow_idx}:v]scale={STICKER_W}:-1:flags=lanczos,format=rgba,"
             f"fade=t=in:st=2.0:d=0.3:alpha=1,fade=t=out:st=3.8:d=0.3:alpha=1[stfollow]"
         )
         fc_parts.append(
-            f"[{sticker_thanks_idx}:v]scale={STICKER_W}:-1,format=rgba,"
+            f"[{sticker_thanks_idx}:v]scale={STICKER_W}:-1:flags=lanczos,format=rgba,"
             f"fade=t=in:st=3.8:d=0.3:alpha=1,fade=t=out:st=5.3:d=0.3:alpha=1[stthanks]"
         )
         fc_parts.append(f"[txted][stfollow]overlay=(W-w)/2:{STICKER_Y}:enable='between(t,2.0,4.1)'[stk1]")
@@ -804,14 +796,14 @@ for track in tracks:
         fc_parts.append("[txted]copy[out]")
 
     if LOGO_PER_CLIP:
-        fc_parts.append(f"[{logo_idx}:v]scale={LOGO_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo]")
+        fc_parts.append(f"[{logo_idx}:v]scale={LOGO_W}:-1:flags=lanczos,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo]")
         fc_parts.append(f"[out][logo]overlay=W-w-{LOGO_MARGIN}:{LOGO_MARGIN}[final]")
         mapa_final = "[final]"
     else:
         mapa_final = "[out]"
 
     fc = ";".join(fc_parts)
-    cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map "[aout]" {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
+    cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map "[aout]" {VIDEO_OPTS_CLIP} -r 30 -c:a aac -b:a 320k -ar 48000 "{output_path}" -y -loglevel error'
 
     result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
     mida = os.path.getsize(output_path) if os.path.exists(output_path) else 0
@@ -882,7 +874,7 @@ if PROVA_FOLLOW_MIG and (LOGO_ACTIU or STICKER_ACTIU):
         logo_i = idx
         idx += 1
         overlay_filters.append(
-            f"[{logo_i}:v]scale={LOGO_CENTRE_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[lgone]")
+            f"[{logo_i}:v]scale={LOGO_CENTRE_W}:-1:flags=lanczos,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[lgone]")
         overlay_filters.append(f"{actual}[lgone]overlay=(W-w)/2:{LOGO_CENTRE_CY}-h/2[vl2]")
         actual = "[vl2]"
 
@@ -897,7 +889,7 @@ if PROVA_FOLLOW_MIG and (LOGO_ACTIU or STICKER_ACTIU):
         follow_i = idx
         idx += 1
         overlay_filters.append(
-            f"[{follow_i}:v]scale={FOLLOW_W}:-1,format=rgba,crop=iw:ih*{y1f - y0f:.5f}:0:ih*{y0f:.5f},"
+            f"[{follow_i}:v]scale={FOLLOW_W}:-1:flags=lanczos,format=rgba,crop=iw:ih*{y1f - y0f:.5f}:0:ih*{y0f:.5f},"
             f"fade=t=in:st={t0:.3f}:d={CTA_FADE}:alpha=1,"
             f"fade=t=out:st={t0 + FOLLOW_DURADA - CTA_FADE:.3f}:d={CTA_FADE}:alpha=1[stf]")
         etiqueta = "[vl3]" if THANKS_MIG else "[vout]"
@@ -910,7 +902,7 @@ if PROVA_FOLLOW_MIG and (LOGO_ACTIU or STICKER_ACTIU):
             thanks_i = idx
             idx += 1
             overlay_filters.append(
-                f"[{thanks_i}:v]scale={FOLLOW_W}:-1,format=rgba,crop=iw:ih*{y1t - y0t:.5f}:0:ih*{y0t:.5f},"
+                f"[{thanks_i}:v]scale={FOLLOW_W}:-1:flags=lanczos,format=rgba,crop=iw:ih*{y1t - y0t:.5f}:0:ih*{y0t:.5f},"
                 f"fade=t=in:st={t_th:.3f}:d={CTA_FADE}:alpha=1,"
                 f"fade=t=out:st={t_th + THANKS_DURADA - CTA_FADE:.3f}:d={CTA_FADE}:alpha=1[stt]")
             overlay_filters.append(
@@ -924,7 +916,7 @@ if PROVA_FOLLOW_MIG and (LOGO_ACTIU or STICKER_ACTIU):
 
 filter_complex = ";".join(video_filters + overlay_filters + audio_filters)
 output_final = f"{OUTPUT}/chart_final.mp4"
-cmd = f'ffmpeg {inputs_str}{extra_inputs} -filter_complex "{filter_complex}" -map "{mapa_video}" -map "[afinal]" {VIDEO_OPTS} -c:a aac -b:a 192k {limit_durada} "{output_final}" -y -loglevel error'
+cmd = f'ffmpeg {inputs_str}{extra_inputs} -filter_complex "{filter_complex}" -map "{mapa_video}" -map "[afinal]" {VIDEO_OPTS} -c:a aac -b:a 256k -ar 48000 {limit_durada} "{output_final}" -y -loglevel error'
 ret_final = os.system(cmd)
 if ret_final != 0 or not os.path.exists(output_final) or os.path.getsize(output_final) < 10000:
     print(f"ERROR: muntatge final ha fallat (codi {ret_final})")
