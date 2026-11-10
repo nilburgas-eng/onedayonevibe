@@ -1,4 +1,4 @@
-import os, json, re, subprocess, base64, shutil, random
+import os, json, re, subprocess, base64, shutil, random, time, unicodedata
 import librosa, numpy as np
 from scipy.signal import find_peaks, butter, filtfilt
 import requests
@@ -30,7 +30,6 @@ PADDING_FONS      = 1.0    # marge extra de seguretat al baixar cada tros
 SPOTIFY_CLIENT_ID = os.environ.get('SPOTIFY_CLIENT_ID', '')
 SPOTIFY_SECRET    = os.environ.get('SPOTIFY_CLIENT_SECRET', '')
 COMPTE            = "@onedayonevibe"
-SUBTITOL          = "Hard Dance"   # subtitol sota l'@ al final del video (abans: "Electronic Vibes Daily")
 DURADA_CLIP       = 8
 DURADA_TOP1       = 12
 DURADA_OUTRO      = 2.0
@@ -141,34 +140,178 @@ def get_spotify_token():
         creds = base64.b64encode(f"{SPOTIFY_CLIENT_ID}:{SPOTIFY_SECRET}".encode()).decode()
         r = requests.post("https://accounts.spotify.com/api/token",
             headers={"Authorization": f"Basic {creds}"},
-            data={"grant_type": "client_credentials"})
+            data={"grant_type": "client_credentials"}, timeout=20)
+        if r.status_code != 200:
+            print(f"   AVIS: token de Spotify {r.status_code} {r.text[:150]}")
+            return None
         return r.json().get('access_token')
-    except:
+    except Exception as e:
+        print(f"   AVIS: token de Spotify: {e}")
         return None
 
-def get_spotify_cover(nom_canco, artista, token):
-    try:
-        headers = {"Authorization": f"Bearer {token}"}
-        query = f"track:{nom_canco} artist:{artista}"
-        r = requests.get(f"https://api.spotify.com/v1/search?q={requests.utils.quote(query)}&type=track&limit=1", headers=headers)
-        items = r.json().get('tracks', {}).get('items', [])
-        if items:
-            return requests.get(items[0]['album']['images'][0]['url']).content
-    except:
-        pass
+# ---------- PORTADES: Spotify -> Deezer -> iTunes -> foto de l'artista ----------
+def _sense_accents(s):
+    return ''.join(c for c in unicodedata.normalize('NFD', str(s or '')) if unicodedata.category(c) != 'Mn')
+
+def _titol_base(s):
+    s = _sense_accents(s).lower()
+    s = re.sub(r'\([^)]*\)|\[[^\]]*\]', ' ', s)                       # (Extended Mix), [Official Video]
+    s = re.sub(r'\s[-\u2013\u2014]\s.*$', ' ', s)                       # " - Radio Edit"
+    s = re.sub(r'\b(feat|ft|featuring)\b.*$', ' ', s)
+    return re.sub(r'[^a-z0-9]+', ' ', s).strip()
+
+def _artistes_llista(s):
+    s = _sense_accents(s).lower()
+    parts = re.split(r',|&|\+|/|\bfeat\.?(?=\s|$)|\bft\.?(?=\s|$)|\bfeaturing\b|\bvs\.?(?=\s|$)|\bwith\b|\bx\b', s)
+    out = []
+    for p in parts:
+        p = re.sub(r'[^a-z0-9]+', ' ', p).strip()
+        if p:
+            out.append(p)
+    return out
+
+def _coincideix(nom, artista, nom_trobat, artistes_trobats):
+    """Titol igual (sense versions) i almenys un artista en comu. Evita posar la portada d'un altre tema."""
+    if not _titol_base(nom) or _titol_base(nom) != _titol_base(nom_trobat):
+        return False
+    meus = _artistes_llista(artista)
+    seus = []
+    for a in artistes_trobats:
+        seus.extend(_artistes_llista(a))
+    if not meus or not seus:
+        return True
+    for a in meus:
+        for b in seus:
+            if a == b or (len(a) > 3 and len(b) > 3 and (a in b or b in a)):
+                return True
+    return False
+
+def _get(url, headers=None, params=None, intents=3):
+    """GET amb reintents (429 i errors de xarxa). Torna la resposta o None."""
+    for i in range(intents):
+        try:
+            r = requests.get(url, headers=headers, params=params, timeout=20)
+            if r.status_code == 429:
+                espera = min(int(r.headers.get('Retry-After', '2') or 2), 10)
+                print(f"   (429, espero {espera}s)")
+                time.sleep(espera + 0.5)
+                continue
+            return r
+        except Exception as e:
+            print(f"   (error de xarxa: {e})")
+            time.sleep(1.5)
     return None
 
-def get_spotify_artist_image(artista, token):
-    if not artista:
+def _baixar(url):
+    r = _get(url)
+    if r is not None and r.status_code == 200 and len(r.content) > 2000:
+        return r.content
+    return None
+
+def _cerques(nom, artista):
+    """Variants de cerca, de la mes estricta a la mes lliure."""
+    titol = re.sub(r'\s+', ' ', re.sub(r'\([^)]*\)|\[[^\]]*\]|\s[-\u2013\u2014]\s.*$', ' ', nom)).strip() or nom
+    arts = [a.strip() for a in re.split(r',|&|\bfeat\.?(?=\s|$)|\bft\.?(?=\s|$)|\bx\b', artista or '') if a.strip()]
+    primer = arts[0] if arts else ''
+    return titol, primer
+
+def get_spotify_cover(nom, artista, token):
+    if not token:
+        return None
+    titol, primer = _cerques(nom, artista)
+    headers = {"Authorization": f"Bearer {token}"}
+    consultes = [f"track:{titol} artist:{primer}" if primer else f"track:{titol}",
+                 f"{titol} {primer}".strip(),
+                 f"{titol} {artista}".strip()]
+    vistes = set()
+    for q in consultes:
+        if q in vistes:
+            continue
+        vistes.add(q)
+        r = _get("https://api.spotify.com/v1/search", headers=headers, params={"q": q, "type": "track", "limit": 10})
+        if r is None or r.status_code != 200:
+            print(f"   Spotify cerca '{q[:50]}': {'sense resposta' if r is None else str(r.status_code) + ' ' + r.text[:120]}")
+            continue
+        try:
+            items = r.json().get('tracks', {}).get('items', [])
+        except Exception:
+            items = []
+        for it in items:
+            if _coincideix(nom, artista, it.get('name', ''), [a.get('name', '') for a in it.get('artists', [])]):
+                imgs = it.get('album', {}).get('images', [])
+                if imgs:
+                    dades = _baixar(imgs[0]['url'])
+                    if dades:
+                        return dades
+    return None
+
+def get_deezer_cover(nom, artista):
+    titol, primer = _cerques(nom, artista)
+    for q in ([f'track:"{titol}" artist:"{primer}"'] if primer else []) + [f"{titol} {primer}".strip()]:
+        r = _get("https://api.deezer.com/search", params={"q": q, "limit": 10})
+        if r is None or r.status_code != 200:
+            continue
+        try:
+            items = r.json().get('data', [])
+        except Exception:
+            items = []
+        for it in items:
+            if _coincideix(nom, artista, it.get('title', ''), [it.get('artist', {}).get('name', '')]):
+                alb = it.get('album', {})
+                for k in ('cover_xl', 'cover_big', 'cover_medium'):
+                    if alb.get(k):
+                        dades = _baixar(alb[k])
+                        if dades:
+                            return dades
+    return None
+
+def get_itunes_cover(nom, artista):
+    titol, primer = _cerques(nom, artista)
+    r = _get("https://itunes.apple.com/search", params={"term": f"{titol} {primer}".strip(), "entity": "song", "limit": 10})
+    if r is None or r.status_code != 200:
         return None
     try:
-        headers = {"Authorization": f"Bearer {token}"}
-        r = requests.get(f"https://api.spotify.com/v1/search?q={requests.utils.quote(artista)}&type=artist&limit=1", headers=headers)
+        items = r.json().get('results', [])
+    except Exception:
+        items = []
+    for it in items:
+        if _coincideix(nom, artista, it.get('trackName', ''), [it.get('artistName', '')]):
+            url = it.get('artworkUrl100', '')
+            if url:
+                dades = _baixar(url.replace('100x100bb', '1000x1000bb')) or _baixar(url)
+                if dades:
+                    return dades
+    return None
+
+def obtenir_portada(nom, artista, token):
+    """Torna (bytes, font) o (None, None). Mai posa la portada d'un altre tema."""
+    if COVER_FONT != 'youtube':
+        d = get_spotify_cover(nom, artista, token)
+        if d:
+            return d, 'Spotify'
+    d = get_deezer_cover(nom, artista)
+    if d:
+        return d, 'Deezer'
+    d = get_itunes_cover(nom, artista)
+    if d:
+        return d, 'iTunes'
+    return None, None
+
+def get_spotify_artist_image(artista, token):
+    if not artista or not token:
+        return None
+    _, primer = _cerques('x', artista)
+    r = _get("https://api.spotify.com/v1/search", headers={"Authorization": f"Bearer {token}"},
+             params={"q": primer or artista, "type": "artist", "limit": 5})
+    if r is None or r.status_code != 200:
+        return None
+    try:
         items = r.json().get('artists', {}).get('items', [])
-        if items and items[0].get('images'):
-            return requests.get(items[0]['images'][0]['url']).content
-    except:
-        pass
+    except Exception:
+        return None
+    for it in items:
+        if it.get('images') and _artistes_llista(it.get('name', '')) and _artistes_llista(it.get('name', ''))[0] == (_artistes_llista(primer or artista) or [''])[0]:
+            return _baixar(it['images'][0]['url'])
     return None
 
 def get_youtube_thumbnail(yt_url):
@@ -293,24 +436,13 @@ titol_l2 = f"YOU\u2019RE A REAL {FANOF.upper()} FAN"
 subtitol = f"PART {PART}"
 
 # ---------- Video generic de fons (opcional): cada clip agafa un tram diferent i aleatori ----------
-# Per a cada tema es pot triar (checkbox "visual_general") si la imatge surt del video generic o del seu propi video.
-# Compatibilitat: si cap tema porta aquest camp (web app antiga), tots usen el video generic.
-if not any('visual_general' in t for t in tracks):
-    for t in tracks:
-        t['visual_general'] = True
-tracks_generics = [t for t in tracks if t.get('visual_general')]
-
 offsets_fons = {}
-if FONS_URL and not tracks_generics:
-    print("\nVideo generic de fons indicat pero cap tema l'utilitza (cap checkbox marcat): s'ignora")
-    FONS_URL = ''
 if FONS_URL:
     print(f"\nVideo generic de fons (nomes visual): {FONS_URL}")
-    print(f"   Temes amb imatge del video generic: {', '.join('#' + str(t['pos']) for t in sorted(tracks_generics, key=lambda t: -t['pos']))}")
     durada_fons_total = get_durada_video_remot(FONS_URL)
     if durada_fons_total:
         print(f"   Durada total: {int(durada_fons_total//60):02d}:{int(durada_fons_total%60):02d}")
-        n = len(tracks_generics)
+        n = len(tracks)
         usable_inici = MARGE_FONS
         usable_fi = max(MARGE_FONS, durada_fons_total - MARGE_FONS)
         usable = max(0, usable_fi - usable_inici)
@@ -318,7 +450,7 @@ if FONS_URL:
             usable_inici = 0
             usable = durada_fons_total
         bucket = usable / n
-        for i, track in enumerate(sorted(tracks_generics, key=lambda t: t['pos'])):
+        for i, track in enumerate(sorted(tracks, key=lambda t: t['pos'])):
             durada_track = DURADA_TOP1 if track['pos'] == 1 else DURADA_CLIP
             marge_bucket = max(0, bucket - durada_track)
             inici_bucket = usable_inici + i * bucket
@@ -373,28 +505,29 @@ for track in tracks:
         shutil.copy(cover_manual, thumb_path)
         print(f"   Portada manual OK ({cover_manual})")
     elif not cover_none:
+        cover_data, font_cover = None, None
         if COVER_FONT == 'youtube':
             cover_data = get_youtube_thumbnail(yt_url)
-            if cover_data:
-                with open(thumb_path, 'wb') as f:
-                    f.write(cover_data)
-                print(f"   Portada YouTube OK")
-            else:
+            font_cover = 'YouTube'
+            if not cover_data:
                 print(f"   Sense miniatura de YouTube disponible")
+        if not cover_data:
+            cover_data, font_cover = obtenir_portada(nom, artista, spotify_token)
+        if cover_data:
+            with open(thumb_path, 'wb') as f:
+                f.write(cover_data)
+            print(f"   Portada {font_cover} OK")
         else:
-            if spotify_token:
-                cover_data = get_spotify_cover(nom, artista, spotify_token)
-                if cover_data:
-                    with open(thumb_path, 'wb') as f:
-                        f.write(cover_data)
-                    print(f"   Portada Spotify OK")
+            print(f"   AVIS: no he trobat la portada del tema ({nom} - {artista})")
 
-        if (not os.path.exists(thumb_path) or os.path.getsize(thumb_path) < 1000) and spotify_token:
+        if not os.path.exists(thumb_path) or os.path.getsize(thumb_path) < 1000:
             cover_data = get_spotify_artist_image(artista, spotify_token)
             if cover_data:
                 with open(thumb_path, 'wb') as f:
                     f.write(cover_data)
-                print(f"   Portada de l'artista a Spotify OK (fallback)")
+                print(f"   Portada de l'artista a Spotify OK (fallback, NO es la del tema)")
+            else:
+                print(f"   AVIS: tampoc hi ha foto de l'artista; el clip no tindra portada")
     else:
         print(f"   Sense portada (marcat manualment)")
 
@@ -462,13 +595,13 @@ for track in tracks:
         compte_text = COMPTE.replace("'", "")
         t_aparicio = durada - DURADA_OUTRO + 0.3
         txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{compte_text}':fontsize=50:fontcolor=white@0.82:borderw=2:bordercolor=black@0.6:x=(w-text_w)/2:y={Y_OUTRO}:enable='gte(t,{t_aparicio})'")
-        txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='{SUBTITOL}':fontsize=30:fontcolor={COLOR_ACCENT}@0.70:borderw=1:bordercolor=black@0.5:x=(w-text_w)/2:y={Y_OUTRO2}:enable='gte(t,{t_aparicio})'")
+        txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='Electronic Vibes Daily':fontsize=30:fontcolor={COLOR_ACCENT}@0.70:borderw=1:bordercolor=black@0.5:x=(w-text_w)/2:y={Y_OUTRO2}:enable='gte(t,{t_aparicio})'")
 
     txt_str = ",".join(txt)
     has_thumb = os.path.exists(thumb_path) and os.path.getsize(thumb_path) > 1000
 
     # Imatge: video generic de fons (si s'ha indicat); l'audio sempre surt del tema real
-    usar_fons = bool(FONS_URL) and track.get('visual_general', False) and pos in offsets_fons
+    usar_fons = bool(FONS_URL) and pos in offsets_fons
     fons_path = None
     if usar_fons:
         fons_path = os.path.expanduser(f"~/videos/{pos:02d}_fons.mp4")
