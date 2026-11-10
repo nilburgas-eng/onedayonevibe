@@ -39,7 +39,9 @@ PADDING       = 2.0      # segons extra que es baixen abans/despres del tram per
 DURADA_OUTRO  = 2.0
 OUTRO_FADE    = 0.3
 
-VIDEO_OPTS = "-c:v libx264 -preset slow -crf 18 -pix_fmt yuv420p"
+# Qualitat: els clips intermedis es guarden gairebe sense perdua (crf 12) i el video final es codifica una sola vegada mes (crf 16)
+VIDEO_OPTS = "-c:v libx264 -preset slow -crf 16 -profile:v high -maxrate 24M -bufsize 48M -pix_fmt yuv420p -colorspace bt709 -color_primaries bt709 -color_trc bt709 -movflags +faststart"
+VIDEO_OPTS_CLIP = "-c:v libx264 -preset fast -crf 12 -pix_fmt yuv420p -colorspace bt709 -color_primaries bt709 -color_trc bt709"
 
 # --- logo fix a baix + Follow just a sobre a la meitat (igual que la resta de formats) ---
 LOGO_CENTRE_W  = 120
@@ -165,7 +167,7 @@ def durada_fitxer(path):
 
 
 FORMATS = [
-    "bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[ext=mp4]/best",
+    "bestvideo[height<=2160][vcodec!^=av01]+bestaudio[ext=m4a]/bestvideo[height<=2160][vcodec!^=av01]+bestaudio/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best",
     "best",
 ]
 
@@ -242,12 +244,12 @@ filtres = []
 if MODE.startswith('dif'):
     filtres.append(f"[0:v]fps=30,setpts=PTS/{SPEED_FACTOR},split=2[va][vb]")
     filtres.append("[va]scale=216:384:force_original_aspect_ratio=increase,crop=216:384,gblur=sigma=3,"
-                   "scale=1080:1920:flags=bicubic,setsar=1,eq=brightness=-0.10[bg]")
-    filtres.append("[vb]scale=1080:1920:force_original_aspect_ratio=decrease,setsar=1[fg]")
+                   "scale=1080:1920:flags=lanczos,setsar=1,eq=brightness=-0.10[bg]")
+    filtres.append("[vb]scale=1080:1920:flags=lanczos:force_original_aspect_ratio=decrease,setsar=1[fg]")
     filtres.append("[bg][fg]overlay=(W-w)/2:(H-h)/2[base]")
 else:
-    filtres.append(f"[0:v]fps=30,setpts=PTS/{SPEED_FACTOR},scale=1080:1920:force_original_aspect_ratio=increase,"
-                   "crop=1080:1920,setsar=1[base]")
+    filtres.append(f"[0:v]fps=30,setpts=PTS/{SPEED_FACTOR},scale=1080:1920:flags=lanczos:force_original_aspect_ratio=increase,"
+                   "crop=1080:1920,unsharp=5:5:0.4:5:5:0.0,setsar=1[base]")
 
 # franja fosca molt suau a baix perque el logo i el compte es llegeixin sobre qualsevol imatge
 filtres.append("[base]drawbox=x=0:y=1580:w=1080:h=340:color=black@0.18:t=fill[vb0]")
@@ -266,7 +268,7 @@ if LOGO_ACTIU:
     except Exception:
         pass
     extra_inputs += f' -loop 1 -framerate 30 -i "{LOGO_PATH}"'
-    filtres.append(f"[{idx}:v]scale={LOGO_CENTRE_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[lg]")
+    filtres.append(f"[{idx}:v]scale={LOGO_CENTRE_W}:-1:flags=lanczos,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[lg]")
     filtres.append(f"{actual}[lg]overlay=(W-w)/2:{LOGO_CENTRE_CY}-h/2[vl]")
     actual = "[vl]"
     idx += 1
@@ -291,7 +293,7 @@ if follow_actiu:
     extra_inputs += f' -loop 1 -framerate 30 -i "{STICKER_FOLLOW_PATH}"'
     fi_ = idx; idx += 1
     filtres.append(
-        f"[{fi_}:v]scale={FOLLOW_W}:-1,format=rgba,crop=iw:ih*{y1f - y0f:.5f}:0:ih*{y0f:.5f},"
+        f"[{fi_}:v]scale={FOLLOW_W}:-1:flags=lanczos,format=rgba,crop=iw:ih*{y1f - y0f:.5f}:0:ih*{y0f:.5f},"
         f"fade=t=in:st={t0:.3f}:d={CTA_FADE}:alpha=1,"
         f"fade=t=out:st={t0 + FOLLOW_DURADA - CTA_FADE:.3f}:d={CTA_FADE}:alpha=1[stf]")
     filtres.append(f"{actual}[stf]overlay=(W-w)/2:{sy}:enable='between(t,{t0:.3f},{t0 + FOLLOW_DURADA:.3f})'[vf]")
@@ -301,7 +303,7 @@ if follow_actiu:
     extra_inputs += f' -loop 1 -framerate 30 -i "{STICKER_THANKS_PATH}"'
     ti_ = idx; idx += 1
     filtres.append(
-        f"[{ti_}:v]scale={FOLLOW_W}:-1,format=rgba,crop=iw:ih*{y1t - y0t:.5f}:0:ih*{y0t:.5f},"
+        f"[{ti_}:v]scale={FOLLOW_W}:-1:flags=lanczos,format=rgba,crop=iw:ih*{y1t - y0t:.5f}:0:ih*{y0t:.5f},"
         f"fade=t=in:st={t_th:.3f}:d={CTA_FADE}:alpha=1,"
         f"fade=t=out:st={t_th + THANKS_DURADA - CTA_FADE:.3f}:d={CTA_FADE}:alpha=1[stt]")
     filtres.append(f"{actual}[stt]overlay=(W-w)/2:{sy}:enable='between(t,{t_th:.3f},{t_th + THANKS_DURADA:.3f})'[vt]")
@@ -361,7 +363,7 @@ if te_audio:
     fade_out = min(0.4, out_dur / 4)
     filtres.append(f"[0:a]atempo={SPEED_FACTOR},afade=t=in:st=0:d=0.12,"
                    f"afade=t=out:st={out_dur - fade_out:.3f}:d={fade_out:.3f}[afinal]")
-    mapa_audio = '-map "[afinal]" -c:a aac -b:a 192k'
+    mapa_audio = '-map "[afinal]" -c:a aac -b:a 256k -ar 48000'
 else:
     mapa_audio = '-an'
 
