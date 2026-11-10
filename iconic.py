@@ -3,6 +3,7 @@ import librosa, numpy as np
 from scipy.signal import find_peaks, butter, filtfilt
 import requests
 
+import odov_comu as OC
 OUTPUT = os.path.expanduser("~/output")
 FONTS  = os.path.expanduser("~/fonts")
 os.makedirs(OUTPUT, exist_ok=True)
@@ -35,8 +36,10 @@ DURADA_TOP1       = 12
 DURADA_OUTRO      = 2.0
 FADE_DURADA       = 0.3
 
-VIDEO_OPTS = "-c:v libx264 -preset slow -crf 18 -pix_fmt yuv420p"
-YTDLP_FORMAT = 'bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[ext=mp4]/best'
+# Qualitat: els clips intermedis es guarden gairebe sense perdua (crf 12) i el video final es codifica una sola vegada mes (crf 16)
+VIDEO_OPTS = "-c:v libx264 -preset slow -crf 16 -profile:v high -maxrate 24M -bufsize 48M -pix_fmt yuv420p -colorspace bt709 -color_primaries bt709 -color_trc bt709 -movflags +faststart"
+VIDEO_OPTS_CLIP = "-c:v libx264 -preset fast -crf 12 -pix_fmt yuv420p -colorspace bt709 -color_primaries bt709 -color_trc bt709"
+YTDLP_FORMAT = 'bestvideo[height<=2160][vcodec!^=av01]+bestaudio[ext=m4a]/bestvideo[height<=2160][vcodec!^=av01]+bestaudio/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best'
 
 SPEED_FACTOR = 1.03   # acceleracio subtil audio+video. 1.0 = desactivat
 
@@ -127,192 +130,29 @@ Y_NOM2   = 830
 Y_TITOL1 = 260
 Y_TITOL1B = 325
 Y_TITOL2 = 402
-Y_NIVELL = 910
-Y_ARTISTA = 980
-Y_BAR    = 1060
+Y_NIVELL = 935
+Y_ARTISTA = 1005
+Y_BAR    = 1085
 BAR_X    = 90
 BAR_W    = 980
 Y_OUTRO  = 1560
 Y_OUTRO2 = 1618
 
 def get_spotify_token():
-    try:
-        creds = base64.b64encode(f"{SPOTIFY_CLIENT_ID}:{SPOTIFY_SECRET}".encode()).decode()
-        r = requests.post("https://accounts.spotify.com/api/token",
-            headers={"Authorization": f"Basic {creds}"},
-            data={"grant_type": "client_credentials"}, timeout=20)
-        if r.status_code != 200:
-            print(f"   AVIS: token de Spotify {r.status_code} {r.text[:150]}")
-            return None
-        return r.json().get('access_token')
-    except Exception as e:
-        print(f"   AVIS: token de Spotify: {e}")
-        return None
+    return OC.spotify_token(SPOTIFY_CLIENT_ID, SPOTIFY_SECRET)
 
-# ---------- PORTADES: Spotify -> Deezer -> iTunes -> foto de l'artista ----------
-def _sense_accents(s):
-    return ''.join(c for c in unicodedata.normalize('NFD', str(s or '')) if unicodedata.category(c) != 'Mn')
 
-def _titol_base(s):
-    s = _sense_accents(s).lower()
-    s = re.sub(r'\([^)]*\)|\[[^\]]*\]', ' ', s)                       # (Extended Mix), [Official Video]
-    s = re.sub(r'\s[-\u2013\u2014]\s.*$', ' ', s)                       # " - Radio Edit"
-    s = re.sub(r'\b(feat|ft|featuring)\b.*$', ' ', s)
-    return re.sub(r'[^a-z0-9]+', ' ', s).strip()
-
-def _artistes_llista(s):
-    s = _sense_accents(s).lower()
-    parts = re.split(r',|&|\+|/|\bfeat\.?(?=\s|$)|\bft\.?(?=\s|$)|\bfeaturing\b|\bvs\.?(?=\s|$)|\bwith\b|\bx\b', s)
-    out = []
-    for p in parts:
-        p = re.sub(r'[^a-z0-9]+', ' ', p).strip()
-        if p:
-            out.append(p)
-    return out
-
-def _coincideix(nom, artista, nom_trobat, artistes_trobats):
-    """Titol igual (sense versions) i almenys un artista en comu. Evita posar la portada d'un altre tema."""
-    if not _titol_base(nom) or _titol_base(nom) != _titol_base(nom_trobat):
-        return False
-    meus = _artistes_llista(artista)
-    seus = []
-    for a in artistes_trobats:
-        seus.extend(_artistes_llista(a))
-    if not meus or not seus:
-        return True
-    for a in meus:
-        for b in seus:
-            if a == b or (len(a) > 3 and len(b) > 3 and (a in b or b in a)):
-                return True
-    return False
-
-def _get(url, headers=None, params=None, intents=3):
-    """GET amb reintents (429 i errors de xarxa). Torna la resposta o None."""
-    for i in range(intents):
-        try:
-            r = requests.get(url, headers=headers, params=params, timeout=20)
-            if r.status_code == 429:
-                espera = min(int(r.headers.get('Retry-After', '2') or 2), 10)
-                print(f"   (429, espero {espera}s)")
-                time.sleep(espera + 0.5)
-                continue
-            return r
-        except Exception as e:
-            print(f"   (error de xarxa: {e})")
-            time.sleep(1.5)
-    return None
-
-def _baixar(url):
-    r = _get(url)
-    if r is not None and r.status_code == 200 and len(r.content) > 2000:
-        return r.content
-    return None
-
-def _cerques(nom, artista):
-    """Variants de cerca, de la mes estricta a la mes lliure."""
-    titol = re.sub(r'\s+', ' ', re.sub(r'\([^)]*\)|\[[^\]]*\]|\s[-\u2013\u2014]\s.*$', ' ', nom)).strip() or nom
-    arts = [a.strip() for a in re.split(r',|&|\bfeat\.?(?=\s|$)|\bft\.?(?=\s|$)|\bx\b', artista or '') if a.strip()]
-    primer = arts[0] if arts else ''
-    return titol, primer
-
-def get_spotify_cover(nom, artista, token):
-    if not token:
-        return None
-    titol, primer = _cerques(nom, artista)
-    headers = {"Authorization": f"Bearer {token}"}
-    consultes = [f"track:{titol} artist:{primer}" if primer else f"track:{titol}",
-                 f"{titol} {primer}".strip(),
-                 f"{titol} {artista}".strip()]
-    vistes = set()
-    for q in consultes:
-        if q in vistes:
-            continue
-        vistes.add(q)
-        r = _get("https://api.spotify.com/v1/search", headers=headers, params={"q": q, "type": "track", "limit": 10})
-        if r is None or r.status_code != 200:
-            print(f"   Spotify cerca '{q[:50]}': {'sense resposta' if r is None else str(r.status_code) + ' ' + r.text[:120]}")
-            continue
-        try:
-            items = r.json().get('tracks', {}).get('items', [])
-        except Exception:
-            items = []
-        for it in items:
-            if _coincideix(nom, artista, it.get('name', ''), [a.get('name', '') for a in it.get('artists', [])]):
-                imgs = it.get('album', {}).get('images', [])
-                if imgs:
-                    dades = _baixar(imgs[0]['url'])
-                    if dades:
-                        return dades
-    return None
-
-def get_deezer_cover(nom, artista):
-    titol, primer = _cerques(nom, artista)
-    for q in ([f'track:"{titol}" artist:"{primer}"'] if primer else []) + [f"{titol} {primer}".strip()]:
-        r = _get("https://api.deezer.com/search", params={"q": q, "limit": 10})
-        if r is None or r.status_code != 200:
-            continue
-        try:
-            items = r.json().get('data', [])
-        except Exception:
-            items = []
-        for it in items:
-            if _coincideix(nom, artista, it.get('title', ''), [it.get('artist', {}).get('name', '')]):
-                alb = it.get('album', {})
-                for k in ('cover_xl', 'cover_big', 'cover_medium'):
-                    if alb.get(k):
-                        dades = _baixar(alb[k])
-                        if dades:
-                            return dades
-    return None
-
-def get_itunes_cover(nom, artista):
-    titol, primer = _cerques(nom, artista)
-    r = _get("https://itunes.apple.com/search", params={"term": f"{titol} {primer}".strip(), "entity": "song", "limit": 10})
-    if r is None or r.status_code != 200:
-        return None
-    try:
-        items = r.json().get('results', [])
-    except Exception:
-        items = []
-    for it in items:
-        if _coincideix(nom, artista, it.get('trackName', ''), [it.get('artistName', '')]):
-            url = it.get('artworkUrl100', '')
-            if url:
-                dades = _baixar(url.replace('100x100bb', '1000x1000bb')) or _baixar(url)
-                if dades:
-                    return dades
-    return None
-
-def obtenir_portada(nom, artista, token):
-    """Torna (bytes, font) o (None, None). Mai posa la portada d'un altre tema."""
-    if COVER_FONT != 'youtube':
-        d = get_spotify_cover(nom, artista, token)
-        if d:
-            return d, 'Spotify'
-    d = get_deezer_cover(nom, artista)
+def get_spotify_cover(nom_canco, artista, token):
+    """Spotify -> Deezer -> iTunes (odov_comu.py). Funciona tambe sense token de Spotify."""
+    d, font = OC.obtenir_portada(nom_canco, artista, token)
     if d:
-        return d, 'Deezer'
-    d = get_itunes_cover(nom, artista)
-    if d:
-        return d, 'iTunes'
-    return None, None
+        print(f"   (portada trobada a {font})")
+    return d
+
 
 def get_spotify_artist_image(artista, token):
-    if not artista or not token:
-        return None
-    _, primer = _cerques('x', artista)
-    r = _get("https://api.spotify.com/v1/search", headers={"Authorization": f"Bearer {token}"},
-             params={"q": primer or artista, "type": "artist", "limit": 5})
-    if r is None or r.status_code != 200:
-        return None
-    try:
-        items = r.json().get('artists', {}).get('items', [])
-    except Exception:
-        return None
-    for it in items:
-        if it.get('images') and _artistes_llista(it.get('name', '')) and _artistes_llista(it.get('name', ''))[0] == (_artistes_llista(primer or artista) or [''])[0]:
-            return _baixar(it['images'][0]['url'])
-    return None
+    return OC.foto_artista_spotify(artista, token)
+
 
 def get_youtube_thumbnail(yt_url):
     if not yt_url:
@@ -351,7 +191,7 @@ def baixar_tros_fons(url, inici, durada_tros, output_path):
     """Baixa nomes el tram [inici, inici+durada_tros] del video, sense baixar-lo sencer."""
     fi = inici + durada_tros
     cmd = (
-        f'yt-dlp -f "bestvideo[height<=1440][ext=mp4]/best[ext=mp4]/best" '
+        f'yt-dlp -f "bestvideo[height<=2160][vcodec!^=av01]/bestvideo[height<=1440]/best[height<=1440]/best" '
         f'--download-sections "*{inici:.2f}-{fi:.2f}" --force-keyframes-at-cuts '
         f'--merge-output-format mp4 --cookies cookies.txt --js-runtime node '
         f'--remote-components ejs:github -o "{output_path}" "{url}" -q'
@@ -512,7 +352,7 @@ for track in tracks:
             if not cover_data:
                 print(f"   Sense miniatura de YouTube disponible")
         if not cover_data:
-            cover_data, font_cover = obtenir_portada(nom, artista, spotify_token)
+            cover_data, font_cover = OC.obtenir_portada(nom, artista, spotify_token)
         if cover_data:
             with open(thumb_path, 'wb') as f:
                 f.write(cover_data)
@@ -543,9 +383,9 @@ for track in tracks:
         print(f"   No s'ha trobat videoclip - usant portada")
         output_path = f"{OUTPUT}/clip_{pos:02d}.mp4"
         if os.path.exists(thumb_path):
-            os.system(f'ffmpeg -loop 1 -i "{thumb_path}" -f lavfi -i anullsrc=r=44100:cl=stereo -t {durada} -vf "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,fps=30" {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 -shortest "{output_path}" -y -loglevel error')
+            os.system(f'ffmpeg -loop 1 -i "{thumb_path}" -f lavfi -i anullsrc=r=48000:cl=stereo -t {durada} -vf "scale=1080:1920:flags=lanczos:force_original_aspect_ratio=increase,crop=1080:1920,fps=30" {VIDEO_OPTS_CLIP} -r 30 -c:a aac -b:a 320k -ar 48000 -shortest "{output_path}" -y -loglevel error')
         else:
-            os.system(f'ffmpeg -f lavfi -i color=c=black:s=1080x1920:d={durada} -f lavfi -i anullsrc=r=44100:cl=stereo -t {durada} -r 30 {VIDEO_OPTS} -c:a aac -b:a 192k -ar 44100 -shortest "{output_path}" -y -loglevel error')
+            os.system(f'ffmpeg -f lavfi -i color=c=black:s=1080x1920:d={durada} -f lavfi -i anullsrc=r=48000:cl=stereo -t {durada} -r 30 {VIDEO_OPTS_CLIP} -c:a aac -b:a 320k -ar 48000 -shortest "{output_path}" -y -loglevel error')
         clips_paths.append((pos, output_path))
         continue
 
@@ -575,22 +415,24 @@ for track in tracks:
     n_total = len(tracks)
     bar_progress = int(BAR_W * (n_total - pos + 1) / n_total)
 
+    _amb_portada = os.path.exists(thumb_path) and os.path.getsize(thumb_path) > 1000
+    _x_info = X_INFO if _amb_portada else BAR_X
     txt = []
-    txt.append(f"drawbox=x=0:y=0:w=1080:h=440:color=black@0.24:t=fill")
-    txt.append(f"drawbox=x=0:y=1580:w=1080:h=340:color=black@0.18:t=fill")
-    txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol_l1}':fontsize=64:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1}")
-    txt.append(f"drawtext=fontfile='{FONT_BEBAS}':text='{titol_l2}':fontsize=52:fontcolor={COLOR_ACCENT}:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x=(w-text_w)/2:y={Y_TITOL1B}")
-    txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{subtitol}':fontsize=32:fontcolor=white@0.85:borderw=2:bordercolor=black@0.6:x=(w-text_w)/2:y={Y_TITOL2}")
-    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='#{pos}':fontsize=130:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=3:x={X_INFO}:y={Y_NUM}")
-    txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia1}':fontsize=56:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM1}")
-    if nom_linia2:
-        txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='{nom_linia2}':fontsize=56:fontcolor=white:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=2:x={X_INFO}:y={Y_NOM2}")
+    txt += OC.degradat_dalt(560, 0.55) + OC.degradat_baix(1480, 0.5)
+    _hdr, _ = OC.capcalera([
+        dict(text=OC.neteja(titol_l1), font=FONT_BEBAS, mida=72, color='white', gap=14),
+        dict(text=OC.neteja(titol_l2), font=FONT_BEBAS, mida=58, color=COLOR_ACCENT, gap=10),
+        dict(text=OC.neteja(subtitol), font=FONT_SEMIBOLD, mida=36, color='white@0.9', gap=14, vora=2, ombra=2)])
+    txt += _hdr
+    _fitxa, _y_fi, _ = OC.fitxa(pos, nom, '', _x_info, (Y_NUM if _amb_portada else 560), dict(extrabold=FONT_EXTRABOLD, semibold=FONT_SEMIBOLD, medium=FONT_MEDIUM), color_num='white')
+    txt += _fitxa
     # Etiqueta de nivell amb color
-    txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='LEVEL\\: {nivell}':fontsize=48:fontcolor={nivell_color}:borderw=3:bordercolor=black@0.9:shadowx=0:shadowy=2:x={BAR_X}:y={Y_NIVELL}")
-    txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='{artista_net}':fontsize=38:fontcolor=white@0.85:borderw=2:bordercolor=black@0.8:shadowx=0:shadowy=2:x={BAR_X}:y={Y_ARTISTA}")
+    txt.append(OC.dt(f"LEVEL\\: {nivell}", FONT_EXTRABOLD, 48, nivell_color, BAR_X, Y_NIVELL, vora=3, ombra=2))
+    _artista_curt = OC.retalla(OC.neteja(artista), FONT_MEDIUM, 38, 900)
+    if _artista_curt:
+        txt.append(OC.dt(_artista_curt, FONT_MEDIUM, 38, 'white@0.9', BAR_X, Y_ARTISTA, vora=2, ombra=2, vora_color='black@0.8'))
     txt.append(f"drawbox=x={BAR_X}:y={Y_BAR}:w={BAR_W}:h=5:color=white@0.15:t=fill")
     txt.append(f"drawbox=x={BAR_X}:y={Y_BAR}:w={bar_progress}:h=5:color={nivell_color}@0.9:t=fill")
-
     if es_ultim:
         compte_text = COMPTE.replace("'", "")
         t_aparicio = durada - DURADA_OUTRO + 0.3
@@ -651,10 +493,10 @@ for track in tracks:
 
     inputs = " ".join(input_parts)
 
-    fc_parts = [f"[{visual_idx}:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920:(iw-1080)/2:(ih-1920)/2[bg]"]
+    fc_parts = [f"[{visual_idx}:v]scale=1080:1920:flags=lanczos:force_original_aspect_ratio=increase,crop=1080:1920:(iw-1080)/2:(ih-1920)/2,unsharp=5:5:0.4:5:5:0.0[bg]"]
     if has_thumb:
         fc_parts.append(
-            f"[{thumb_idx}:v]scale={COVER_W}:{COVER_H}:force_original_aspect_ratio=decrease,"
+            f"[{thumb_idx}:v]scale={COVER_W}:{COVER_H}:flags=lanczos:force_original_aspect_ratio=decrease,"
             f"pad={COVER_W}:{COVER_H}:(ow-iw)/2:(oh-ih)/2:color=black@0,setsar=1[cover]"
         )
         fc_parts.append(f"[bg][cover]overlay={COVER_X}:{COVER_Y}[withcover]")
@@ -666,11 +508,11 @@ for track in tracks:
 
     if es_primer and STICKER_PER_CLIP:
         fc_parts.append(
-            f"[{sticker_follow_idx}:v]scale={STICKER_W}:-1,format=rgba,"
+            f"[{sticker_follow_idx}:v]scale={STICKER_W}:-1:flags=lanczos,format=rgba,"
             f"fade=t=in:st=2.0:d=0.3:alpha=1,fade=t=out:st=3.8:d=0.3:alpha=1[stfollow]"
         )
         fc_parts.append(
-            f"[{sticker_thanks_idx}:v]scale={STICKER_W}:-1,format=rgba,"
+            f"[{sticker_thanks_idx}:v]scale={STICKER_W}:-1:flags=lanczos,format=rgba,"
             f"fade=t=in:st=3.8:d=0.3:alpha=1,fade=t=out:st=5.3:d=0.3:alpha=1[stthanks]"
         )
         fc_parts.append(f"[txted][stfollow]overlay=(W-w)/2:{STICKER_Y}:enable='between(t,2.0,4.1)'[stk1]")
@@ -679,14 +521,14 @@ for track in tracks:
         fc_parts.append("[txted]copy[out]")
 
     if LOGO_PER_CLIP:
-        fc_parts.append(f"[{logo_idx}:v]scale={LOGO_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo]")
+        fc_parts.append(f"[{logo_idx}:v]scale={LOGO_W}:-1:flags=lanczos,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo]")
         fc_parts.append(f"[out][logo]overlay=W-w-{LOGO_MARGIN}:{LOGO_MARGIN}[final]")
         mapa_final = "[final]"
     else:
         mapa_final = "[out]"
 
     fc = ";".join(fc_parts)
-    cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map "[aout]" {VIDEO_OPTS} -r 30 -c:a aac -b:a 192k -ar 44100 "{output_path}" -y -loglevel error'
+    cmd = f'ffmpeg {inputs} -t {durada} -filter_complex "{fc}" -map "{mapa_final}" -map "[aout]" {VIDEO_OPTS_CLIP} -r 30 -c:a aac -b:a 320k -ar 48000 "{output_path}" -y -loglevel error'
 
     os.system(cmd)
     clips_paths.append((pos, output_path))
@@ -748,7 +590,7 @@ if PROVA_FOLLOW_MIG and (LOGO_ACTIU or STICKER_ACTIU):
         logo_i = idx
         idx += 1
         overlay_filters.append(
-            f"[{logo_i}:v]scale={LOGO_CENTRE_W}:-1,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[lgone]")
+            f"[{logo_i}:v]scale={LOGO_CENTRE_W}:-1:flags=lanczos,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[lgone]")
         overlay_filters.append(f"{actual}[lgone]overlay=(W-w)/2:{LOGO_CENTRE_CY}-h/2[vl2]")
         actual = "[vl2]"
 
@@ -763,7 +605,7 @@ if PROVA_FOLLOW_MIG and (LOGO_ACTIU or STICKER_ACTIU):
         follow_i = idx
         idx += 1
         overlay_filters.append(
-            f"[{follow_i}:v]scale={FOLLOW_W}:-1,format=rgba,crop=iw:ih*{y1f - y0f:.5f}:0:ih*{y0f:.5f},"
+            f"[{follow_i}:v]scale={FOLLOW_W}:-1:flags=lanczos,format=rgba,crop=iw:ih*{y1f - y0f:.5f}:0:ih*{y0f:.5f},"
             f"fade=t=in:st={t0:.3f}:d={CTA_FADE}:alpha=1,"
             f"fade=t=out:st={t0 + FOLLOW_DURADA - CTA_FADE:.3f}:d={CTA_FADE}:alpha=1[stf]")
         etiqueta = "[vl3]" if THANKS_MIG else "[vout]"
@@ -776,7 +618,7 @@ if PROVA_FOLLOW_MIG and (LOGO_ACTIU or STICKER_ACTIU):
             thanks_i = idx
             idx += 1
             overlay_filters.append(
-                f"[{thanks_i}:v]scale={FOLLOW_W}:-1,format=rgba,crop=iw:ih*{y1t - y0t:.5f}:0:ih*{y0t:.5f},"
+                f"[{thanks_i}:v]scale={FOLLOW_W}:-1:flags=lanczos,format=rgba,crop=iw:ih*{y1t - y0t:.5f}:0:ih*{y0t:.5f},"
                 f"fade=t=in:st={t_th:.3f}:d={CTA_FADE}:alpha=1,"
                 f"fade=t=out:st={t_th + THANKS_DURADA - CTA_FADE:.3f}:d={CTA_FADE}:alpha=1[stt]")
             overlay_filters.append(
@@ -790,6 +632,6 @@ if PROVA_FOLLOW_MIG and (LOGO_ACTIU or STICKER_ACTIU):
 
 filter_complex = ";".join(video_filters + overlay_filters + audio_filters)
 output_final = f"{OUTPUT}/iconic_final.mp4"
-cmd = f'ffmpeg {inputs_str}{extra_inputs} -filter_complex "{filter_complex}" -map "{mapa_video}" -map "[afinal]" {VIDEO_OPTS} -c:a aac -b:a 192k {limit_durada} "{output_final}" -y -loglevel error'
+cmd = f'ffmpeg {inputs_str}{extra_inputs} -filter_complex "{filter_complex}" -map "{mapa_video}" -map "[afinal]" {VIDEO_OPTS} -c:a aac -b:a 256k -ar 48000 {limit_durada} "{output_final}" -y -loglevel error'
 os.system(cmd)
 print("Video final generat!")
