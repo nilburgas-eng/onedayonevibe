@@ -2768,6 +2768,87 @@
     }
    ],
    "eliminats": 0
+  },
+  {
+   "data": "2026-11-11",
+   "executat": "2026-11-11T14:30:33+00:00",
+   "afegits": [
+    {
+     "titol": "The Power Is Ours",
+     "artistes": [
+      "Toneshifterz"
+     ],
+     "spotify_id": "63KDXpzV56UOo3Vumj8xq7",
+     "data": "2026-11-11",
+     "punts": 0.0
+    },
+    {
+     "titol": "Down & Dirty",
+     "artistes": [
+      "Chapter V",
+      "Infliction"
+     ],
+     "spotify_id": "4KLHxNWKTQfvqXaVAlr4WO",
+     "data": "2026-11-11",
+     "punts": 0.0
+    },
+    {
+     "titol": "Il Changeait La Vie",
+     "artistes": [
+      "Stan Lord",
+      "Kokwak"
+     ],
+     "spotify_id": "7yVpn9HwI8Ka3tQ6xNQDRt",
+     "data": "2026-11-11",
+     "punts": 0.0
+    },
+    {
+     "titol": "Dominate",
+     "artistes": [
+      "Oxya"
+     ],
+     "spotify_id": "0hGl8axUlRV0BTS2RWoMxQ",
+     "data": "2026-11-11",
+     "punts": 0.0
+    },
+    {
+     "titol": "Hurricane",
+     "artistes": [
+      "Guardelion"
+     ],
+     "spotify_id": "3G9fc47fFDlzzgIugE6wj3",
+     "data": "2026-11-11",
+     "punts": 0.0
+    },
+    {
+     "titol": "Rotterdam",
+     "artistes": [
+      "Strixter"
+     ],
+     "spotify_id": "44KCpaB5CMoyBONnPUVl2k",
+     "data": "2026-11-10",
+     "punts": 0.0
+    },
+    {
+     "titol": "REBEL(LONG)",
+     "artistes": [
+      "Spitfire"
+     ],
+     "spotify_id": "3d8QUZiL81TMthQQcDDTjM",
+     "data": "2026-11-10",
+     "punts": 0.0
+    },
+    {
+     "titol": "GO BALLISTIC",
+     "artistes": [
+      "Vazooka"
+     ],
+     "spotify_id": "0tby2QmHYZcZrSGBpLFLxZ",
+     "data": "2026-11-10",
+     "punts": 0.0
+    }
+   ],
+   "eliminats": 0
   }
  ]
 }
