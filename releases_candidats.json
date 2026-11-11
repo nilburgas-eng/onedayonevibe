@@ -1,18 +1,259 @@
 {
- "data": "2026-11-10",
- "generat": "2026-11-10T19:41:11+00:00",
+ "data": "2026-11-11",
+ "generat": "2026-11-11T13:02:53+00:00",
  "font": "hdrr.info",
- "candidats": [],
- "tots": [],
- "resta": [],
+ "candidats": [
+  {
+   "titol": "Breaks The Quite",
+   "artistes": [
+    "The Elusive"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-11",
+   "punts": 0.0,
+   "motius": [],
+   "versio": false,
+   "comodi": false,
+   "hdrr_url": "https://www.hdrr.info/tracks/breaks-the-quite",
+   "spotify_id": "2vbGDI2vaBsQf23ODYFI1P",
+   "spotify_url": "https://open.spotify.com/track/2vbGDI2vaBsQf23ODYFI1P",
+   "popularitat_hdrr": 0,
+   "isrc": "QTAEY2634588",
+   "portada": "https://www.hdrr.info/media/img/covers/480/the-elusive-breaks-the-quite-cover-art-26823d14.webp"
+  },
+  {
+   "titol": "Dominate",
+   "artistes": [
+    "Oxya"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-11",
+   "punts": 0.0,
+   "motius": [],
+   "versio": false,
+   "comodi": false,
+   "hdrr_url": "https://www.hdrr.info/tracks/dominate-16",
+   "spotify_id": "0hGl8axUlRV0BTS2RWoMxQ",
+   "spotify_url": "https://open.spotify.com/track/0hGl8axUlRV0BTS2RWoMxQ",
+   "popularitat_hdrr": 0,
+   "isrc": "NLRD52664322",
+   "portada": "https://www.hdrr.info/media/img/covers/480/oxya-dominate-cover-art-18035632.webp"
+  },
+  {
+   "titol": "Down & Dirty",
+   "artistes": [
+    "Chapter V",
+    "Infliction"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-11",
+   "punts": 0.0,
+   "motius": [],
+   "versio": false,
+   "comodi": false,
+   "hdrr_url": "https://www.hdrr.info/tracks/down-dirty",
+   "spotify_id": "4KLHxNWKTQfvqXaVAlr4WO",
+   "spotify_url": "https://open.spotify.com/track/4KLHxNWKTQfvqXaVAlr4WO",
+   "popularitat_hdrr": 0,
+   "isrc": "NL4AW2649102",
+   "portada": "https://www.hdrr.info/media/img/covers/480/chapter-v-down-dirty-cover-art-ffaffc06.webp"
+  },
+  {
+   "titol": "The Final Hour",
+   "artistes": [
+    "Sound Driver"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-11",
+   "punts": 0.0,
+   "motius": [],
+   "versio": false,
+   "comodi": true,
+   "hdrr_url": "https://www.hdrr.info/tracks/the-final-hour-5",
+   "spotify_id": "6dA3LAiAaxCgAU1eqGux4L",
+   "spotify_url": "https://open.spotify.com/track/6dA3LAiAaxCgAU1eqGux4L",
+   "popularitat_hdrr": 0,
+   "isrc": "QZWDE2630075",
+   "portada": "https://www.hdrr.info/media/img/covers/480/sound-driver-the-final-hour-cover-art-802fce83.webp"
+  }
+ ],
+ "tots": [
+  {
+   "titol": "The Power Is Ours",
+   "artistes": [
+    "Toneshifterz"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-11",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "63KDXpzV56UOo3Vumj8xq7",
+   "hdrr_url": "https://www.hdrr.info/tracks/the-power-is-ours"
+  },
+  {
+   "titol": "Down & Dirty",
+   "artistes": [
+    "Chapter V",
+    "Infliction"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-11",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "4KLHxNWKTQfvqXaVAlr4WO",
+   "hdrr_url": "https://www.hdrr.info/tracks/down-dirty"
+  },
+  {
+   "titol": "Il Changeait La Vie",
+   "artistes": [
+    "Stan Lord",
+    "Kokwak"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-11",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "7yVpn9HwI8Ka3tQ6xNQDRt",
+   "hdrr_url": "https://www.hdrr.info/tracks/il-changeait-la-vie"
+  },
+  {
+   "titol": "Dominate",
+   "artistes": [
+    "Oxya"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-11",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "0hGl8axUlRV0BTS2RWoMxQ",
+   "hdrr_url": "https://www.hdrr.info/tracks/dominate-16"
+  },
+  {
+   "titol": "Hurricane",
+   "artistes": [
+    "Guardelion"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-11",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "3G9fc47fFDlzzgIugE6wj3",
+   "hdrr_url": "https://www.hdrr.info/tracks/hurricane-17"
+  },
+  {
+   "titol": "Breaks The Quite",
+   "artistes": [
+    "The Elusive"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-11",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "2vbGDI2vaBsQf23ODYFI1P",
+   "hdrr_url": "https://www.hdrr.info/tracks/breaks-the-quite"
+  },
+  {
+   "titol": "The Final Hour",
+   "artistes": [
+    "Sound Driver"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-11",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "6dA3LAiAaxCgAU1eqGux4L",
+   "hdrr_url": "https://www.hdrr.info/tracks/the-final-hour-5"
+  },
+  {
+   "titol": "Rotterdam",
+   "artistes": [
+    "Strixter"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-10",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "44KCpaB5CMoyBONnPUVl2k",
+   "hdrr_url": "https://www.hdrr.info/tracks/rotterdam-5"
+  },
+  {
+   "titol": "REBEL(LONG)",
+   "artistes": [
+    "Spitfire"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-10",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "3d8QUZiL81TMthQQcDDTjM",
+   "hdrr_url": "https://www.hdrr.info/tracks/rebel-long"
+  },
+  {
+   "titol": "Celestial",
+   "artistes": [
+    "Hexus"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-10",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "1ebk5shE71pDFN5uQcyosN",
+   "hdrr_url": "https://www.hdrr.info/tracks/celestial-4"
+  },
+  {
+   "titol": "GO BALLISTIC",
+   "artistes": [
+    "Vazooka"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-10",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "0tby2QmHYZcZrSGBpLFLxZ",
+   "hdrr_url": "https://www.hdrr.info/tracks/go-ballistic-2"
+  }
+ ],
+ "resta": [
+  {
+   "titol": "Hurricane",
+   "artistes": [
+    "Guardelion"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Il Changeait La Vie",
+   "artistes": [
+    "Stan Lord",
+    "Kokwak"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "The Final Hour",
+   "artistes": [
+    "Sound Driver"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "The Power Is Ours",
+   "artistes": [
+    "Toneshifterz"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  }
+ ],
  "estadistiques": {
-  "llegits": 20,
-  "del_dia": 0,
-  "despres_filtre": 0,
-  "artistes_top100": 126,
+  "llegits": 40,
+  "del_dia": 7,
+  "despres_filtre": 7,
+  "artistes_top100": 128,
   "temes_chart_propi": 15
  },
- "avisos": [
-  "Cap llancament d'aquesta data a HDRR (potser encara no s'han afegit)"
- ]
+ "avisos": []
 }
