@@ -2756,6 +2756,18 @@
    "executat": "2026-11-10T19:41:16+00:00",
    "afegits": [],
    "eliminats": 0
+  },
+  {
+   "data": "2026-11-11",
+   "executat": "2026-11-11T13:10:29+00:00",
+   "afegits": [
+    {
+     "titol": "Celestial",
+     "spotify_id": "1ebk5shE71pDFN5uQcyosN",
+     "manual": true
+    }
+   ],
+   "eliminats": 0
   }
  ]
 }
