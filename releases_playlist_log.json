@@ -2867,6 +2867,55 @@
     }
    ],
    "eliminats": 0
+  },
+  {
+   "data": "2026-11-12",
+   "executat": "2026-11-12T15:24:12+00:00",
+   "afegits": [
+    {
+     "titol": "The Rebellion",
+     "artistes": [
+      "Anderex"
+     ],
+     "spotify_id": "69XbadzYvzsfmDN33AGcCq",
+     "data": "2026-11-12",
+     "punts": 35.0
+    },
+    {
+     "titol": "Fire In My Veins",
+     "artistes": [
+      "Anderex"
+     ],
+     "spotify_id": "11OJy48Iy1LhoKBdfz2HXX",
+     "data": "2026-11-12",
+     "punts": 35.0
+    },
+    {
+     "titol": "Euphoria",
+     "artistes": [
+      "Vindicate",
+      "The Unknown",
+      "Demoxx",
+      "GOLDSTRIKE",
+      "RADYX",
+      "Aerobey"
+     ],
+     "spotify_id": "4uRT4x3ybVqcrwTqx0ISVz",
+     "data": "2026-11-12",
+     "punts": 18.5
+    },
+    {
+     "titol": "FAT BASS SEASON",
+     "artistes": [
+      "Sickmode",
+      "Krowdexx"
+     ],
+     "spotify_id": "2rX20RB5kmiKKISPi2mss6",
+     "data": "2026-11-12",
+     "punts": 0.0
+    }
+   ],
+   "eliminats": 0
   }
  ]
 }

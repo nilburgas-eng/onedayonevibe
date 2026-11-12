@@ -1,6 +1,6 @@
 {
  "data": "2026-11-12",
- "generat": "2026-11-12T12:57:35+00:00",
+ "generat": "2026-11-12T15:23:52+00:00",
  "font": "hdrr.info",
  "candidats": [
   {
@@ -65,23 +65,22 @@
    "portada": "https://www.hdrr.info/media/img/covers/480/anderex-the-rebellion-cover-art-2125b0b1.webp"
   },
   {
-   "titol": "FAT BASS SEASON",
+   "titol": "Magazines",
    "artistes": [
-    "Sickmode",
-    "Krowdexx"
+    "Hard Destiny"
    ],
-   "genere": "Rawstyle",
+   "genere": "Hardstyle",
    "data": "2026-11-12",
    "punts": 0.0,
    "motius": [],
    "versio": false,
    "comodi": true,
-   "hdrr_url": "https://www.hdrr.info/tracks/fat-bass-season",
-   "spotify_id": "2rX20RB5kmiKKISPi2mss6",
-   "spotify_url": "https://open.spotify.com/track/2rX20RB5kmiKKISPi2mss6",
+   "hdrr_url": "https://www.hdrr.info/tracks/magazines",
+   "spotify_id": "79TwINBF1jZJG4lxZeO2mH",
+   "spotify_url": "https://open.spotify.com/track/79TwINBF1jZJG4lxZeO2mH",
    "popularitat_hdrr": 0,
-   "isrc": "GBLV62622466",
-   "portada": "https://www.hdrr.info/media/img/covers/480/sickmode-fat-bass-season-cover-art-3b912c91.webp"
+   "isrc": "NLG3W2600166",
+   "portada": "https://www.hdrr.info/media/img/covers/480/hard-destiny-magazines-cover-art-60567fe2.webp"
   }
  ],
  "tots": [
@@ -140,19 +139,6 @@
    "hdrr_url": "https://www.hdrr.info/tracks/euphoria-42"
   },
   {
-   "titol": "Go Get 'Em",
-   "artistes": [
-    "Disaster",
-    "DIMMA"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-12",
-   "punts": 13.5,
-   "versio": false,
-   "spotify_id": "1R9tKMg8XWEK1rseRwdVtD",
-   "hdrr_url": "https://www.hdrr.info/tracks/go-get-em"
-  },
-  {
    "titol": "FAT BASS SEASON",
    "artistes": [
     "Sickmode",
@@ -178,20 +164,6 @@
    "hdrr_url": "https://www.hdrr.info/tracks/ton-addiction"
   },
   {
-   "titol": "RAPTURE",
-   "artistes": [
-    "Chestbrah",
-    "RVNGER",
-    "ENYOS"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-12",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "1SuGbkndxvwF7HAot949Fa",
-   "hdrr_url": "https://www.hdrr.info/tracks/rapture-6"
-  },
-  {
    "titol": "Magazines",
    "artistes": [
     "Hard Destiny"
@@ -204,17 +176,17 @@
    "hdrr_url": "https://www.hdrr.info/tracks/magazines"
   },
   {
-   "titol": "Straight to the Jungle",
+   "titol": "999",
    "artistes": [
-    "Red Hood Squad",
-    "Letch"
+    "NSIDE",
+    "Flux Overload"
    ],
-   "genere": "Rawstyle",
+   "genere": "Hardstyle",
    "data": "2026-11-12",
    "punts": 0.0,
    "versio": false,
-   "spotify_id": "4jB0UX3qxr5ckr9Kh0Om5G",
-   "hdrr_url": "https://www.hdrr.info/tracks/straight-to-the-jungle"
+   "spotify_id": "6R1sHlR5kEKNnx47v7YQYO",
+   "hdrr_url": "https://www.hdrr.info/tracks/999-3"
   },
   {
    "titol": "Peak Of Pain",
@@ -228,19 +200,6 @@
    "versio": false,
    "spotify_id": "62jizeyoMWSGIeUZjKGRl9",
    "hdrr_url": "https://www.hdrr.info/tracks/peak-of-pain"
-  },
-  {
-   "titol": "Can't Stop Me Now",
-   "artistes": [
-    "Tomsky",
-    "Roycdc"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-12",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "3heDMU8kxdO6sy76SYgoWR",
-   "hdrr_url": "https://www.hdrr.info/tracks/can-t-stop-me-now"
   },
   {
    "titol": "Miroslava V2 (Echoes of us)",
@@ -339,6 +298,30 @@
    "versio": false,
    "spotify_id": "3G9fc47fFDlzzgIugE6wj3",
    "hdrr_url": "https://www.hdrr.info/tracks/hurricane-17"
+  },
+  {
+   "titol": "Breaks The Quite",
+   "artistes": [
+    "The Elusive"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-11",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "2vbGDI2vaBsQf23ODYFI1P",
+   "hdrr_url": "https://www.hdrr.info/tracks/breaks-the-quite"
+  },
+  {
+   "titol": "The Final Hour",
+   "artistes": [
+    "Sound Driver"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-11",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "6dA3LAiAaxCgAU1eqGux4L",
+   "hdrr_url": "https://www.hdrr.info/tracks/the-final-hour-5"
   }
  ],
  "resta": [
@@ -356,19 +339,10 @@
    "punts": 18.5
   },
   {
-   "titol": "Go Get 'Em",
+   "titol": "999",
    "artistes": [
-    "Disaster",
-    "DIMMA"
-   ],
-   "genere": "Hardstyle",
-   "punts": 13.5
-  },
-  {
-   "titol": "Can't Stop Me Now",
-   "artistes": [
-    "Tomsky",
-    "Roycdc"
+    "NSIDE",
+    "Flux Overload"
    ],
    "genere": "Hardstyle",
    "punts": 0.0
@@ -408,30 +382,11 @@
    "punts": 0.0
   },
   {
-   "titol": "RAPTURE",
-   "artistes": [
-    "Chestbrah",
-    "RVNGER",
-    "ENYOS"
-   ],
-   "genere": "Hardstyle",
-   "punts": 0.0
-  },
-  {
    "titol": "Silence Feels So Loud",
    "artistes": [
     "Hardstyle Mafia"
    ],
    "genere": "Hardstyle",
-   "punts": 0.0
-  },
-  {
-   "titol": "Straight to the Jungle",
-   "artistes": [
-    "Red Hood Squad",
-    "Letch"
-   ],
-   "genere": "Rawstyle",
    "punts": 0.0
   },
   {
@@ -453,8 +408,8 @@
  ],
  "estadistiques": {
   "llegits": 40,
-  "del_dia": 15,
-  "despres_filtre": 15,
+  "del_dia": 12,
+  "despres_filtre": 12,
   "artistes_top100": 128,
   "temes_chart_propi": 15
  },
