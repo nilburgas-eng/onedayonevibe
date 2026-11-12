@@ -2855,6 +2855,18 @@
    "executat": "2026-11-11T19:34:11+00:00",
    "afegits": [],
    "eliminats": 0
+  },
+  {
+   "data": "2026-11-12",
+   "executat": "2026-11-12T13:03:19+00:00",
+   "afegits": [
+    {
+     "titol": "A Hero Comes Home",
+     "spotify_id": "7yt6KikgXAjWTK9evgRdfv",
+     "manual": true
+    }
+   ],
+   "eliminats": 0
   }
  ]
 }
