@@ -1,6 +1,6 @@
 {
  "data": "2026-11-13",
- "generat": "2026-11-13T12:51:45+00:00",
+ "generat": "2026-11-13T14:41:14+00:00",
  "font": "hdrr.info",
  "candidats": [
   {
@@ -27,6 +27,27 @@
    "portada": "https://www.hdrr.info/media/img/covers/480/colin-hennerz-microrave-cover-art-01e060a2.webp"
   },
   {
+   "titol": "Kick Obsession",
+   "artistes": [
+    "Yoshiko",
+    "The Straikerz"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": 43.0,
+   "motius": [
+    "The Straikerz: #15 al Top 100 de HDRR (+43.0)"
+   ],
+   "versio": false,
+   "comodi": false,
+   "hdrr_url": "https://www.hdrr.info/tracks/kick-obsession",
+   "spotify_id": "1bxa5lPwLwrzuI6h5StLuC",
+   "spotify_url": "https://open.spotify.com/track/1bxa5lPwLwrzuI6h5StLuC",
+   "popularitat_hdrr": 0,
+   "isrc": "BEB682601010",
+   "portada": "https://www.hdrr.info/media/img/covers/480/yoshiko-kick-obsession-cover-art-915b7050.webp"
+  },
+  {
    "titol": "FCK CRITICS",
    "artistes": [
     "Coone",
@@ -48,31 +69,9 @@
    "portada": "https://www.hdrr.info/media/img/covers/480/coone-fck-critics-cover-art-36ed5197.webp"
   },
   {
-   "titol": "Against The World",
+   "titol": "Through The Abyss",
    "artistes": [
-    "Adaro",
-    "Rejecta",
-    "Drean"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-13",
-   "punts": 40.0,
-   "motius": [
-    "Rejecta: #21 al Top 100 de HDRR (+40.0)"
-   ],
-   "versio": false,
-   "comodi": false,
-   "hdrr_url": "https://www.hdrr.info/tracks/against-the-world",
-   "spotify_id": "4MY1kKNnQoO4eACGr0VLFf",
-   "spotify_url": "https://open.spotify.com/track/4MY1kKNnQoO4eACGr0VLFf",
-   "popularitat_hdrr": 0,
-   "isrc": "NLH2L2600396",
-   "portada": "https://www.hdrr.info/media/img/covers/480/adaro-against-the-world-cover-art-937200bb.webp"
-  },
-  {
-   "titol": "Haters Motivation",
-   "artistes": [
-    "CategorieN"
+    "Frizzyboyz"
    ],
    "genere": "Hardstyle",
    "data": "2026-11-13",
@@ -80,12 +79,12 @@
    "motius": [],
    "versio": false,
    "comodi": true,
-   "hdrr_url": "https://www.hdrr.info/tracks/haters-motivation",
-   "spotify_id": "7BmZhJh2VNuXRp4ASqAtfe",
-   "spotify_url": "https://open.spotify.com/track/7BmZhJh2VNuXRp4ASqAtfe",
+   "hdrr_url": "https://www.hdrr.info/tracks/through-the-abyss",
+   "spotify_id": "2rGIEm15MkNsES5eyBYoAC",
+   "spotify_url": "https://open.spotify.com/track/2rGIEm15MkNsES5eyBYoAC",
    "popularitat_hdrr": 0,
-   "isrc": "GBLPF2630963",
-   "portada": "https://www.hdrr.info/media/img/covers/480/categorien-haters-motivation-cover-art-4cce2959.webp"
+   "isrc": "USA2P2681025",
+   "portada": "https://www.hdrr.info/media/img/covers/480/frizzyboyz-through-the-abyss-cover-art-49364bd6.webp"
   }
  ],
  "tots": [
@@ -103,6 +102,19 @@
    "versio": false,
    "spotify_id": "3DBMKU8IcbBnKxaps92fwg",
    "hdrr_url": "https://www.hdrr.info/tracks/microrave"
+  },
+  {
+   "titol": "Kick Obsession",
+   "artistes": [
+    "Yoshiko",
+    "The Straikerz"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": 43.0,
+   "versio": false,
+   "spotify_id": "1bxa5lPwLwrzuI6h5StLuC",
+   "hdrr_url": "https://www.hdrr.info/tracks/kick-obsession"
   },
   {
    "titol": "FCK CRITICS",
@@ -931,6 +943,16 @@
  ],
  "resta": [
   {
+   "titol": "Against The World",
+   "artistes": [
+    "Adaro",
+    "Rejecta",
+    "Drean"
+   ],
+   "genere": "Hardstyle",
+   "punts": 40.0
+  },
+  {
    "titol": "Forever Gunz - 15 Years OST",
    "artistes": [
     "Gunz For Hire"
@@ -1344,12 +1366,21 @@
    ],
    "genere": "Hardstyle",
    "punts": -20.0
+  },
+  {
+   "titol": "Zet Die Tap Maar Open (Hak Op De Tak Remix)",
+   "artistes": [
+    "Hak op de Tak",
+    "Slag & Stoot"
+   ],
+   "genere": "Hardstyle",
+   "punts": -20.0
   }
  ],
  "estadistiques": {
   "llegits": 100,
   "del_dia": 55,
-  "despres_filtre": 51,
+  "despres_filtre": 53,
   "artistes_top100": 133,
   "temes_chart_propi": 15
  },

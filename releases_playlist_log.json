@@ -2934,6 +2934,55 @@
     }
    ],
    "eliminats": 0
+  },
+  {
+   "data": "2026-11-13",
+   "executat": "2026-11-13T14:41:44+00:00",
+   "afegits": [
+    {
+     "titol": "MICRORAVE",
+     "artistes": [
+      "Colin Hennerz",
+      "MJU",
+      "PEYGAN",
+      "Ph4ntam"
+     ],
+     "spotify_id": "3DBMKU8IcbBnKxaps92fwg",
+     "data": "2026-11-13",
+     "punts": 44.0
+    },
+    {
+     "titol": "FCK CRITICS",
+     "artistes": [
+      "Coone",
+      "Warface"
+     ],
+     "spotify_id": "3PR6RhAYORq1c7GdQVRgq5",
+     "data": "2026-11-13",
+     "punts": 41.0
+    },
+    {
+     "titol": "Against The World",
+     "artistes": [
+      "Adaro",
+      "Rejecta",
+      "Drean"
+     ],
+     "spotify_id": "4MY1kKNnQoO4eACGr0VLFf",
+     "data": "2026-11-13",
+     "punts": 40.0
+    },
+    {
+     "titol": "Forever Gunz - 15 Years OST",
+     "artistes": [
+      "Gunz For Hire"
+     ],
+     "spotify_id": "6y5sPKYT2xlrnICiv9K27T",
+     "data": "2026-11-13",
+     "punts": 39.5
+    }
+   ],
+   "eliminats": 0
   }
  ]
 }
