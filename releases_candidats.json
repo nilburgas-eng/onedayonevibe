@@ -1,89 +1,768 @@
 {
- "data": "2026-11-12",
- "generat": "2026-11-12T19:52:12+00:00",
+ "data": "2026-11-13",
+ "generat": "2026-11-13T12:51:45+00:00",
  "font": "hdrr.info",
  "candidats": [
   {
-   "titol": "A Hero Comes Home",
+   "titol": "MICRORAVE",
    "artistes": [
-    "Hard Driver",
-    "Max Enforcer"
+    "Colin Hennerz",
+    "MJU",
+    "PEYGAN",
+    "Ph4ntam"
    ],
    "genere": "Hardstyle",
-   "data": "2026-11-12",
-   "punts": 37.5,
+   "data": "2026-11-13",
+   "punts": 44.0,
    "motius": [
-    "Hard Driver: #26 al Top 100 de HDRR (+37.5)"
+    "Colin Hennerz: #13 al Top 100 de HDRR (+44.0)"
    ],
    "versio": false,
    "comodi": false,
-   "hdrr_url": "https://www.hdrr.info/tracks/a-hero-comes-home",
-   "spotify_id": "7yt6KikgXAjWTK9evgRdfv",
-   "spotify_url": "https://open.spotify.com/track/7yt6KikgXAjWTK9evgRdfv",
+   "hdrr_url": "https://www.hdrr.info/tracks/microrave",
+   "spotify_id": "3DBMKU8IcbBnKxaps92fwg",
+   "spotify_url": "https://open.spotify.com/track/3DBMKU8IcbBnKxaps92fwg",
    "popularitat_hdrr": 0,
-   "isrc": "BEB682601053",
-   "portada": "https://www.hdrr.info/media/img/covers/480/hard-driver-a-hero-comes-home-cover-art-8c887913.webp"
+   "isrc": "QTA872696078",
+   "portada": "https://www.hdrr.info/media/img/covers/480/colin-hennerz-microrave-cover-art-01e060a2.webp"
   },
   {
-   "titol": "Fire In My Veins",
+   "titol": "FCK CRITICS",
    "artistes": [
-    "Anderex"
-   ],
-   "genere": "Rawstyle",
-   "data": "2026-11-12",
-   "punts": 35.0,
-   "motius": [
-    "Anderex: #31 al Top 100 de HDRR (+35.0)"
-   ],
-   "versio": false,
-   "comodi": false,
-   "hdrr_url": "https://www.hdrr.info/tracks/fire-in-my-veins-2",
-   "spotify_id": "11OJy48Iy1LhoKBdfz2HXX",
-   "spotify_url": "https://open.spotify.com/track/11OJy48Iy1LhoKBdfz2HXX",
-   "popularitat_hdrr": 0,
-   "isrc": "GBLV62618331",
-   "portada": "https://www.hdrr.info/media/img/covers/480/anderex-fire-in-my-veins-cover-art-2125b0b1.webp"
-  },
-  {
-   "titol": "The Rebellion",
-   "artistes": [
-    "Anderex"
-   ],
-   "genere": "Rawstyle",
-   "data": "2026-11-12",
-   "punts": 35.0,
-   "motius": [
-    "Anderex: #31 al Top 100 de HDRR (+35.0)"
-   ],
-   "versio": false,
-   "comodi": false,
-   "hdrr_url": "https://www.hdrr.info/tracks/the-rebellion-2",
-   "spotify_id": "69XbadzYvzsfmDN33AGcCq",
-   "spotify_url": "https://open.spotify.com/track/69XbadzYvzsfmDN33AGcCq",
-   "popularitat_hdrr": 0,
-   "isrc": "GBLV62618332",
-   "portada": "https://www.hdrr.info/media/img/covers/480/anderex-the-rebellion-cover-art-2125b0b1.webp"
-  },
-  {
-   "titol": "Magazines",
-   "artistes": [
-    "Hard Destiny"
+    "Coone",
+    "Warface"
    ],
    "genere": "Hardstyle",
-   "data": "2026-11-12",
+   "data": "2026-11-13",
+   "punts": 41.0,
+   "motius": [
+    "Coone: #19 al Top 100 de HDRR (+41.0)"
+   ],
+   "versio": false,
+   "comodi": false,
+   "hdrr_url": "https://www.hdrr.info/tracks/fck-critics",
+   "spotify_id": "3PR6RhAYORq1c7GdQVRgq5",
+   "spotify_url": "https://open.spotify.com/track/3PR6RhAYORq1c7GdQVRgq5",
+   "popularitat_hdrr": 0,
+   "isrc": "DE1WF2600010",
+   "portada": "https://www.hdrr.info/media/img/covers/480/coone-fck-critics-cover-art-36ed5197.webp"
+  },
+  {
+   "titol": "Against The World",
+   "artistes": [
+    "Adaro",
+    "Rejecta",
+    "Drean"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": 40.0,
+   "motius": [
+    "Rejecta: #21 al Top 100 de HDRR (+40.0)"
+   ],
+   "versio": false,
+   "comodi": false,
+   "hdrr_url": "https://www.hdrr.info/tracks/against-the-world",
+   "spotify_id": "4MY1kKNnQoO4eACGr0VLFf",
+   "spotify_url": "https://open.spotify.com/track/4MY1kKNnQoO4eACGr0VLFf",
+   "popularitat_hdrr": 0,
+   "isrc": "NLH2L2600396",
+   "portada": "https://www.hdrr.info/media/img/covers/480/adaro-against-the-world-cover-art-937200bb.webp"
+  },
+  {
+   "titol": "Haters Motivation",
+   "artistes": [
+    "CategorieN"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
    "punts": 0.0,
    "motius": [],
    "versio": false,
    "comodi": true,
-   "hdrr_url": "https://www.hdrr.info/tracks/magazines",
-   "spotify_id": "79TwINBF1jZJG4lxZeO2mH",
-   "spotify_url": "https://open.spotify.com/track/79TwINBF1jZJG4lxZeO2mH",
+   "hdrr_url": "https://www.hdrr.info/tracks/haters-motivation",
+   "spotify_id": "7BmZhJh2VNuXRp4ASqAtfe",
+   "spotify_url": "https://open.spotify.com/track/7BmZhJh2VNuXRp4ASqAtfe",
    "popularitat_hdrr": 0,
-   "isrc": "NLG3W2600166",
-   "portada": "https://www.hdrr.info/media/img/covers/480/hard-destiny-magazines-cover-art-60567fe2.webp"
+   "isrc": "GBLPF2630963",
+   "portada": "https://www.hdrr.info/media/img/covers/480/categorien-haters-motivation-cover-art-4cce2959.webp"
   }
  ],
  "tots": [
+  {
+   "titol": "MICRORAVE",
+   "artistes": [
+    "Colin Hennerz",
+    "MJU",
+    "PEYGAN",
+    "Ph4ntam"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": 44.0,
+   "versio": false,
+   "spotify_id": "3DBMKU8IcbBnKxaps92fwg",
+   "hdrr_url": "https://www.hdrr.info/tracks/microrave"
+  },
+  {
+   "titol": "FCK CRITICS",
+   "artistes": [
+    "Coone",
+    "Warface"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": 41.0,
+   "versio": false,
+   "spotify_id": "3PR6RhAYORq1c7GdQVRgq5",
+   "hdrr_url": "https://www.hdrr.info/tracks/fck-critics"
+  },
+  {
+   "titol": "Against The World",
+   "artistes": [
+    "Adaro",
+    "Rejecta",
+    "Drean"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": 40.0,
+   "versio": false,
+   "spotify_id": "4MY1kKNnQoO4eACGr0VLFf",
+   "hdrr_url": "https://www.hdrr.info/tracks/against-the-world"
+  },
+  {
+   "titol": "Forever Gunz - 15 Years OST",
+   "artistes": [
+    "Gunz For Hire"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": 39.5,
+   "versio": false,
+   "spotify_id": "6y5sPKYT2xlrnICiv9K27T",
+   "hdrr_url": "https://www.hdrr.info/tracks/forever-gunz-15-years-ost"
+  },
+  {
+   "titol": "Tear Shit Up",
+   "artistes": [
+    "Radical Redemption",
+    "Digital Punk"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-13",
+   "punts": 35.0,
+   "versio": false,
+   "spotify_id": "1CJ0zf5lekLZh4n198WqdJ",
+   "hdrr_url": "https://www.hdrr.info/tracks/tear-shit-up"
+  },
+  {
+   "titol": "Brutal 13.0",
+   "artistes": [
+    "Radical Redemption"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-13",
+   "punts": 35.0,
+   "versio": false,
+   "spotify_id": "0rvMz8uazYw3DePHtrXBPF",
+   "hdrr_url": "https://www.hdrr.info/tracks/brutal-13-0"
+  },
+  {
+   "titol": "LIKE THAT",
+   "artistes": [
+    "The Purge",
+    "GLDY LX"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-13",
+   "punts": 34.5,
+   "versio": false,
+   "spotify_id": "1S3jwKMq8dax7xqgLNr6rA",
+   "hdrr_url": "https://www.hdrr.info/tracks/like-that-21"
+  },
+  {
+   "titol": "Into The Fire",
+   "artistes": [
+    "Digital Punk",
+    "Nolz"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": 33.0,
+   "versio": false,
+   "spotify_id": "7Hbelzc8cYXAa4r5XGvMKT",
+   "hdrr_url": "https://www.hdrr.info/tracks/into-the-fire-5"
+  },
+  {
+   "titol": "Spacemind",
+   "artistes": [
+    "Chain Reaction",
+    "Luna"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": 33.0,
+   "versio": false,
+   "spotify_id": "2UoLzuSyp9L0gG95RdgdlT",
+   "hdrr_url": "https://www.hdrr.info/tracks/spacemind"
+  },
+  {
+   "titol": "I Follow Rivers",
+   "artistes": [
+    "DJ Gollum",
+    "Aftershock",
+    "Ephoric"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-13",
+   "punts": 32.0,
+   "versio": false,
+   "spotify_id": "6NO7VQMib90gaVZ7DAbVA3",
+   "hdrr_url": "https://www.hdrr.info/tracks/i-follow-rivers-3"
+  },
+  {
+   "titol": "Blinding Lights",
+   "artistes": [
+    "Unresolved",
+    "Refold"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-13",
+   "punts": 32.0,
+   "versio": false,
+   "spotify_id": "1t3mYXwkwewpaQDUAYT8xU",
+   "hdrr_url": "https://www.hdrr.info/tracks/blinding-lights-3"
+  },
+  {
+   "titol": "Escape",
+   "artistes": [
+    "LNY TNZ",
+    "Lady Faith"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": 27.5,
+   "versio": false,
+   "spotify_id": "2lVFrYaqcu7WD8LAAVndC4",
+   "hdrr_url": "https://www.hdrr.info/tracks/escape-44"
+  },
+  {
+   "titol": "Nightmare",
+   "artistes": [
+    "Regain",
+    "Nightcraft",
+    "Forsaken Two"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": 24.5,
+   "versio": false,
+   "spotify_id": "2iiaRStxHhz5H7ySkYBxjw",
+   "hdrr_url": "https://www.hdrr.info/tracks/nightmare-52"
+  },
+  {
+   "titol": "I Feel Love",
+   "artistes": [
+    "Dr Rude",
+    "Crude Intentions"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-13",
+   "punts": 11.5,
+   "versio": false,
+   "spotify_id": "3LZbPm3aBBJzH5xVacs4lo",
+   "hdrr_url": "https://www.hdrr.info/tracks/i-feel-love"
+  },
+  {
+   "titol": "Freed From Desire - Hardstyle",
+   "artistes": [
+    "Wild Angel"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": 7.5,
+   "versio": false,
+   "spotify_id": "7oIqkS1ZaQp2AZvHfYXiby",
+   "hdrr_url": "https://www.hdrr.info/tracks/freed-from-desire-hardstyle"
+  },
+  {
+   "titol": "Not Alone",
+   "artistes": [
+    "Kristian Llov",
+    "CODA"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "4W1obL0DV5BPimNOBmaHWM",
+   "hdrr_url": "https://www.hdrr.info/tracks/not-alone-8"
+  },
+  {
+   "titol": "Intro",
+   "artistes": [
+    "Devin Wild"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "5zc9OlS7uyKL7Kd8F73IeZ",
+   "hdrr_url": "https://www.hdrr.info/tracks/intro-92"
+  },
+  {
+   "titol": "Everything Is Written (Outro)",
+   "artistes": [
+    "Devin Wild"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "2VuPbrUpSSA3Wvxm3mkjKN",
+   "hdrr_url": "https://www.hdrr.info/tracks/everything-is-written-outro"
+  },
+  {
+   "titol": "Crunchy Space Station",
+   "artistes": [
+    "Devin Wild"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "3szzviE2UDutKDd1vfE64x",
+   "hdrr_url": "https://www.hdrr.info/tracks/crunchy-space-station"
+  },
+  {
+   "titol": "Carnivore",
+   "artistes": [
+    "Devin Wild"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "5m5ns3CFbCiP2kdUuNEt1B",
+   "hdrr_url": "https://www.hdrr.info/tracks/carnivore"
+  },
+  {
+   "titol": "This Is the Future - NFS Anthem 2026",
+   "artistes": [
+    "Bumloco",
+    "Tigaiko",
+    "MARE"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "6yvcvj4AfGp9V1uX4fyBBS",
+   "hdrr_url": "https://www.hdrr.info/tracks/this-is-the-future-nfs-anthem-2026"
+  },
+  {
+   "titol": "HIDE N SEEK",
+   "artistes": [
+    "Radera"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-13",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "53Rde9EzD5PJ5CX0qcrySe",
+   "hdrr_url": "https://www.hdrr.info/tracks/hide-n-seek-2"
+  },
+  {
+   "titol": "Dynamite",
+   "artistes": [
+    "Dirty Workz",
+    "Inner Shadows"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "6wwPJvaUuOmb2MfQV3P39n",
+   "hdrr_url": "https://www.hdrr.info/tracks/dynamite-17"
+  },
+  {
+   "titol": "Struggle for Existence",
+   "artistes": [
+    "Neolux"
+   ],
+   "genere": "Euphoric Hardstyle",
+   "data": "2026-11-13",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "16JirfeLKxspXqfFOcAGzX",
+   "hdrr_url": "https://www.hdrr.info/tracks/struggle-for-existence"
+  },
+  {
+   "titol": "Ring My Bell",
+   "artistes": [
+    "Polycarpus"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "2st1qW5qSaRWszqBHmTxVb",
+   "hdrr_url": "https://www.hdrr.info/tracks/ring-my-bell"
+  },
+  {
+   "titol": "Porque Te Vas",
+   "artistes": [
+    "SofÃ­a Cristo",
+    "Kelly B"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "3D5OotzcVScP4E35fad5pS",
+   "hdrr_url": "https://www.hdrr.info/tracks/porque-te-vas"
+  },
+  {
+   "titol": "OCEAN",
+   "artistes": [
+    "ERABREAK"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "4NRpoJEp0xNZ8sFQ2Uy7XH",
+   "hdrr_url": "https://www.hdrr.info/tracks/ocean-15"
+  },
+  {
+   "titol": "Nora's Song",
+   "artistes": [
+    "Envine"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-13",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "78UPygSWR1HMbNaK3w9WVC",
+   "hdrr_url": "https://www.hdrr.info/tracks/nora-s-song"
+  },
+  {
+   "titol": "MAGNIFICENT FCK UP",
+   "artistes": [
+    "Sanctuary"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "4UoXLghvg40glQJkYJkfRU",
+   "hdrr_url": "https://www.hdrr.info/tracks/magnificent-fck-up"
+  },
+  {
+   "titol": "Eres un SueÃ±o",
+   "artistes": [
+    "JOKA",
+    "AKOJ",
+    "X-Hard",
+    "Werick"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "1Dn4m10kV4wNoWTF0X19eg",
+   "hdrr_url": "https://www.hdrr.info/tracks/eres-un-sueno"
+  },
+  {
+   "titol": "False Dawn",
+   "artistes": [
+    "RiraN",
+    "AZK"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "1yA5jTCXV8MDXlYb38jPoZ",
+   "hdrr_url": "https://www.hdrr.info/tracks/false-dawn"
+  },
+  {
+   "titol": "HYPERSONiC",
+   "artistes": [
+    "Sonicz",
+    "LUCiD"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "4GzQNr1OcNC0wM3rMBol48",
+   "hdrr_url": "https://www.hdrr.info/tracks/hypersonic-5"
+  },
+  {
+   "titol": "Flying So High",
+   "artistes": [
+    "Bass Shaker"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "18ImKTqaGgBwXAFdtquVoE",
+   "hdrr_url": "https://www.hdrr.info/tracks/flying-so-high-2"
+  },
+  {
+   "titol": "Eternity",
+   "artistes": [
+    "KidEast"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "65dFEt4G9rDvueH3pVkEsg",
+   "hdrr_url": "https://www.hdrr.info/tracks/eternity-43"
+  },
+  {
+   "titol": "Das Schwein",
+   "artistes": [
+    "Asow"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "10OQexlV04hRAoT5ggTb36",
+   "hdrr_url": "https://www.hdrr.info/tracks/das-schwein"
+  },
+  {
+   "titol": "Crazy MF",
+   "artistes": [
+    "Simox"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "4erDzQ9ZIUrqHR4ELtq9dz",
+   "hdrr_url": "https://www.hdrr.info/tracks/crazy-mf"
+  },
+  {
+   "titol": "HiT THAT",
+   "artistes": [
+    "Fugitive"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-13",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "1a851uH7QCLNmCPPKfR4Mb",
+   "hdrr_url": "https://www.hdrr.info/tracks/hit-that-3"
+  },
+  {
+   "titol": "Through The Abyss",
+   "artistes": [
+    "Frizzyboyz"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "2rGIEm15MkNsES5eyBYoAC",
+   "hdrr_url": "https://www.hdrr.info/tracks/through-the-abyss"
+  },
+  {
+   "titol": "Override The Control",
+   "artistes": [
+    "Frizzyboyz"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "0LjGQV7gDFgaTahjID8vMh",
+   "hdrr_url": "https://www.hdrr.info/tracks/override-the-control"
+  },
+  {
+   "titol": "Dominate The Night",
+   "artistes": [
+    "Frizzyboyz"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "6q7Xyi66Dzx5BGUwkS9IJ1",
+   "hdrr_url": "https://www.hdrr.info/tracks/dominate-the-night"
+  },
+  {
+   "titol": "Break The Chains",
+   "artistes": [
+    "Frizzyboyz"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "1fFyAw0WOopeVhezOji2oc",
+   "hdrr_url": "https://www.hdrr.info/tracks/break-the-chains-8"
+  },
+  {
+   "titol": "Not the Same",
+   "artistes": [
+    "Wildness Project"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "7yuhZ4EbbMGA8v2JXpW7FU",
+   "hdrr_url": "https://www.hdrr.info/tracks/not-the-same-4"
+  },
+  {
+   "titol": "Haters Motivation",
+   "artistes": [
+    "CategorieN"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "7BmZhJh2VNuXRp4ASqAtfe",
+   "hdrr_url": "https://www.hdrr.info/tracks/haters-motivation"
+  },
+  {
+   "titol": "Halo",
+   "artistes": [
+    "Lunarize",
+    "Valyant"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "133myDNXCWSERzhh6ktrGM",
+   "hdrr_url": "https://www.hdrr.info/tracks/halo-8"
+  },
+  {
+   "titol": "Bacardi",
+   "artistes": [
+    "PRYME",
+    "2Wait",
+    "Der Reppmann",
+    "Mic Check Germany",
+    "HighHeat"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "3nCwscISOrkXdhs3To5yzF",
+   "hdrr_url": "https://www.hdrr.info/tracks/bacardi"
+  },
+  {
+   "titol": "Set Me Free",
+   "artistes": [
+    "E-DAX"
+   ],
+   "genere": "Rawphoric Hardstyle",
+   "data": "2026-11-13",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "2QIo9g7R45Do7sawDJcnVd",
+   "hdrr_url": "https://www.hdrr.info/tracks/set-me-free-35"
+  },
+  {
+   "titol": "Movin'",
+   "artistes": [
+    "Stroxic",
+    "Xipher"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "5Vq72cZjjtjLOkYIi3aZkA",
+   "hdrr_url": "https://www.hdrr.info/tracks/movin-4"
+  },
+  {
+   "titol": "Zet Die Tap Maar Open (Hak Op De Tak Remix)",
+   "artistes": [
+    "Hak op de Tak",
+    "Slag & Stoot"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": -20.0,
+   "versio": true,
+   "spotify_id": "6vTv23c5Wveky0tblqGzES",
+   "hdrr_url": "https://www.hdrr.info/tracks/zet-die-tap-maar-open-hak-op-de-tak-remix"
+  },
+  {
+   "titol": "Toxic - Titan Remix",
+   "artistes": [
+    "Digital Punk",
+    "Titan",
+    "Sabacca"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": -20.0,
+   "versio": true,
+   "spotify_id": "5g9VdfHsKi74svs74sF3g2",
+   "hdrr_url": "https://www.hdrr.info/tracks/toxic-titan-remix"
+  },
+  {
+   "titol": "Rise Again - Radio Mix",
+   "artistes": [
+    "B-Stork"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": -20.0,
+   "versio": true,
+   "spotify_id": "5NoLoErwZcq5fTF0nG3tbU",
+   "hdrr_url": "https://www.hdrr.info/tracks/rise-again-radio-mix"
+  },
+  {
+   "titol": "Bad (Bed) Girl - Hard Remix",
+   "artistes": [
+    "Air Teo",
+    "DJ Symoz",
+    "Matteo Mazzia"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": -20.0,
+   "versio": true,
+   "spotify_id": "18l8BjW2Zc8DvNAT1Xfp4N",
+   "hdrr_url": "https://www.hdrr.info/tracks/bad-bed-girl-hard-remix"
+  },
+  {
+   "titol": "Echo - Extended Mix",
+   "artistes": [
+    "Interfearence"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": -20.0,
+   "versio": true,
+   "spotify_id": "3fYcMhDKAlRzEQ5o0wasP1",
+   "hdrr_url": "https://www.hdrr.info/tracks/echo-extended-mix"
+  },
+  {
+   "titol": "Cyborg - Extended Mix",
+   "artistes": [
+    "Romexx"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-13",
+   "punts": -20.0,
+   "versio": true,
+   "spotify_id": "0gv5vWDok2nY5v32YgOnS4",
+   "hdrr_url": "https://www.hdrr.info/tracks/cyborg-extended-mix"
+  },
   {
    "titol": "A Hero Comes Home",
    "artistes": [
@@ -92,7 +771,7 @@
    ],
    "genere": "Hardstyle",
    "data": "2026-11-12",
-   "punts": 37.5,
+   "punts": 37.0,
    "versio": false,
    "spotify_id": "7yt6KikgXAjWTK9evgRdfv",
    "hdrr_url": "https://www.hdrr.info/tracks/a-hero-comes-home"
@@ -133,7 +812,7 @@
    ],
    "genere": "Hardstyle",
    "data": "2026-11-12",
-   "punts": 18.5,
+   "punts": 20.0,
    "versio": false,
    "spotify_id": "4uRT4x3ybVqcrwTqx0ISVz",
    "hdrr_url": "https://www.hdrr.info/tracks/euphoria-42"
@@ -226,6 +905,18 @@
    "hdrr_url": "https://www.hdrr.info/tracks/silence-feels-so-loud"
   },
   {
+   "titol": "MONTAGEM SEXTA - Slowed",
+   "artistes": [
+    "The Officerz"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-12",
+   "punts": -20.0,
+   "versio": true,
+   "spotify_id": "2xCRKr0ARNrNnNKKGOQulU",
+   "hdrr_url": "https://www.hdrr.info/tracks/montagem-sexta-slowed"
+  },
+  {
    "titol": "Devotion - Extended mix",
    "artistes": [
     "MICHALEK"
@@ -236,181 +927,430 @@
    "versio": true,
    "spotify_id": "467pSHmOjEZ7IMwVZ6tNw5",
    "hdrr_url": "https://www.hdrr.info/tracks/devotion-extended-mix"
-  },
-  {
-   "titol": "Down & Dirty",
-   "artistes": [
-    "Chapter V",
-    "Infliction"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-11",
-   "punts": 1.5,
-   "versio": false,
-   "spotify_id": "4KLHxNWKTQfvqXaVAlr4WO",
-   "hdrr_url": "https://www.hdrr.info/tracks/down-dirty"
-  },
-  {
-   "titol": "The Power Is Ours",
-   "artistes": [
-    "Toneshifterz"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-11",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "63KDXpzV56UOo3Vumj8xq7",
-   "hdrr_url": "https://www.hdrr.info/tracks/the-power-is-ours"
-  },
-  {
-   "titol": "Il Changeait La Vie",
-   "artistes": [
-    "Stan Lord",
-    "Kokwak"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-11",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "7yVpn9HwI8Ka3tQ6xNQDRt",
-   "hdrr_url": "https://www.hdrr.info/tracks/il-changeait-la-vie"
-  },
-  {
-   "titol": "Dominate",
-   "artistes": [
-    "Oxya"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-11",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "0hGl8axUlRV0BTS2RWoMxQ",
-   "hdrr_url": "https://www.hdrr.info/tracks/dominate-16"
-  },
-  {
-   "titol": "Hurricane",
-   "artistes": [
-    "Guardelion"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-11",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "3G9fc47fFDlzzgIugE6wj3",
-   "hdrr_url": "https://www.hdrr.info/tracks/hurricane-17"
-  },
-  {
-   "titol": "Breaks The Quite",
-   "artistes": [
-    "The Elusive"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-11",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "2vbGDI2vaBsQf23ODYFI1P",
-   "hdrr_url": "https://www.hdrr.info/tracks/breaks-the-quite"
-  },
-  {
-   "titol": "The Final Hour",
-   "artistes": [
-    "Sound Driver"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-11",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "6dA3LAiAaxCgAU1eqGux4L",
-   "hdrr_url": "https://www.hdrr.info/tracks/the-final-hour-5"
   }
  ],
  "resta": [
   {
-   "titol": "Euphoria",
+   "titol": "Forever Gunz - 15 Years OST",
    "artistes": [
-    "Vindicate",
-    "The Unknown",
-    "Demoxx",
-    "GOLDSTRIKE",
-    "RADYX",
-    "Aerobey"
+    "Gunz For Hire"
    ],
    "genere": "Hardstyle",
-   "punts": 18.5
+   "punts": 39.5
   },
   {
-   "titol": "999",
+   "titol": "Brutal 13.0",
    "artistes": [
-    "NSIDE",
-    "Flux Overload"
+    "Radical Redemption"
+   ],
+   "genere": "Rawstyle",
+   "punts": 35.0
+  },
+  {
+   "titol": "Tear Shit Up",
+   "artistes": [
+    "Radical Redemption",
+    "Digital Punk"
+   ],
+   "genere": "Rawstyle",
+   "punts": 35.0
+  },
+  {
+   "titol": "LIKE THAT",
+   "artistes": [
+    "The Purge",
+    "GLDY LX"
+   ],
+   "genere": "Rawstyle",
+   "punts": 34.5
+  },
+  {
+   "titol": "Into The Fire",
+   "artistes": [
+    "Digital Punk",
+    "Nolz"
+   ],
+   "genere": "Hardstyle",
+   "punts": 33.0
+  },
+  {
+   "titol": "Spacemind",
+   "artistes": [
+    "Chain Reaction",
+    "Luna"
+   ],
+   "genere": "Hardstyle",
+   "punts": 33.0
+  },
+  {
+   "titol": "Blinding Lights",
+   "artistes": [
+    "Unresolved",
+    "Refold"
+   ],
+   "genere": "Rawstyle",
+   "punts": 32.0
+  },
+  {
+   "titol": "I Follow Rivers",
+   "artistes": [
+    "DJ Gollum",
+    "Aftershock",
+    "Ephoric"
+   ],
+   "genere": "Rawstyle",
+   "punts": 32.0
+  },
+  {
+   "titol": "Escape",
+   "artistes": [
+    "LNY TNZ",
+    "Lady Faith"
+   ],
+   "genere": "Hardstyle",
+   "punts": 27.5
+  },
+  {
+   "titol": "Nightmare",
+   "artistes": [
+    "Regain",
+    "Nightcraft",
+    "Forsaken Two"
+   ],
+   "genere": "Hardstyle",
+   "punts": 24.5
+  },
+  {
+   "titol": "I Feel Love",
+   "artistes": [
+    "Dr Rude",
+    "Crude Intentions"
+   ],
+   "genere": "Rawstyle",
+   "punts": 11.5
+  },
+  {
+   "titol": "Freed From Desire - Hardstyle",
+   "artistes": [
+    "Wild Angel"
+   ],
+   "genere": "Hardstyle",
+   "punts": 7.5
+  },
+  {
+   "titol": "Bacardi",
+   "artistes": [
+    "PRYME",
+    "2Wait",
+    "Der Reppmann",
+    "Mic Check Germany",
+    "HighHeat"
    ],
    "genere": "Hardstyle",
    "punts": 0.0
   },
   {
-   "titol": "FAT BASS SEASON",
+   "titol": "Break The Chains",
    "artistes": [
-    "Sickmode",
-    "Krowdexx"
+    "Frizzyboyz"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Carnivore",
+   "artistes": [
+    "Devin Wild"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Crazy MF",
+   "artistes": [
+    "Simox"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Crunchy Space Station",
+   "artistes": [
+    "Devin Wild"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Das Schwein",
+   "artistes": [
+    "Asow"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Dominate The Night",
+   "artistes": [
+    "Frizzyboyz"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Dynamite",
+   "artistes": [
+    "Dirty Workz",
+    "Inner Shadows"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Eres un SueÃ±o",
+   "artistes": [
+    "JOKA",
+    "AKOJ",
+    "X-Hard",
+    "Werick"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Eternity",
+   "artistes": [
+    "KidEast"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Everything Is Written (Outro)",
+   "artistes": [
+    "Devin Wild"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "False Dawn",
+   "artistes": [
+    "RiraN",
+    "AZK"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Flying So High",
+   "artistes": [
+    "Bass Shaker"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Halo",
+   "artistes": [
+    "Lunarize",
+    "Valyant"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Haters Motivation",
+   "artistes": [
+    "CategorieN"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "HIDE N SEEK",
+   "artistes": [
+    "Radera"
    ],
    "genere": "Rawstyle",
    "punts": 0.0
   },
   {
-   "titol": "Magazines",
+   "titol": "HiT THAT",
    "artistes": [
-    "Hard Destiny"
+    "Fugitive"
+   ],
+   "genere": "Rawstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "HYPERSONiC",
+   "artistes": [
+    "Sonicz",
+    "LUCiD"
    ],
    "genere": "Hardstyle",
    "punts": 0.0
   },
   {
-   "titol": "Miroslava V2 (Echoes of us)",
+   "titol": "Intro",
    "artistes": [
-    "ColFearz"
+    "Devin Wild"
    ],
    "genere": "Hardstyle",
    "punts": 0.0
   },
   {
-   "titol": "Peak Of Pain",
+   "titol": "MAGNIFICENT FCK UP",
    "artistes": [
-    "Anamorphic",
-    "DYPH"
+    "Sanctuary"
    ],
    "genere": "Hardstyle",
    "punts": 0.0
   },
   {
-   "titol": "Silence Feels So Loud",
+   "titol": "Movin'",
    "artistes": [
-    "Hardstyle Mafia"
+    "Stroxic",
+    "Xipher"
    ],
    "genere": "Hardstyle",
    "punts": 0.0
   },
   {
-   "titol": "Ton Addiction",
+   "titol": "Nora's Song",
    "artistes": [
-    "K-Style"
+    "Envine"
+   ],
+   "genere": "Rawstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Not Alone",
+   "artistes": [
+    "Kristian Llov",
+    "CODA"
    ],
    "genere": "Hardstyle",
    "punts": 0.0
   },
   {
-   "titol": "Devotion - Extended mix",
+   "titol": "Not the Same",
    "artistes": [
-    "MICHALEK"
+    "Wildness Project"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "OCEAN",
+   "artistes": [
+    "ERABREAK"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Override The Control",
+   "artistes": [
+    "Frizzyboyz"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Porque Te Vas",
+   "artistes": [
+    "SofÃ­a Cristo",
+    "Kelly B"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Ring My Bell",
+   "artistes": [
+    "Polycarpus"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Set Me Free",
+   "artistes": [
+    "E-DAX"
+   ],
+   "genere": "Rawphoric Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Struggle for Existence",
+   "artistes": [
+    "Neolux"
+   ],
+   "genere": "Euphoric Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "This Is the Future - NFS Anthem 2026",
+   "artistes": [
+    "Bumloco",
+    "Tigaiko",
+    "MARE"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Through The Abyss",
+   "artistes": [
+    "Frizzyboyz"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Bad (Bed) Girl - Hard Remix",
+   "artistes": [
+    "Air Teo",
+    "DJ Symoz",
+    "Matteo Mazzia"
+   ],
+   "genere": "Hardstyle",
+   "punts": -20.0
+  },
+  {
+   "titol": "Cyborg - Extended Mix",
+   "artistes": [
+    "Romexx"
+   ],
+   "genere": "Hardstyle",
+   "punts": -20.0
+  },
+  {
+   "titol": "Rise Again - Radio Mix",
+   "artistes": [
+    "B-Stork"
+   ],
+   "genere": "Hardstyle",
+   "punts": -20.0
+  },
+  {
+   "titol": "Toxic - Titan Remix",
+   "artistes": [
+    "Digital Punk",
+    "Titan",
+    "Sabacca"
    ],
    "genere": "Hardstyle",
    "punts": -20.0
   }
  ],
  "estadistiques": {
-  "llegits": 40,
-  "del_dia": 12,
-  "despres_filtre": 12,
-  "artistes_top100": 128,
+  "llegits": 100,
+  "del_dia": 55,
+  "despres_filtre": 51,
+  "artistes_top100": 133,
   "temes_chart_propi": 15
  },
  "avisos": []
