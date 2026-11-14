@@ -118,7 +118,7 @@
 
         <div class="card">
             <h2>📋 Descripció + hashtags (per TikTok)</h2>
-            <textarea id="caption-box" rows="5"></textarea>
+            <textarea id="caption-box" rows="7"></textarea>
             <button class="btn btn-secondary" onclick="copiarCaption()">📋 Copiar</button>
             <p class="nota">Si canvies el títol, la playlist o el hashtag, la descripció es torna a generar. L'@ de l'artista l'afegeixes tu a TikTok.</p>
         </div>
@@ -319,7 +319,10 @@ function nomCurtPlaylist() {
 }
 function refrescarCaption() {
     const h = document.getElementById('f-hashtag').value;
-    const caption = `New banger in the ${nomCurtPlaylist()} playlist. Link in bio!\n\n#harddance #newmusic #onedayonevibe` + (h ? ` #${h}` : '');
+    const titol = document.getElementById('f-titol').value.trim();
+    const artistes = document.getElementById('f-artistes').value.trim();
+    const capcalera = [titol, artistes].filter(Boolean).join(' - ');
+    const caption = (capcalera ? capcalera + '\n\n' : '') + `New banger in the ${nomCurtPlaylist()} playlist. Link in bio!\n\n#harddance #newmusic #onedayonevibe` + (h ? ` #${h}` : '');
     document.getElementById('caption-box').value = caption;
 }
 function copiarCaption() {
