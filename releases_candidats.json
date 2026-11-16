@@ -1,6 +1,6 @@
 {
  "data": "2026-11-16",
- "generat": "2026-11-16T15:58:46+00:00",
+ "generat": "2026-11-16T21:57:39+00:00",
  "font": "hdrr.info",
  "candidats": [
   {
@@ -72,7 +72,7 @@
   "del_dia": 2,
   "despres_filtre": 2,
   "artistes_top100": 132,
-  "temes_chart_propi": 15
+  "temes_chart_propi": 13
  },
  "avisos": []
 }
