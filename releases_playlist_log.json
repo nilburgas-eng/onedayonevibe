@@ -3013,6 +3013,18 @@
    "executat": "2026-11-15T18:48:26+00:00",
    "afegits": [],
    "eliminats": 0
+  },
+  {
+   "data": "2026-11-16",
+   "executat": "2026-11-16T12:16:56+00:00",
+   "afegits": [
+    {
+     "titol": "Take You Back",
+     "spotify_id": "6kwjM4QK4ycuPznbwFpDSj",
+     "manual": true
+    }
+   ],
+   "eliminats": 0
   }
  ]
 }
