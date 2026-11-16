@@ -80,7 +80,7 @@
 
     <div id="tracks-card" class="card" style="display:none;">
         <h2>🎬 Pas 2 — Revisar i ajustar</h2>
-        <p style="font-size:12px;color:#666;margin-bottom:14px;">Es carreguen 15 temes: <b>els 10 primers surten al vídeo</b> i els de sota de la ratlla blava són suplents. Amb ⬆ ⬇ els mous d'ordre (si en puges un suplent per sobre de la ratlla, el #10 passa a suplent), o bé fes servir «Intercanviar amb…». Edita nom, artista, moment o cola temes propis amb la URL de YouTube. També pots pujar un vídeo propi directament. El botó 🎬 obre el vídeo o la cerca a YouTube.</p>
+        <p style="font-size:12px;color:#666;margin-bottom:14px;">Es carreguen fins a 25 temes: <b>els 10 primers surten al vídeo</b> i els de sota de la ratlla blava són suplents. Amb ⬆ ⬇ els mous d'ordre (si en puges un suplent per sobre de la ratlla, el #10 passa a suplent), o bé fes servir «Intercanviar amb…». Edita nom, artista, moment o cola temes propis amb la URL de YouTube. També pots pujar un vídeo propi directament. El botó 🎬 obre el vídeo o la cerca a YouTube.</p>
         <div class="opcions-chart">
             <label class="check"><input type="checkbox" id="opt-marques" checked onchange="renderTracks()" /> Mostrar NEW i fletxes ▲▼ (vs setmana anterior)</label>
             <label class="check"><input type="checkbox" id="opt-historial" checked /> Guardar aquesta setmana a l'historial</label>
@@ -332,7 +332,7 @@ function renderTracks() {
             let opts = `<option value="" id="auto-opt-${i}" ${sel('')}>Marca: automàtica (${autoTxt})</option>`;
             opts += `<option value="new" ${sel('new')}>NEW (nou al chart)</option>`;
             opts += `<option value="-" ${sel('-')}>Sense marca</option>`;
-            for (let n = 1; n <= 15; n++) opts += `<option value="${n}" ${sel(String(n))}>Abans era el #${n}</option>`;
+            for (let n = 1; n <= 25; n++) opts += `<option value="${n}" ${sel(String(n))}>Abans era el #${n}</option>`;
             prevHtml = `<div class="track-full"><select onchange="actualitzar(${i}, 'prev', this.value)">${opts}</select></div>`;
         }
         const opcionsIntercanvi = tracksActuals.map((u, j) => j === i ? '' :
