@@ -81,6 +81,78 @@
      "artista": "Radical Redemption"
     }
    ]
+  },
+  {
+   "data": "2026-11-16T19:56:47+00:00",
+   "setmana": "Week of November 16, 2026",
+   "genere": "hardstyle",
+   "tracks": [
+    {
+     "pos": 1,
+     "nom": "Que Rico",
+     "artista": "Galactixx"
+    },
+    {
+     "pos": 2,
+     "nom": "GIVE IT TO ME",
+     "artista": "Darren Styles"
+    },
+    {
+     "pos": 3,
+     "nom": "PRAISE THE BASS",
+     "artista": "Mish"
+    },
+    {
+     "pos": 4,
+     "nom": "Brutal 13.0",
+     "artista": "Radical Redemption"
+    },
+    {
+     "pos": 5,
+     "nom": "This Feeling",
+     "artista": "Da Tweekaz"
+    },
+    {
+     "pos": 6,
+     "nom": "Darkness",
+     "artista": "E-Force"
+    },
+    {
+     "pos": 7,
+     "nom": "Spark Inside",
+     "artista": "Hard Driver"
+    },
+    {
+     "pos": 8,
+     "nom": "Knockout 2026 Tool",
+     "artista": "Aversion"
+    },
+    {
+     "pos": 9,
+     "nom": "Fiction Within",
+     "artista": "Ecstatic"
+    },
+    {
+     "pos": 10,
+     "nom": "Eyes Of Death",
+     "artista": "Bmberjck"
+    },
+    {
+     "pos": 11,
+     "nom": "KICKPONG",
+     "artista": "The Saints"
+    },
+    {
+     "pos": 12,
+     "nom": "Come As One",
+     "artista": "Brennan Heart"
+    },
+    {
+     "pos": 13,
+     "nom": "In And Out of Love",
+     "artista": "Sound Rush"
+    }
+   ]
   }
  ]
 }
