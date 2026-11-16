@@ -3025,6 +3025,18 @@
     }
    ],
    "eliminats": 0
+  },
+  {
+   "data": "2026-11-16",
+   "executat": "2026-11-16T12:38:55+00:00",
+   "afegits": [
+    {
+     "titol": "Teach Me Plz",
+     "spotify_id": "3FFTe5M3vKHQBT9X5dxn6d",
+     "manual": true
+    }
+   ],
+   "eliminats": 0
   }
  ]
 }
