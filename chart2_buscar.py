@@ -2,7 +2,7 @@ import os, json, re
 import requests
 
 GENERE = os.environ.get('GENERE', 'electronica')
-TOTAL_TEMES = 15   # es carreguen 15 temes: els 10 primers (el chart) + 5 suplents per poder canviar-ne algun
+TOTAL_TEMES = 25   # es carreguen 25 temes: els 10 primers (el chart) + 15 suplents per poder canviar-ne si no hi ha videoclip
 TIDAL_PLAYLIST_ID = "d57a8f2c-4158-44b7-aa7f-4ba4314c1ba8"  # 40 Biggest EDM/DANCE Hits Weekly
 
 def get_tidal_token():
