@@ -1,12 +1,12 @@
 {
   "genere": "hardstyle",
-  "setmana_text": "WEEK OF NOVEMBER 09, 2026",
+  "setmana_text": "WEEK OF NOVEMBER 16, 2026",
   "tracks": [
     {
       "pos": 1,
-      "nom": "Que Rico",
-      "artista": "Galactixx",
-      "cover_url": "https://hardstyle.com/track_image/d5511e11-9f83-469b-a92c-34723d6eb50c/250x250/375",
+      "nom": "The Rebellion",
+      "artista": "Anderex",
+      "cover_url": "https://hardstyle.com/track_image/e544234a-0208-42b8-bdce-5c6791b19e26/250x250/335",
       "timestamp_manual": null,
       "nom_manual": null,
       "yt_url": null
@@ -22,9 +22,9 @@
     },
     {
       "pos": 3,
-      "nom": "This Feeling",
-      "artista": "Da Tweekaz",
-      "cover_url": "https://hardstyle.com/track_image/2a8ba26b-7ce3-4f50-a991-0fd707084f4c/250x250/375",
+      "nom": "Que Rico",
+      "artista": "Galactixx",
+      "cover_url": "https://hardstyle.com/track_image/d5511e11-9f83-469b-a92c-34723d6eb50c/250x250/375",
       "timestamp_manual": null,
       "nom_manual": null,
       "yt_url": null
@@ -40,60 +40,6 @@
     },
     {
       "pos": 5,
-      "nom": "In And Out of Love",
-      "artista": "Sound Rush",
-      "cover_url": "https://hardstyle.com/track_image/4bdbb5e1-d17e-454d-b1a4-f2a2fa92ba1f/250x250/375",
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 6,
-      "nom": "Eyes Of Death",
-      "artista": "Bmberjck",
-      "cover_url": "https://hardstyle.com/track_image/066d6265-6842-402c-96f7-34cf61b0113a/250x250/335",
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 7,
-      "nom": "Come As One",
-      "artista": "Brennan Heart",
-      "cover_url": "https://hardstyle.com/track_image/d5f55e04-e083-4aef-aa9e-54cfa7c4e4da/250x250/128",
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 8,
-      "nom": "Bassface",
-      "artista": "So Juice",
-      "cover_url": "https://hardstyle.com/track_image/1c92f9c5-5e3f-456c-86d4-69cd6ff68168/250x250/335",
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 9,
-      "nom": "The Dark Knight",
-      "artista": "Damaxy",
-      "cover_url": "https://hardstyle.com/track_image/691febbd-fb14-46a1-8e53-ade92b975d12/250x250/335",
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 10,
-      "nom": "Darkness",
-      "artista": "E-Force",
-      "cover_url": "https://hardstyle.com/track_image/c88f9c12-a755-4fe6-a6a9-5bd40496ce1c/250x250/375",
-      "timestamp_manual": null,
-      "nom_manual": null,
-      "yt_url": null
-    },
-    {
-      "pos": 11,
       "nom": "Scratchmasters",
       "artista": "The Smiler",
       "cover_url": "https://hardstyle.com/track_image/7c411067-052f-4967-86c4-63f05fa2fe2b/250x250/335",
@@ -102,16 +48,16 @@
       "yt_url": null
     },
     {
-      "pos": 12,
-      "nom": "Archangels",
-      "artista": "DEEZL",
-      "cover_url": "https://hardstyle.com/track_image/e28abca1-e3db-4c03-ab4b-1ceb3d9d6d93/250x250/335",
+      "pos": 6,
+      "nom": "SKULL ISLAND",
+      "artista": "Stratisphere",
+      "cover_url": "https://hardstyle.com/track_image/4d29f7f2-5b18-4769-bf89-ae948963447c/250x250/375",
       "timestamp_manual": null,
       "nom_manual": null,
       "yt_url": null
     },
     {
-      "pos": 13,
+      "pos": 7,
       "nom": "PRAISE THE BASS",
       "artista": "Mish",
       "cover_url": "https://hardstyle.com/track_image/cfb3d635-26ae-41fa-b60d-72d6ebaa0ed2/250x250/375",
@@ -120,19 +66,73 @@
       "yt_url": null
     },
     {
+      "pos": 8,
+      "nom": "This Feeling",
+      "artista": "Da Tweekaz",
+      "cover_url": "https://hardstyle.com/track_image/2a8ba26b-7ce3-4f50-a991-0fd707084f4c/250x250/375",
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 9,
+      "nom": "Darkness",
+      "artista": "E-Force",
+      "cover_url": "https://hardstyle.com/track_image/c88f9c12-a755-4fe6-a6a9-5bd40496ce1c/250x250/375",
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 10,
+      "nom": "Archangels",
+      "artista": "DEEZL",
+      "cover_url": "https://hardstyle.com/track_image/e28abca1-e3db-4c03-ab4b-1ceb3d9d6d93/250x250/335",
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 11,
+      "nom": "Fire In My Veins",
+      "artista": "Anderex",
+      "cover_url": "https://hardstyle.com/track_image/01419b6c-c909-44b1-b792-987f59f12d8e/250x250/335",
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 12,
+      "nom": "The Dark Knight",
+      "artista": "Damaxy",
+      "cover_url": "https://hardstyle.com/track_image/691febbd-fb14-46a1-8e53-ade92b975d12/250x250/335",
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
+      "pos": 13,
+      "nom": "Bassface",
+      "artista": "So Juice",
+      "cover_url": "https://hardstyle.com/track_image/1c92f9c5-5e3f-456c-86d4-69cd6ff68168/250x250/335",
+      "timestamp_manual": null,
+      "nom_manual": null,
+      "yt_url": null
+    },
+    {
       "pos": 14,
-      "nom": "My House",
-      "artista": "DJ Isaac",
-      "cover_url": "https://hardstyle.com/track_image/f6550648-44e5-4823-9088-2b204d3c035d/250x250/375",
+      "nom": "F*ck Up The Club",
+      "artista": "Detailed",
+      "cover_url": "https://hardstyle.com/track_image/93b1b59d-5919-4a24-a8a2-495f793be2a5/250x250/335",
       "timestamp_manual": null,
       "nom_manual": null,
       "yt_url": null
     },
     {
       "pos": 15,
-      "nom": "F*ck Up The Club",
-      "artista": "Detailed",
-      "cover_url": "https://hardstyle.com/track_image/93b1b59d-5919-4a24-a8a2-495f793be2a5/250x250/335",
+      "nom": "THE BE4ST",
+      "artista": "Vasto",
+      "cover_url": "https://hardstyle.com/track_image/b21f3209-9459-4593-8b37-f71473598224/250x250/335",
       "timestamp_manual": null,
       "nom_manual": null,
       "yt_url": null
