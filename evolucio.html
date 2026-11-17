@@ -13,8 +13,9 @@
     .card { background: #1a1a1a; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
     .card h2 { font-size: 14px; font-weight: 600; color: #00BFFF; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
     label { display: block; font-size: 13px; color: #999; margin-bottom: 6px; }
-    input, select { width: 100%; background: #2a2a2a; border: 1px solid #333; border-radius: 8px; padding: 12px; color: #fff; font-size: 15px; margin-bottom: 14px; outline: none; }
-    input:focus, select:focus { border-color: #00BFFF; }
+    input, select, textarea { width: 100%; background: #2a2a2a; border: 1px solid #333; border-radius: 8px; padding: 12px; color: #fff; font-size: 15px; margin-bottom: 14px; outline: none; }
+    input:focus, select:focus, textarea:focus { border-color: #00BFFF; }
+    textarea { font-family: inherit; resize: vertical; }
     .btn { width: 100%; padding: 16px; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; border: none; margin-bottom: 12px; }
     .btn:active { opacity: 0.8; }
     .btn-primary { background: #00BFFF; color: #000; }
@@ -52,8 +53,19 @@
             <option value="melodic">🎵 Melòdic (Hardstyle, Trance)</option>
             <option value="vocal">🎤 Vocal (Pop, cançons amb veu)</option>
         </select>
+        <label>🎞️ Vídeo genèric de fons (opcional — només visual)</label>
+        <input type="text" id="fons-url" placeholder="https://youtu.be/... (aftermovie, festival...)" />
+        <p style="font-size:11px;color:#666;margin-top:-10px;margin-bottom:14px;">Després, al Pas 2, marques «imatge del fons» als temes que no tinguin bon videoclip. El so sempre surt del tema real.</p>
         <button class="btn btn-primary" onclick="buscarCancons()">🔍 1. Buscar cançons</button>
         <button class="btn btn-secondary" onclick="carregarCancons()">🔄 Carregar llista</button>
+    </div>
+
+    <div class="card">
+        <h2>✍️ O bé: la teva llista (manual)</h2>
+        <label>Un tema per línia: any i nom (en qualsevol ordre). Opcional: enllaç de YouTube al final.</label>
+        <textarea id="llista-manual" rows="9" placeholder="2012 - Warriors Of Time&#10;2015 - Lose Control&#10;2018 - Sky https://youtu.be/xxxxxxxxxxx&#10;2021 - Another Track&#10;2025 - Latest Track"></textarea>
+        <button class="btn btn-primary" onclick="usarLlistaManual()">✅ Usar aquesta llista</button>
+        <p style="font-size:12px;color:#666;margin-top:-4px;">Omple també el camp Artista de dalt. Després ajustes timestamps o enllaços al Pas 2 i generes.</p>
     </div>
 
     <div id="status" class="status">
@@ -170,6 +182,49 @@ async function carregarCancons() {
     }
 }
 
+function parsejarLlistaManual(text) {
+    const res = [];
+    const dolentes = [];
+    for (let linia of text.split(/\r?\n/)) {
+        linia = linia.trim();
+        if (!linia) continue;
+        let yt = null;
+        const mu = linia.match(/https?:\/\/\S+/);
+        if (mu) { yt = mu[0]; linia = linia.replace(mu[0], '').trim(); }
+        const my = linia.match(/(?:^|[^0-9])((?:19|20)\d{2})(?![0-9])/);
+        let any = '';
+        let nom = linia;
+        if (my) {
+            any = parseInt(my[1]);
+            nom = linia.replace(my[1], ' ');
+        } else {
+            dolentes.push(linia);
+        }
+        // neteja separadors sobrants (guions, dos punts, parentesis buits, comes...) als extrems
+        nom = nom.replace(/\(\s*\)|\[\s*\]/g, ' ').replace(/^[\s\-–—:·|,.)\]]+|[\s\-–—:·|,.(\[]+$/g, '').replace(/\s{2,}/g, ' ').trim();
+        if (!nom) { dolentes.push(linia); continue; }
+        res.push({ nom, any, yt_url: yt });
+    }
+    return { res, dolentes };
+}
+
+function usarLlistaManual() {
+    const artista = document.getElementById('artista').value.trim();
+    if (!artista) { mostrarStatus('❌ Omple primer el nom de l\'artista (a dalt)', 'error'); return; }
+    const { res, dolentes } = parsejarLlistaManual(document.getElementById('llista-manual').value);
+    if (res.length < 2) { mostrarStatus('❌ Escriu almenys 2 temes (un per línia, amb el seu any)', 'error'); return; }
+    res.sort((a, b) => (a.any === '' ? 1 : 0) - (b.any === '' ? 1 : 0) || (a.any || 0) - (b.any || 0));
+    tracksActuals = res.map((t, i) => ({
+        pos: i + 1, nom: t.nom, any: t.any, cover_url: null,
+        timestamp_manual: null, nom_manual: null, yt_url: t.yt_url, visual_general: false
+    }));
+    renderTracks();
+    let msg = `✅ ${tracksActuals.length} temes carregats, ordenats per any. Revisa el Pas 2 i genera!`;
+    if (dolentes.length) msg += `<br>⚠️ Sense any (posa'l al Pas 2): ${dolentes.map(d => d.replace(/</g, '&lt;')).join(' · ')}`;
+    mostrarStatus(msg, dolentes.length ? 'info' : 'ok');
+    document.getElementById('tracks-card').scrollIntoView({ behavior: 'smooth' });
+}
+
 function renderTracks() {
     const cont = document.getElementById('tracks-list');
     cont.innerHTML = '';
@@ -194,6 +249,10 @@ function renderTracks() {
             <div class="track-full">
                 <input type="text" placeholder="URL YouTube (opcional)" value="${t.yt_url||''}" onchange="actualitzar(${i}, 'yt', this.value)" />
             </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:10px;">
+                <input type="checkbox" id="vg-${i}" style="width:auto;margin-bottom:0;" ${t.visual_general ? 'checked' : ''} onchange="actualitzar(${i}, 'visual_general', this.checked)" />
+                <label for="vg-${i}" style="margin-bottom:0;font-size:13px;color:#ccc;">Usar imatge del vídeo genèric de fons (en lloc del videoclip)</label>
+            </div>
         `;
         cont.appendChild(div);
     });
@@ -212,6 +271,7 @@ function actualitzar(i, camp, valor) {
     }
     else if (camp === 'nom') tracksActuals[i].nom_manual = valor.trim() || null;
     else if (camp === 'yt') tracksActuals[i].yt_url = valor.trim() || null;
+    else if (camp === 'visual_general') tracksActuals[i].visual_general = !!valor;
 }
 
 function eliminarTrack(i) {
@@ -226,6 +286,7 @@ function netejarTracks() {
         if (t.timestamp_manual !== null && t.timestamp_manual !== undefined) o.timestamp_manual = t.timestamp_manual;
         if (t.nom_manual) o.nom_manual = t.nom_manual;
         if (t.yt_url) o.yt_url = t.yt_url;
+        if (t.visual_general) o.visual_general = true;
         return o;
     });
 }
@@ -237,9 +298,14 @@ async function generarVideo() {
     }
     const artista = document.getElementById('artista').value.trim();
     const estil = document.getElementById('estil').value;
+    const fonsUrl = document.getElementById('fons-url').value.trim();
+    if (!fonsUrl && tracksActuals.some(t => t.visual_general)) {
+        mostrarStatus('❌ Has marcat «imatge del fons» en algun tema però no has posat el vídeo genèric de fons (a dalt)', 'error');
+        return;
+    }
     mostrarStatus('⏳ Generant vídeo...', 'info');
     const res = await dispararWorkflow('evolucio.yml', {
-        artista, estil,
+        artista, estil, fons_url: fonsUrl,
         tracks: JSON.stringify(netejarTracks())
     });
     if (res.status === 204) {
