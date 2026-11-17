@@ -3049,6 +3049,18 @@
    "executat": "2026-11-16T21:57:52+00:00",
    "afegits": [],
    "eliminats": 0
+  },
+  {
+   "data": "2026-11-17",
+   "executat": "2026-11-17T13:04:13+00:00",
+   "afegits": [
+    {
+     "titol": "I hear it when you lie",
+     "spotify_id": "3YJh8QNomzfaNPvZkoVyiy",
+     "manual": true
+    }
+   ],
+   "eliminats": 0
   }
  ]
 }
