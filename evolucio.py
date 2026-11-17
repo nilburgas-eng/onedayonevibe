@@ -1,7 +1,7 @@
 # evolucio.py - format "EVOLUTION": un tema per any de la trajectoria d'un artista, amb linia de temps.
 # Versio actualitzada: usa odov_comu.py (capcalera, portades robustes, zones segures de TikTok),
 # qualitat maxima (fins a 4K, crf 12/16, AAC 320k/256k a 48 kHz) i volum uniforme entre clips.
-import os, json, re, subprocess, base64, shutil
+import os, json, re, subprocess, base64, shutil, random
 import librosa, numpy as np
 from scipy.signal import find_peaks, butter, filtfilt
 import requests
@@ -27,6 +27,9 @@ for font_path in [FONT_BEBAS, FONT_SEMIBOLD, FONT_EXTRABOLD, FONT_MEDIUM]:
 
 ARTISTA           = os.environ['ARTISTA']
 ESTIL             = os.environ.get('ESTIL', 'energetic')
+FONS_URL          = os.environ.get('FONS_URL', '').strip()    # video generic de fons (nomes visual; el so sempre es del tema)
+MARGE_FONS        = 15.0     # no s'agafen imatges dels primers/ultims segons del video de fons
+PADDING_FONS      = 1.0
 SPOTIFY_CLIENT_ID = os.environ.get('SPOTIFY_CLIENT_ID', '')
 SPOTIFY_SECRET    = os.environ.get('SPOTIFY_CLIENT_SECRET', '')
 COMPTE            = "@onedayonevibe"
@@ -65,6 +68,35 @@ Y_OUTRO2 = 1618
 
 def get_spotify_token():
     return OC.spotify_token(SPOTIFY_CLIENT_ID, SPOTIFY_SECRET)
+
+
+def get_durada_video_remot(url):
+    try:
+        r = subprocess.run(
+            ['yt-dlp', '--dump-json', '--no-download', '--cookies', 'cookies.txt',
+             '--js-runtime', 'node', '--remote-components', 'ejs:github', url],
+            capture_output=True, text=True, timeout=60
+        )
+        if r.returncode != 0 or not r.stdout:
+            return None
+        info = json.loads(r.stdout.splitlines()[0])
+        durada = info.get('duration')
+        return float(durada) if durada else None
+    except Exception as e:
+        print(f"   ERROR consultant durada del video de fons: {e}")
+        return None
+
+
+def baixar_tros_fons(url, inici, durada_tros, output_path):
+    fi = inici + durada_tros
+    cmd = (
+        f'yt-dlp -f "bestvideo[height<=2160][vcodec!^=av01]/bestvideo[height<=1440]/best[height<=1440]/best" '
+        f'--download-sections "*{inici:.2f}-{fi:.2f}" --force-keyframes-at-cuts '
+        f'--merge-output-format mp4 --cookies cookies.txt --js-runtime node '
+        f'--remote-components ejs:github -o "{output_path}" "{url}" -q'
+    )
+    ret = os.system(cmd)
+    return ret == 0 and os.path.exists(output_path) and os.path.getsize(output_path) > 10000
 
 
 def partir_nom(nom, max_chars=22):
@@ -200,6 +232,35 @@ for i, t in enumerate(tracks):
     t['pos'] = i + 1
 ANYS = [any_a_int(t.get('any')) for t in tracks]
 
+
+def durada_del_clip(t):
+    return DURADA_CLIP + (DURADA_OUTRO if t['pos'] == len(tracks) else 0)
+
+
+# video generic de fons: a cada tema marcat se li assigna un tros diferent (repartits per tot el video, amb una mica d'atzar)
+offsets_fons = {}
+if FONS_URL and any(t.get('visual_general') for t in tracks):
+    print(f"\nVideo generic de fons (nomes visual): {FONS_URL}")
+    durada_fons_total = get_durada_video_remot(FONS_URL)
+    if durada_fons_total:
+        print(f"   Durada total: {int(durada_fons_total//60):02d}:{int(durada_fons_total%60):02d}")
+        n = len(tracks)
+        usable_inici = MARGE_FONS
+        usable_fi = max(MARGE_FONS, durada_fons_total - MARGE_FONS)
+        usable = max(0, usable_fi - usable_inici)
+        if usable <= 0:
+            usable_inici = 0
+            usable = durada_fons_total
+        bucket = usable / n
+        for i, t in enumerate(tracks):
+            dur = durada_del_clip(t)
+            marge_bucket = max(0, bucket - dur)
+            offset = usable_inici + i * bucket + random.uniform(0, marge_bucket)
+            offsets_fons[t['pos']] = max(0, min(offset, durada_fons_total - dur - 0.5))
+    else:
+        print("   AVIS: no s'ha pogut consultar la durada, es descarta el video de fons")
+        FONS_URL = ''
+
 print(f"\nTracks ({len(tracks)}):")
 for t in tracks:
     print(f"  #{t['pos']}: {t.get('any')} - {t['nom']}")
@@ -300,6 +361,20 @@ for idx, track in enumerate(tracks):
         # que el clip no es passi del final del video
         inici = max(0.0, min(inici, max(0.0, duracio_total - durada - 0.5)))
 
+    # ---- imatge del video generic de fons (si s'ha marcat per aquest tema); el so continua sent del tema ----
+    usar_fons_visual = False
+    fons_path = os.path.expanduser(f"~/fons_{pos:02d}.mp4")
+    if track.get('visual_general') and FONS_URL and pos in offsets_fons:
+        offset_fons = offsets_fons[pos]
+        print(f"   Imatge del video generic seleccionada ({int(offset_fons//60):02d}:{int(offset_fons%60):02d})")
+        ok_fons = baixar_tros_fons(FONS_URL, max(0, offset_fons - PADDING_FONS), durada + 2 * PADDING_FONS, fons_path)
+        if ok_fons:
+            usar_fons_visual = True
+        else:
+            print("   AVIS: no s'ha pogut baixar el tram generic, s'usa la imatge propia")
+    elif track.get('visual_general') and not FONS_URL:
+        print("   AVIS: has marcat imatge generica pero no hi ha video de fons; s'usa la imatge propia")
+
     output_path = f"{OUTPUT}/clip_{pos:02d}.mp4"
     nom_mostrat = OC.neteja(nom_manual if nom_manual else nom)
 
@@ -350,6 +425,12 @@ for idx, track in enumerate(tracks):
     # ---- muntatge del clip ----
     input_parts = [f'-ss {inici} -i "{video_path}"']
     seguent = 1
+    visual_idx = 0
+    if usar_fons_visual:
+        offset_dins_tros = min(PADDING_FONS, offsets_fons[pos])
+        input_parts.append(f'-ss {offset_dins_tros:.2f} -i "{fons_path}"')
+        visual_idx = seguent
+        seguent += 1
     thumb_idx = logo_idx = None
     if has_thumb:
         input_parts.append(f'-i "{thumb_path}"')
@@ -361,7 +442,7 @@ for idx, track in enumerate(tracks):
         seguent += 1
     inputs = " ".join(input_parts)
 
-    fc_parts = ["[0:v]scale=1080:1920:flags=lanczos:force_original_aspect_ratio=increase,crop=1080:1920:(iw-1080)/2:(ih-1920)/2,unsharp=5:5:0.4:5:5:0.0[bg]"]
+    fc_parts = [f"[{visual_idx}:v]scale=1080:1920:flags=lanczos:force_original_aspect_ratio=increase,crop=1080:1920:(iw-1080)/2:(ih-1920)/2,unsharp=5:5:0.4:5:5:0.0[bg]"]
     if has_thumb:
         fc_parts.append(
             f"[{thumb_idx}:v]scale={COVER_W}:{COVER_H}:flags=lanczos:force_original_aspect_ratio=decrease,"
