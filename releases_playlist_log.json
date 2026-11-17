@@ -3061,6 +3061,23 @@
     }
    ],
    "eliminats": 0
+  },
+  {
+   "data": "2026-11-17",
+   "executat": "2026-11-17T16:11:03+00:00",
+   "afegits": [
+    {
+     "titol": "R.I.P. - Geck-o Remix",
+     "artistes": [
+      "Geck-O",
+      "DJ ARNE L II"
+     ],
+     "spotify_id": "15jRHZycZe8rCheJm0dsv6",
+     "data": "2026-11-17",
+     "punts": -20.0
+    }
+   ],
+   "eliminats": 0
   }
  ]
 }
