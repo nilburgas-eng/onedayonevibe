@@ -52,6 +52,56 @@ LOGO_OPACITY = 0.85
 LOGO_MARGIN  = 30
 LOGO_ACTIU   = os.path.exists(LOGO_PATH)
 
+
+def trobar_fitxer_sense_distingir_majuscules(nom_base):
+    for f in os.listdir('.'):
+        if f.lower() == nom_base.lower():
+            return f
+    return None
+
+
+STICKER_FOLLOW_PATH = trobar_fitxer_sense_distingir_majuscules("sticker_follow.png") or "sticker_follow.png"
+STICKER_THANKS_PATH = trobar_fitxer_sense_distingir_majuscules("sticker_thanks.png") or "sticker_thanks.png"
+STICKER_ACTIU = os.path.exists(STICKER_FOLLOW_PATH) and os.path.exists(STICKER_THANKS_PATH)
+
+# Igual que Manual 5 / Top 10 Drops / Chart: logo fix a baix (sempre visible, just sobre del @compte del final)
+# i, a la meitat del video, el boto FOLLOW just sobre del logo i despres el THANKS.
+LOGO_CENTRE_W    = 120    # amplada del logo
+LOGO_CENTRE_CY   = 1488   # centre vertical del logo
+FOLLOW_W         = 437    # amplada total del sticker (el boto visible en fa ~77%)
+FOLLOW_GAP       = 14     # separacio entre el boto i el logo
+FOLLOW_DURADA    = 2.1
+THANKS_DURADA    = 1.8
+CTA_FADE         = 0.3
+LOGO_PER_CLIP    = False  # el logo ja no va a la cantonada de cada clip
+DEF_FOLLOW = (0.47413, 0.78764, 1295 / 1215)
+DEF_THANKS = (0.49807, 0.70039, 1295 / 1215)
+
+def mesurar_cta(path, per_defecte):
+    """Prepara un sticker per quedar-nos nomes amb el boto, sense l'emblema de dalt.
+    Torna (y0, y1, aspect): primera fila despres de l'emblema, ultima fila visible (fraccions de l'alcada)
+    i alcada/amplada de la imatge. Si no es pot llegir (p. ex. sense Pillow), torna 'per_defecte'."""
+    try:
+        from PIL import Image
+        alfa = Image.open(path).convert('RGBA').getchannel('A')
+        w, h = alfa.size
+        dades = alfa.tobytes()
+        files = [dades[y * w:(y + 1) * w] for y in range(h)]
+        visibles = [y for y in range(h) if max(files[y]) > 20]
+        c0, c1 = int(w * 0.40), int(w * 0.60)          # franja central, per on baixa l'emblema
+        y0 = None
+        for y in range(visibles[0], h):
+            if max(files[y][c0:c1]) <= 20:              # primera fila amb el centre buit: l'emblema ja ha acabat
+                y0 = y
+                break
+        if y0 is None or y0 >= visibles[-1]:
+            y0 = int(visibles[0] + 0.45 * (visibles[-1] - visibles[0]))
+        return y0 / h, (visibles[-1] + 1) / h, h / w
+    except Exception as e:
+        print(f"   AVIS: no s'ha pogut mesurar el sticker ({e}), uso mides per defecte")
+        return per_defecte
+
+
 COVER_W  = 280
 COVER_H  = 280
 COVER_X  = 90
@@ -465,7 +515,7 @@ for idx, track in enumerate(tracks):
         input_parts.append(f'-i "{thumb_path}"')
         thumb_idx = seguent
         seguent += 1
-    if LOGO_ACTIU:
+    if LOGO_PER_CLIP and LOGO_ACTIU:
         input_parts.append(f'-i "{LOGO_PATH}"')
         logo_idx = seguent
         seguent += 1
@@ -486,7 +536,7 @@ for idx, track in enumerate(tracks):
         fc_parts.append("[0:a]loudnorm=I=-14:TP=-1.5:LRA=11,aresample=48000[aout]")
     else:
         fc_parts.append("[0:a]aresample=48000[aout]")
-    if LOGO_ACTIU:
+    if LOGO_PER_CLIP and LOGO_ACTIU:
         fc_parts.append(f"[{logo_idx}:v]scale={LOGO_W}:-1:flags=lanczos,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo]")
         fc_parts.append(f"[out][logo]overlay=W-w-{LOGO_MARGIN}:{LOGO_MARGIN}[final]")
         mapa_final = "[final]"
@@ -532,8 +582,73 @@ for i in range(1, n_clips):
     audio_filters.append(f"[{prev_a}][{i}:a]acrossfade=d={FADE_DURADA}[{out_a}]")
     prev_v, prev_a = out_v, out_a
 
-filter_complex = ";".join(video_filters + audio_filters)
+overlay_filters = []
+extra_inputs = ""
+limit_durada = ""
+mapa_video = "[vfinal]"
+durada_final = sum(durades) - FADE_DURADA * (n_clips - 1)
+
+if LOGO_ACTIU or STICKER_ACTIU:
+    idx = n_clips
+    t0 = durada_final / 2                      # el Follow surt just a la meitat del video
+    actual = "[vfinal]"
+
+    # --- logo fix a baix, sempre visible ---
+    logo_top = LOGO_CENTRE_CY - 49             # valor per defecte si no es pot llegir el logo
+    if LOGO_ACTIU:
+        try:
+            from PIL import Image
+            lw, lh = Image.open(LOGO_PATH).size
+            logo_top = LOGO_CENTRE_CY - (LOGO_CENTRE_W * lh / lw) / 2
+        except Exception:
+            pass
+        extra_inputs += f' -loop 1 -framerate 30 -i "{LOGO_PATH}"'
+        logo_i = idx
+        idx += 1
+        overlay_filters.append(
+            f"[{logo_i}:v]scale={LOGO_CENTRE_W}:-1:flags=lanczos,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[lgone]")
+        overlay_filters.append(f"{actual}[lgone]overlay=(W-w)/2:{LOGO_CENTRE_CY}-h/2[vl2]")
+        actual = "[vl2]"
+    else:
+        print("   AVIS: no hi ha logo.png al repositori, no es posa marca d'aigua")
+
+    # --- boto FOLLOW (i despres THANKS) just sobre el logo, sense l'emblema del sticker ---
+    if STICKER_ACTIU:
+        y0f, y1f, asp_f = mesurar_cta(STICKER_FOLLOW_PATH, DEF_FOLLOW)
+        y0t, y1t, asp_t = mesurar_cta(STICKER_THANKS_PATH, DEF_THANKS)
+        alt_boto = (y1f - y0f) * FOLLOW_W * asp_f
+        sy = round(logo_top - FOLLOW_GAP - alt_boto)
+        print(f"   Follow mig: boto de {FOLLOW_W}px just sobre el logo (y={sy}), apareix a {t0:.1f}s de {durada_final:.1f}s")
+        extra_inputs += f' -loop 1 -framerate 30 -i "{STICKER_FOLLOW_PATH}"'
+        follow_i = idx
+        idx += 1
+        overlay_filters.append(
+            f"[{follow_i}:v]scale={FOLLOW_W}:-1:flags=lanczos,format=rgba,crop=iw:ih*{y1f - y0f:.5f}:0:ih*{y0f:.5f},"
+            f"fade=t=in:st={t0:.3f}:d={CTA_FADE}:alpha=1,"
+            f"fade=t=out:st={t0 + FOLLOW_DURADA - CTA_FADE:.3f}:d={CTA_FADE}:alpha=1[stf]")
+        overlay_filters.append(
+            f"{actual}[stf]overlay=(W-w)/2:{sy}:enable='between(t,{t0:.3f},{t0 + FOLLOW_DURADA:.3f})'[vl3]")
+        actual = "[vl3]"
+        t_th = t0 + FOLLOW_DURADA - CTA_FADE
+        extra_inputs += f' -loop 1 -framerate 30 -i "{STICKER_THANKS_PATH}"'
+        thanks_i = idx
+        idx += 1
+        overlay_filters.append(
+            f"[{thanks_i}:v]scale={FOLLOW_W}:-1:flags=lanczos,format=rgba,crop=iw:ih*{y1t - y0t:.5f}:0:ih*{y0t:.5f},"
+            f"fade=t=in:st={t_th:.3f}:d={CTA_FADE}:alpha=1,"
+            f"fade=t=out:st={t_th + THANKS_DURADA - CTA_FADE:.3f}:d={CTA_FADE}:alpha=1[stt]")
+        overlay_filters.append(
+            f"{actual}[stt]overlay=(W-w)/2:{sy}:enable='between(t,{t_th:.3f},{t_th + THANKS_DURADA:.3f})'[vout]")
+        actual = "[vout]"
+    else:
+        print("   AVIS: falten sticker_follow.png / sticker_thanks.png al repositori, no es posa el Follow")
+        overlay_filters.append(f"{actual}copy[vout]")
+        actual = "[vout]"
+    mapa_video = "[vout]"
+    limit_durada = f"-t {durada_final + 0.05:.3f}"
+
+filter_complex = ";".join(video_filters + overlay_filters + audio_filters)
 output_final = f"{OUTPUT}/evolucio_final.mp4"
-cmd = f'ffmpeg {inputs_str} -filter_complex "{filter_complex}" -map "[vfinal]" -map "[afinal]" {VIDEO_OPTS} -c:a aac -b:a 256k -ar 48000 "{output_final}" -y -loglevel error'
+cmd = f'ffmpeg {inputs_str}{extra_inputs} -filter_complex "{filter_complex}" -map "{mapa_video}" -map "[afinal]" {VIDEO_OPTS} -c:a aac -b:a 256k -ar 48000 {limit_durada} "{output_final}" -y -loglevel error'
 os.system(cmd)
 print("Video final generat!")
