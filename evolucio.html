@@ -40,7 +40,7 @@
 <body>
 <div class="container">
     <h1>@onedayonevibe</h1>
-    <p class="subtitle">Evolution Generator</p>
+    <p class="subtitle">Evolution Generator · si canvies un any, la llista es reordena sola</p>
 
     <div class="card">
         <h2>🔍 Pas 1 — Buscar cançons</h2>
@@ -202,7 +202,14 @@ function renderTracks() {
 
 function actualitzar(i, camp, valor) {
     if (camp === 'ts') tracksActuals[i].timestamp_manual = parseTimestamp(valor);
-    else if (camp === 'any') tracksActuals[i].any = valor.trim() ? parseInt(valor) : '';
+    else if (camp === 'any') {
+        tracksActuals[i].any = valor.trim() ? parseInt(valor) : '';
+        // l'evolucio va sempre d'abans a despres: reordenem per any (els que no en tenen, al final) i tornem a numerar
+        tracksActuals.sort((a, b) => (a.any === '' ? 1 : 0) - (b.any === '' ? 1 : 0) || (a.any || 0) - (b.any || 0));
+        tracksActuals.forEach((t, idx) => t.pos = idx + 1);
+        renderTracks();
+        return;
+    }
     else if (camp === 'nom') tracksActuals[i].nom_manual = valor.trim() || null;
     else if (camp === 'yt') tracksActuals[i].yt_url = valor.trim() || null;
 }
