@@ -1,7 +1,7 @@
 # evolucio.py - format "EVOLUTION": un tema per any de la trajectoria d'un artista, amb linia de temps.
 # Versio actualitzada: usa odov_comu.py (capcalera, portades robustes, zones segures de TikTok),
 # qualitat maxima (fins a 4K, crf 12/16, AAC 320k/256k a 48 kHz) i volum uniforme entre clips.
-import os, json, re, subprocess, base64, shutil, random
+import os, json, re, subprocess, base64, shutil, random, time
 import librosa, numpy as np
 from scipy.signal import find_peaks, butter, filtfilt
 import requests
@@ -97,6 +97,25 @@ def baixar_tros_fons(url, inici, durada_tros, output_path):
     )
     ret = os.system(cmd)
     return ret == 0 and os.path.exists(output_path) and os.path.getsize(output_path) > 10000
+
+
+SENYALS_BLOQUEIG = ("HTTP Error 429", "HTTP Error 403", "Sign in to confirm", "not a bot", "Failed to extract any player response")
+
+
+def youtube_bloquejat(url_prova):
+    """Comprovacio previa: si YouTube bloqueja el runner (cookies caducades o IP limitada) ho sabem abans de gastar 20 minuts."""
+    try:
+        r = subprocess.run(
+            ['yt-dlp', '--simulate', '--skip-download', '--no-playlist', '--cookies', 'cookies.txt',
+             '--js-runtime', 'node', '--remote-components', 'ejs:github', url_prova],
+            capture_output=True, text=True, timeout=120
+        )
+    except Exception as e:
+        print(f"   (comprovacio de YouTube no concloent: {e})")
+        return False
+    if r.returncode == 0:
+        return False
+    return any(x in (r.stderr or "") for x in SENYALS_BLOQUEIG)
 
 
 def partir_nom(nom, max_chars=22):
@@ -270,6 +289,14 @@ spotify_token = get_spotify_token()
 print("Token OK" if spotify_token else "Sense token Spotify (les portades es busquen igualment a Deezer i iTunes)")
 
 os.makedirs(os.path.expanduser("~/videos"), exist_ok=True)
+
+# comprovacio previa de YouTube (cookies / bloqueig d'IP)
+_url_prova = next((t['yt_url'] for t in tracks if t.get('yt_url')), None) or f"ytsearch1:{ARTISTA} {tracks[0]['nom']} official"
+if youtube_bloquejat(_url_prova):
+    print("\nERROR: YouTube esta bloquejant les baixades (error 429/403).")
+    print("   Causa probable: cookies caducades o IP del servidor temporalment limitada.")
+    print("   Que fer: 1) renova cookies.txt al Drive; 2) si ja son noves, espera unes hores i torna-ho a provar.")
+    exit(1)
 clips_paths = []
 
 for idx, track in enumerate(tracks):
@@ -283,6 +310,8 @@ for idx, track in enumerate(tracks):
     durada           = DURADA_CLIP + (DURADA_OUTRO if es_ultim else 0)
 
     print(f"\nClip #{pos}: {any_canco} - {nom}")
+    if pos > 1:
+        time.sleep(3)   # petita pausa entre temes: menys risc de 429 de YouTube
 
     video_path = os.path.expanduser(f"~/videos/{pos:02d}.mp4")
     audio_path = os.path.expanduser(f"~/videos/{pos:02d}.wav")
@@ -325,7 +354,7 @@ for idx, track in enumerate(tracks):
     if os.path.exists(video_path) and os.path.getsize(video_path) > 10000:
         ret = 0
     else:
-        ret = os.system(f'yt-dlp -f "{YTDLP_FORMAT}" --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{font}" --no-playlist -q')
+        ret = os.system(f'yt-dlp -f "{YTDLP_FORMAT}" --sleep-requests 1 --extractor-retries 3 --merge-output-format mp4 --cookies cookies.txt --js-runtime node --remote-components ejs:github -o "{video_path}" "{font}" --no-playlist -q')
 
     sense_video = (ret != 0 or not os.path.exists(video_path) or os.path.getsize(video_path) < 10000)
     has_thumb = os.path.exists(thumb_path) and os.path.getsize(thumb_path) > 1000
