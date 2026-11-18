@@ -3084,6 +3084,18 @@
    "executat": "2026-11-17T20:52:06+00:00",
    "afegits": [],
    "eliminats": 0
+  },
+  {
+   "data": "2026-11-18",
+   "executat": "2026-11-18T13:09:30+00:00",
+   "afegits": [
+    {
+     "titol": "BETTER LOVE",
+     "spotify_id": "2md0GCbwPmWfznelJFxOFz",
+     "manual": true
+    }
+   ],
+   "eliminats": 0
   }
  ]
 }
