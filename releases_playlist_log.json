@@ -3096,6 +3096,32 @@
     }
    ],
    "eliminats": 0
+  },
+  {
+   "data": "2026-11-18",
+   "executat": "2026-11-18T15:46:38+00:00",
+   "afegits": [
+    {
+     "titol": "Only Chance",
+     "artistes": [
+      "Jackro"
+     ],
+     "spotify_id": "5IvPVNHnjI6VOp3LfbDVSM",
+     "data": "2026-11-18",
+     "punts": 0.0
+    },
+    {
+     "titol": "With The Time",
+     "artistes": [
+      "K1",
+      "Dirty Lady"
+     ],
+     "spotify_id": "62fF6ZCx3uPxB0ROsYLknP",
+     "data": "2026-11-18",
+     "punts": 0.0
+    }
+   ],
+   "eliminats": 0
   }
  ]
 }
