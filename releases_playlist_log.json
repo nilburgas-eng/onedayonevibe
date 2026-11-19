@@ -3128,6 +3128,18 @@
    "executat": "2026-11-18T20:27:26+00:00",
    "afegits": [],
    "eliminats": 0
+  },
+  {
+   "data": "2026-11-19",
+   "executat": "2026-11-19T13:09:33+00:00",
+   "afegits": [
+    {
+     "titol": "Showdown",
+     "spotify_id": "6Vi8Yf3VvyWzN2BqQItKkD",
+     "manual": true
+    }
+   ],
+   "eliminats": 0
   }
  ]
 }
