@@ -42,8 +42,12 @@ LOGO_OPACITY = 0.95
 LOGO_ACTIU   = os.path.exists(LOGO_PATH)
 
 BOX_X      = 60
-BOX_W      = 860
-BOX_Y      = 1380
+BOX_W      = 800          # una mica mes estreta: no toca les icones de TikTok de la dreta
+BOX_Y      = 1130         # abans 1380: ara tot el text queda per sobre de la descripcio de TikTok (que comenca cap a y=1575)
+T_ENTRADA  = 0.3          # la targeta entra als 0.3 s...
+D_ENTRADA  = 0.5          # ...amb un fade i un petit lliscament des de l'esquerra
+LLISCA_PX  = 60
+LOGO_Y     = 250          # abans 150: fora de la barra de cerca de TikTok (y 147-235)
 BARRA_W    = 10
 
 AMPLE_MAX_LINIA = BOX_W - 100
@@ -120,28 +124,32 @@ mida_linia3 = ajustar_text(f"{nom_net} {verb}", FONT_EXTRABOLD, AMPLE_MAX_LINIA,
 box_h = 260 if mostrar_artista else 210
 
 txt = []
-txt.append(f"drawbox=x={BOX_X}:y={BOX_Y}:w={BOX_W}:h={box_h}:color=black@0.78:t=fill")
-txt.append(f"drawbox=x={BOX_X}:y={BOX_Y}:w={BARRA_W}:h={box_h}:color={COLOR_ACCENT}:t=fill")
+txt.append(f"drawbox=x={BOX_X}:y={BOX_Y}:w={BOX_W}:h={box_h}:color=black@0.78:t=fill:replace=1")
+txt.append(f"drawbox=x={BOX_X}:y={BOX_Y}:w={BARRA_W}:h={box_h}:color={COLOR_ACCENT}:t=fill:replace=1")
 
 tx = BOX_X + BARRA_W + 30
 txt.append(f"drawtext=fontfile='{FONT_SEMIBOLD}':text='ON THIS DAY':fontsize=34:fontcolor=white@0.85:borderw=1:bordercolor=black@0.5:x={tx}:y={BOX_Y+30}")
-txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{anys} YEARS AGO':fontsize=64:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x={tx}:y={BOX_Y+75}")
+txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{anys} YEARS AGO':fontsize=64:fontcolor={COLOR_ACCENT}:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x={tx}:y={BOX_Y+75}")
 txt.append(f"drawtext=fontfile='{FONT_EXTRABOLD}':text='{nom_net} {verb}':fontsize={mida_linia3}:fontcolor=white:borderw=2:bordercolor=black@0.7:shadowx=0:shadowy=2:x={tx}:y={BOX_Y+150}")
 if mostrar_artista:
     txt.append(f"drawtext=fontfile='{FONT_MEDIUM}':text='{artista_net}':fontsize=32:fontcolor=white@0.75:borderw=1:bordercolor=black@0.5:x={tx}:y={BOX_Y+215}")
 
 txt_str = ",".join(txt)
 
+# la targeta es dibuixa en una capa transparent apart perque pugui entrar amb fade + lliscament
+entrada = f"min(1,max(0,(t-{T_ENTRADA})/{D_ENTRADA}))"
 fc = (
     "[0:v]scale=1080:1920:flags=lanczos:force_original_aspect_ratio=increase,"
     "crop=1080:1920:(iw-1080)/2:(ih-1920)/2,unsharp=5:5:0.4:5:5:0.0[bg];"
-    "[bg]fps=30,colorchannelmixer=ra=0.90:ga=0.90:ba=0.90[colored];"
-    "[colored]{txt}[out]"
-).format(txt=txt_str)
+    "[bg]fps=30,format=yuv420p[colored];"
+    f"color=c=black@0.0:s=1080x1920:r=30:d={DURADA + 1},format=rgba,{txt_str},"
+    f"fade=t=in:st={T_ENTRADA}:d={D_ENTRADA}:alpha=1[card];"
+    f"[colored][card]overlay=x='-{LLISCA_PX}*pow(1-{entrada},3)':y=0:format=auto:shortest=1[out]"
+)
 
 inputs = f'-ss {inici} -i "{video_path}"'
 if LOGO_ACTIU:
-    fc += f";[1:v]scale={LOGO_W}:-1:flags=lanczos,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo];[out][logo]overlay=(W-w)/2:150[final]"
+    fc += f";[1:v]scale={LOGO_W}:-1:flags=lanczos,format=rgba,colorchannelmixer=aa={LOGO_OPACITY}[logo];[out][logo]overlay=(W-w)/2:{LOGO_Y}[final]"
     inputs += f' -i "{LOGO_PATH}"'
     mapa_final = "[final]"
 else:
