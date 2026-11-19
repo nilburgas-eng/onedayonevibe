@@ -3140,6 +3140,50 @@
     }
    ],
    "eliminats": 0
+  },
+  {
+   "data": "2026-11-19",
+   "executat": "2026-11-19T15:52:48+00:00",
+   "afegits": [
+    {
+     "titol": "Let It Ride",
+     "artistes": [
+      "Sparkz",
+      "EMERGNCY"
+     ],
+     "spotify_id": "70azFnUTNcqZfJvQOtjpuy",
+     "data": "2026-11-19",
+     "punts": 34.5
+    },
+    {
+     "titol": "RUNNIN'",
+     "artistes": [
+      "Revelation"
+     ],
+     "spotify_id": "6HVfRPi7jm2q2Ag38BgWfi",
+     "data": "2026-11-19",
+     "punts": 20.5
+    },
+    {
+     "titol": "revival arc - interlude",
+     "artistes": [
+      "Thyron"
+     ],
+     "spotify_id": "6Txb3pDTr9zsEv1nxoTyyn",
+     "data": "2026-11-19",
+     "punts": 0.0
+    },
+    {
+     "titol": "r.i.p.",
+     "artistes": [
+      "Thyron"
+     ],
+     "spotify_id": "0QV44amSrUH1lpKajriR0m",
+     "data": "2026-11-19",
+     "punts": 0.0
+    }
+   ],
+   "eliminats": 0
   }
  ]
 }

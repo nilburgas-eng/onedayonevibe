@@ -1,8 +1,89 @@
 {
- "data": "2026-11-20",
- "generat": "2026-11-19T13:02:51+00:00",
+ "data": "2026-11-19",
+ "generat": "2026-11-19T15:52:22+00:00",
  "font": "hdrr.info",
- "candidats": [],
+ "candidats": [
+  {
+   "titol": "Let It Ride",
+   "artistes": [
+    "Sparkz",
+    "EMERGNCY"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-19",
+   "punts": 34.5,
+   "motius": [
+    "Sparkz: #32 al Top 100 de HDRR (+34.5)"
+   ],
+   "versio": false,
+   "comodi": false,
+   "hdrr_url": "https://www.hdrr.info/tracks/let-it-ride-4",
+   "spotify_id": "70azFnUTNcqZfJvQOtjpuy",
+   "spotify_url": "https://open.spotify.com/track/70azFnUTNcqZfJvQOtjpuy",
+   "popularitat_hdrr": 0,
+   "isrc": "GBLV62622411",
+   "portada": "https://www.hdrr.info/media/img/covers/480/sparkz-let-it-ride-cover-art-35fae9c4.webp"
+  },
+  {
+   "titol": "Showdown",
+   "artistes": [
+    "D-Charged",
+    "Synthsoldier"
+   ],
+   "genere": "Euphoric Hardstyle",
+   "data": "2026-11-19",
+   "punts": 21.0,
+   "motius": [
+    "D-Charged: #59 al Top 100 de HDRR (+21.0)"
+   ],
+   "versio": false,
+   "comodi": false,
+   "hdrr_url": "https://www.hdrr.info/tracks/showdown-3",
+   "spotify_id": "6Vi8Yf3VvyWzN2BqQItKkD",
+   "spotify_url": "https://open.spotify.com/track/6Vi8Yf3VvyWzN2BqQItKkD",
+   "popularitat_hdrr": 0,
+   "isrc": "BEB682601046",
+   "portada": "https://www.hdrr.info/media/img/covers/480/d-charged-showdown-cover-art-11d1c04e.webp"
+  },
+  {
+   "titol": "RUNNIN'",
+   "artistes": [
+    "Revelation"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-19",
+   "punts": 20.5,
+   "motius": [
+    "Revelation: #60 al Top 100 de HDRR (+20.5)"
+   ],
+   "versio": false,
+   "comodi": false,
+   "hdrr_url": "https://www.hdrr.info/tracks/runnin-4",
+   "spotify_id": "6HVfRPi7jm2q2Ag38BgWfi",
+   "spotify_url": "https://open.spotify.com/track/6HVfRPi7jm2q2Ag38BgWfi",
+   "popularitat_hdrr": 0,
+   "isrc": "BEB682601044",
+   "portada": "https://www.hdrr.info/media/img/covers/480/revelation-runnin-cover-art-5e8dc93e.webp"
+  },
+  {
+   "titol": "event horizon arc - interlude",
+   "artistes": [
+    "Thyron"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-19",
+   "punts": 0.0,
+   "motius": [],
+   "versio": false,
+   "comodi": true,
+   "hdrr_url": "https://www.hdrr.info/tracks/event-horizon-arc-interlude",
+   "spotify_id": "7Bs04Iy2HBxaDtPFaveeDS",
+   "spotify_url": "https://open.spotify.com/track/7Bs04Iy2HBxaDtPFaveeDS",
+   "popularitat_hdrr": 0,
+   "isrc": "NLS762600427",
+   "portada": "https://www.hdrr.info/media/img/covers/480/thyron-event-horizon-arc-interlude-cover-art-b76dc309.webp"
+  }
+ ],
  "tots": [
   {
    "titol": "Let It Ride",
@@ -128,18 +209,6 @@
    "hdrr_url": "https://www.hdrr.info/tracks/nightcore-bassboosted-dj-version"
   },
   {
-   "titol": "Lasergewehr",
-   "artistes": [
-    "Protokseed"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-19",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "1A6zQmIAw8dlDdkTOCG9rt",
-   "hdrr_url": "https://www.hdrr.info/tracks/lasergewehr"
-  },
-  {
    "titol": "Spenk - Air-Power Hard Mix",
    "artistes": [
     "Bruno Power",
@@ -203,18 +272,6 @@
    "hdrr_url": "https://www.hdrr.info/tracks/bad-trip-5"
   },
   {
-   "titol": "Time To Die",
-   "artistes": [
-    "Zephyr"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-19",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "6SNsiKbwCTOeJmBiwPDuX6",
-   "hdrr_url": "https://www.hdrr.info/tracks/time-to-die-12"
-  },
-  {
    "titol": "Love You More",
    "artistes": [
     "Sizem"
@@ -225,6 +282,30 @@
    "versio": false,
    "spotify_id": "4vy8YtUSwkZHXRqcUhoNvW",
    "hdrr_url": "https://www.hdrr.info/tracks/love-you-more-3"
+  },
+  {
+   "titol": "Tymo Airlines",
+   "artistes": [
+    "Tymo"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-19",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "4ApabcAULwBq1pQhm5yuGD",
+   "hdrr_url": "https://www.hdrr.info/tracks/tymo-airlines"
+  },
+  {
+   "titol": "Rescue Me",
+   "artistes": [
+    "DAAUZD"
+   ],
+   "genere": "Euphoric Hardstyle",
+   "data": "2026-11-19",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "7urWksBYDWplWWSnq6H5ms",
+   "hdrr_url": "https://www.hdrr.info/tracks/rescue-me-8"
   },
   {
    "titol": "Machine Gun - Collusion Remix",
@@ -238,17 +319,187 @@
    "versio": true,
    "spotify_id": "7hJdnq8PBrM17KytkikZfZ",
    "hdrr_url": "https://www.hdrr.info/tracks/machine-gun-collusion-remix"
+  },
+  {
+   "titol": "BETTER LOVE",
+   "artistes": [
+    "Dirty Workz",
+    "Harde Kwark"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-18",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "2md0GCbwPmWfznelJFxOFz",
+   "hdrr_url": "https://www.hdrr.info/tracks/better-love-5"
+  },
+  {
+   "titol": "Only Chance",
+   "artistes": [
+    "Jackro"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-18",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "5IvPVNHnjI6VOp3LfbDVSM",
+   "hdrr_url": "https://www.hdrr.info/tracks/only-chance"
+  },
+  {
+   "titol": "With The Time",
+   "artistes": [
+    "K1",
+    "Dirty Lady"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-18",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "62fF6ZCx3uPxB0ROsYLknP",
+   "hdrr_url": "https://www.hdrr.info/tracks/with-the-time"
   }
  ],
- "resta": [],
+ "resta": [
+  {
+   "titol": "a farewell to...",
+   "artistes": [
+    "Thyron"
+   ],
+   "genere": "Rawstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "back 2 life",
+   "artistes": [
+    "Thyron"
+   ],
+   "genere": "Rawstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "BAD TRIP",
+   "artistes": [
+    "ONYX"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "dissonance arc - intro",
+   "artistes": [
+    "Thyron"
+   ],
+   "genere": "Rawstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "event horizon arc - interlude",
+   "artistes": [
+    "Thyron"
+   ],
+   "genere": "Rawstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "F*CK THIS SHIT",
+   "artistes": [
+    "Unmute"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Far Away",
+   "artistes": [
+    "Udex",
+    "Rogue Zero",
+    "Stereo Static"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Love You More",
+   "artistes": [
+    "Sizem"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "NIGHTCORE BASSBOOSTED - DJ Version",
+   "artistes": [
+    "Geck-O",
+    "Crypton"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Played-A-Live (The Bongo Song) (Hardstyle)",
+   "artistes": [
+    "Empira"
+   ],
+   "genere": "Euphoric Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "r.i.p.",
+   "artistes": [
+    "Thyron"
+   ],
+   "genere": "Rawstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Rescue Me",
+   "artistes": [
+    "DAAUZD"
+   ],
+   "genere": "Euphoric Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "revival arc - interlude",
+   "artistes": [
+    "Thyron"
+   ],
+   "genere": "Rawstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Spenk - Air-Power Hard Mix",
+   "artistes": [
+    "Bruno Power",
+    "Air Teo"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Tymo Airlines",
+   "artistes": [
+    "Tymo"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Machine Gun - Collusion Remix",
+   "artistes": [
+    "Mortis",
+    "Collusion"
+   ],
+   "genere": "Hardstyle",
+   "punts": -20.0
+  }
+ ],
  "estadistiques": {
-  "llegits": 40,
-  "del_dia": 0,
-  "despres_filtre": 0,
+  "llegits": 60,
+  "del_dia": 19,
+  "despres_filtre": 19,
   "artistes_top100": 137,
   "temes_chart_propi": 13
  },
- "avisos": [
-  "Cap llancament d'aquesta data a HDRR (potser encara no s'han afegit)"
- ]
+ "avisos": []
 }
