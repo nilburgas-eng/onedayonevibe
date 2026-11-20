@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>onedayonevibe — Torneig</title>
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0d0d0d; color: #fff; min-height: 100vh; padding: 20px; }
+    .container { max-width: 640px; margin: 0 auto; padding: 20px 0; }
+    h1 { font-size: 28px; font-weight: 800; color: #00BFFF; margin-bottom: 4px; }
+    .subtitle { font-size: 14px; color: #666; margin-bottom: 24px; }
+    .card { background: #1a1a1a; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+    .card h2 { font-size: 14px; font-weight: 600; color: #00BFFF; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 1px; }
+    label { display: block; font-size: 13px; color: #999; margin-bottom: 6px; }
+    input, select, textarea { width: 100%; background: #2a2a2a; border: 1px solid #333; border-radius: 8px; padding: 12px; color: #fff; font-size: 15px; margin-bottom: 14px; outline: none; }
+    input:focus, select:focus, textarea:focus { border-color: #00BFFF; }
+    textarea { font-family: inherit; resize: vertical; }
+    .btn { width: 100%; padding: 15px; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; border: none; margin-bottom: 10px; }
+    .btn:active { opacity: 0.8; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-primary { background: #00BFFF; color: #000; }
+    .btn-green { background: #1DB954; color: #000; }
+    .btn-gold { background: #FFD640; color: #000; }
+    .btn-secondary { background: #2a2a2a; color: #fff; border: 1px solid #444; }
+    .btn-danger { background: #ff4444; color: #fff; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .status { background: #1a1a1a; border-radius: 12px; padding: 16px; margin-bottom: 16px; display: none; position: sticky; top: 8px; z-index: 5; border: 1px solid #333; }
+    .status.visible { display: block; }
+    .status-text { font-size: 14px; line-height: 1.6; }
+    .status-ok { color: #00ff88; } .status-error { color: #ff4444; } .status-info { color: #00BFFF; }
+    .nota { font-size: 12px; color: #666; margin: -6px 0 14px; line-height: 1.5; }
+    .track { background: #222; border-radius: 10px; padding: 12px; margin-bottom: 10px; border-left: 4px solid #444; }
+    .track.ok { border-left-color: #1DB954; } .track.warn { border-left-color: #ffb74d; } .track.bad { border-left-color: #ff4444; }
+    .track-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; gap: 8px; }
+    .track-nom { font-size: 14px; font-weight: 600; }
+    .track-st { font-size: 12px; color: #999; text-align: right; }
+    .track-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+    .track input { margin-bottom: 0; font-size: 13px; padding: 9px; }
+    .match { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 8px; background: #222; margin-bottom: 6px; cursor: pointer; border: 1px solid transparent; font-size: 13px; }
+    .match.sel { border-color: #00BFFF; }
+    .match.done { opacity: .75; }
+    .match .dia { width: 78px; color: #999; font-size: 12px; flex-shrink: 0; }
+    .match .vs { flex: 1; line-height: 1.35; }
+    .match .guan { color: #00ff88; font-weight: 700; }
+    .ronda { font-size: 12px; color: #FFD640; text-transform: uppercase; letter-spacing: 1px; margin: 14px 0 8px; }
+    .panell { background: #222; border-radius: 10px; padding: 14px; margin-top: 12px; }
+    .panell h3 { font-size: 15px; margin-bottom: 10px; }
+    .tria { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+    .tria button { padding: 12px 8px; border-radius: 10px; border: 2px solid #444; background: #2a2a2a; color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; }
+    .tria button.a.on { background: #00E5FF; color: #000; border-color: #00E5FF; }
+    .tria button.b.on { background: #FF3B6B; color: #000; border-color: #FF3B6B; }
+    .desc { font-family: inherit; font-size: 13px; line-height: 1.5; }
+    .badge { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 5px; background: #00BFFF; color: #000; }
+    #desat { font-size: 12px; color: #666; text-align: right; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>@onedayonevibe</h1>
+    <p class="subtitle">Best Hardstyle Track of 2026 · torneig d'eliminatòries</p>
+    <div id="desat"></div>
+
+    <div id="status" class="status"><div id="status-text" class="status-text"></div></div>
+
+    <div class="card">
+        <h2>1 · Els 16 temes</h2>
+        <label>Un tema per línia: <b>Títol - Artista</b> (opcional: enllaç de YouTube i <b>@m:ss</b> amb el moment del drop)</label>
+        <textarea id="llista" rows="10" placeholder="Neon Collapse - KRYPT&#10;Bassline Ritual - VOLTAGE https://youtu.be/xxxxxxxxxxx&#10;Rave Ascension - NOXX @1:55&#10;... (16 línies)"></textarea>
+        <button class="btn btn-primary" onclick="usarLlista()">✅ Usar aquesta llista</button>
+        <button class="btn btn-secondary" onclick="sortejar()">🎲 Sortejar l'ordre del quadre</button>
+        <p class="nota">L'ordre de la llista és el quadre: 1 contra 2, 3 contra 4... Per no enfrontar dos favorits de primeres, sorteja. Si ja hi ha resultats, el sorteig els esborra.</p>
+        <div class="row2">
+            <div><label>Primer partit (data)</label><input type="date" id="data-inici" onchange="canviConfig()"></div>
+            <div><label>Estil per detectar el drop</label>
+                <select id="estil" onchange="canviConfig()">
+                    <option value="energetic">⚡ Energètic (rawstyle, hardstyle)</option>
+                    <option value="melodic">🎵 Melòdic (euphoric)</option>
+                </select></div>
+        </div>
+        <label>Hashtags de les descripcions</label>
+        <input type="text" id="hashtags" onchange="canviConfig()">
+    </div>
+
+    <div class="card" id="card-clips" style="display:none;">
+        <h2>2 · Clips (es preparen una sola vegada)</h2>
+        <p class="nota">El drop de cada tema es detecta sol i el clip es guarda. Totes les rondes el reutilitzen: no cal posar cap timestamp més. Si un drop no és bo, escriu-hi el moment (m:ss) i torna a preparar només aquell.</p>
+        <div id="tracks-list"></div>
+        <button class="btn btn-green" onclick="prepararClips(false)">🎞️ Preparar clips pendents</button>
+        <button class="btn btn-secondary" onclick="prepararClips(true)">♻️ Refer-los tots</button>
+        <button class="btn btn-secondary" onclick="recarregar()">🔄 Recarregar estat dels clips</button>
+    </div>
+
+    <div class="card" id="card-partits" style="display:none;">
+        <h2>3 · Partits</h2>
+        <div id="partits"></div>
+        <div id="panell"></div>
+    </div>
+
+    <div class="card" id="card-campio" style="display:none;">
+        <h2>🏆 Campió</h2>
+        <div id="campio"></div>
+    </div>
+
+    <div class="card" id="card-cuadre" style="display:none;">
+        <h2>🗂️ Cuadre actualitzat (imatge)</h2>
+        <p class="nota">Una imatge del cuadre amb els resultats fins ara. Serveix per al sorteig inicial i per publicar l'estat entre partits.</p>
+        <button class="btn btn-primary" onclick="generarCuadre()">🗂️ Generar cuadre</button>
+        <button class="btn btn-secondary" onclick="descarregar('torneig_cuadre','cuadre.png')">⬇️ Descarregar cuadre</button>
+        <label>Descripció</label>
+        <textarea id="desc-cuadre" class="desc" rows="6" readonly onclick="this.select()"></textarea>
+        <button class="btn btn-secondary" onclick="copiar('desc-cuadre')">📋 Copiar descripció</button>
+    </div>
+
+    <div class="card">
+        <h2>Eines</h2>
+        <button class="btn btn-secondary" onclick="veureEstat()">📊 Consultar estat dels workflows</button>
+        <button class="btn btn-secondary" onclick="canviarToken()">🔑 Canviar token</button>
+    </div>
+</div>
+
+<script>
+const REPO = "nilburgas-eng/onedayonevibe";
+let TOKEN = localStorage.getItem('github_token') || '';
+const RN = ["Vuitens", "Quarts", "Semifinals", "Final"];
+const RN_EN = ["ROUND OF 16", "QUARTER-FINALS", "SEMI-FINALS", "THE FINAL"];
+const SEG = ["quarter-finals", "semi-finals", "final"];
+const NM = [8, 4, 2, 1];
+const ORDRE = []; for (let r = 0; r < 4; r++) for (let m = 0; m < NM[r]; m++) ORDRE.push([r, m]);
+const HASHTAGS_DEF = "#hardstyle #harddance #onedayonevibe #hardstyle2026 #bestof2026 #hardstylefamily #rave";
+let estat = { versio: 1, actualitzat: '', inici: '2026-12-01', estil: 'energetic', hashtags: HASHTAGS_DEF, tracks: [], res: {} };
+let clips = {};
+let sel = 0, shaEstat = null, timerDesar = null;
+const $ = id => document.getElementById(id);
+
+window.onload = async function () {
+    if (!TOKEN) { TOKEN = prompt('Introdueix el teu GitHub Token:'); if (TOKEN) localStorage.setItem('github_token', TOKEN); }
+    await carregarTot();
+};
+function canviarToken() { const n = prompt('Introdueix el nou GitHub Token:'); if (n) { TOKEN = n; localStorage.setItem('github_token', n); mostrarStatus('✅ Token actualitzat!', 'ok'); } }
+function mostrarStatus(text, tipus) { $('status').classList.add('visible'); $('status-text').innerHTML = `<span class="status-${tipus}">${text}</span>`; }
+
+// ---------- utilitats ----------
+function parseTimestamp(ts) {
+    if (!ts) return null; const p = String(ts).trim().split(':').map(x => parseInt(x));
+    if (p.some(isNaN)) return null;
+    if (p.length === 2) return p[0] * 60 + p[1]; if (p.length === 3) return p[0] * 3600 + p[1] * 60 + p[2]; return null;
+}
+function segonsAStr(s) { if (s === null || s === undefined || s === '') return ''; const m = Math.floor(s / 60), x = Math.floor(s % 60); return `${m}:${String(x).padStart(2, '0')}`; }
+function slug(s) { return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60); }
+function refrescarIds() {
+    const vists = {};
+    estat.tracks.forEach((t, i) => {
+        let id = slug(`${t.artista}-${t.nom}`) || `t${i}`;
+        if (vists[id]) id += `-${i}`; vists[id] = 1; t.id = id;
+    });
+}
+function entrants(res) {
+    const E = [Array.from({ length: 16 }, (_, i) => i)];
+    for (let r = 0; r < 4; r++) { const nx = []; for (let m = 0; m < E[r].length / 2; m++) { const v = res[`${r}-${m}`]; nx.push(v ? v[0] : null); } E.push(nx); }
+    return E;
+}
+const T = i => estat.tracks[i];
+const nomArt = i => `${T(i).nom} - ${T(i).artista}`;
+function dataPartit(i) {
+    const d = new Date(estat.inici + 'T12:00:00'); d.setDate(d.getDate() + i);
+    return d.toLocaleDateString('ca-ES', { weekday: 'short', day: 'numeric', month: 'short' });
+}
+function dataEN(i) {
+    const d = new Date(estat.inici + 'T12:00:00'); d.setDate(d.getDate() + i);
+    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
+}
+function indexPartit(r, m) { return ORDRE.findIndex(x => x[0] === r && x[1] === m); }
+
+// ---------- estat al repo ----------
+function utf8ToB64(s) { return btoa(unescape(encodeURIComponent(s))); }
+function b64ToUtf8(b) { return decodeURIComponent(escape(atob(b.replace(/\n/g, '')))); }
+async function llegirFitxer(path) {
+    try {
+        const r = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}?t=${Date.now()}`, { headers: { 'Authorization': `token ${TOKEN}` } });
+        if (r.status !== 200) return null;
+        const j = await r.json(); return { sha: j.sha, data: JSON.parse(b64ToUtf8(j.content)) };
+    } catch (e) { return null; }
+}
+function marcarCanvi() {
+    estat.actualitzat = new Date().toISOString();
+    try { localStorage.setItem('torneig_estat', JSON.stringify(estat)); } catch (e) {}
+    $('desat').textContent = '💾 desant…'; clearTimeout(timerDesar); timerDesar = setTimeout(() => desarRemot(0), 1200);
+}
+async function desarRemot(intent) {
+    try {
+        const body = { message: 'Actualitzar torneig', content: utf8ToB64(JSON.stringify(estat, null, 1)) };
+        if (shaEstat) body.sha = shaEstat;
+        const r = await fetch(`https://api.github.com/repos/${REPO}/contents/torneig_estat.json`, { method: 'PUT', headers: { 'Authorization': `token ${TOKEN}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        if ((r.status === 409 || r.status === 422) && intent < 2) {
+            const f = await llegirFitxer('torneig_estat.json'); if (f) shaEstat = f.sha; return desarRemot(intent + 1);
+        }
+        if (r.status === 200 || r.status === 201) { const j = await r.json(); shaEstat = j.content.sha; $('desat').textContent = '✅ desat al repo'; }
+        else $('desat').textContent = `⚠️ no s'ha pogut desar al repo (${r.status}); queda en aquest navegador`;
+    } catch (e) { $('desat').textContent = '⚠️ sense connexió; queda en aquest navegador'; }
+}
+async function carregarTot() {
+    mostrarStatus('⏳ Carregant el torneig...', 'info');
+    const [f, c] = await Promise.all([llegirFitxer('torneig_estat.json'), llegirFitxer('torneig_clips.json')]);
+    clips = c ? c.data : {};
+    let remot = f ? f.data : null; shaEstat = f ? f.sha : null;
+    let local = null; try { local = JSON.parse(localStorage.getItem('torneig_estat') || 'null'); } catch (e) {}
+    let triat = remot;
+    if (local && (!remot || (local.actualitzat || '') > (remot.actualitzat || ''))) { triat = local; setTimeout(() => desarRemot(0), 500); }
+    if (triat) estat = Object.assign(estat, triat);
+    pintarTot();
+    $('status').classList.remove('visible');
+    if (!estat.tracks.length) mostrarStatus('Escriu els 16 temes al Pas 1.', 'info');
+}
+async function recarregar() {
+    mostrarStatus('⏳ Recarregant...', 'info');
+    const c = await llegirFitxer('torneig_clips.json'); clips = c ? c.data : {};
+    pintarTot(); mostrarStatus('✅ Estat dels clips actualitzat', 'ok');
+}
+
+// ---------- pas 1: llista ----------
+function parsejarLlista(text) {
+    const out = [], err = [];
+    for (let l of text.split(/\r?\n/)) {
+        l = l.replace(/\s[–—]\s/g, ' - ').trim(); if (!l) continue;
+        let yt = ''; const mu = l.match(/https?:\/\/\S+/); if (mu) { yt = mu[0]; l = l.replace(mu[0], '').trim(); }
+        let ini = null; const mi = l.match(/@(\d+:\d{1,2}(?::\d{1,2})?)/); if (mi) { ini = parseTimestamp(mi[1]); l = l.replace(mi[0], '').trim(); }
+        const p = l.lastIndexOf(' - ');
+        if (p < 1) { err.push(l); continue; }
+        out.push({ nom: l.slice(0, p).trim(), artista: l.slice(p + 3).trim(), yt_url: yt, inici: ini });
+    }
+    return { out, err };
+}
+function usarLlista() {
+    const { out, err } = parsejarLlista($('llista').value);
+    if (err.length) { mostrarStatus(`❌ Línies sense « - » entre títol i artista:<br>${err.join('<br>')}`, 'error'); return; }
+    if (out.length !== 16) { mostrarStatus(`❌ Calen exactament 16 temes (n'hi ha ${out.length})`, 'error'); return; }
+    if (Object.keys(estat.res).length && !confirm('Ja hi ha resultats guardats. Si canvies la llista s’esborraran. Continuar?')) return;
+    estat.tracks = out; estat.res = {}; refrescarIds(); sel = 0; marcarCanvi(); pintarTot();
+    mostrarStatus('✅ Llista desada. Ara sorteja (opcional) i prepara els clips.', 'ok');
+}
+function sortejar() {
+    if (estat.tracks.length !== 16) { mostrarStatus('❌ Primer carrega els 16 temes', 'error'); return; }
+    if (Object.keys(estat.res).length && !confirm('El sorteig esborrarà els resultats. Continuar?')) return;
+    const a = estat.tracks; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+    estat.res = {}; sel = 0; marcarCanvi(); pintarTot();
+    mostrarStatus('🎲 Sorteig fet. Pots generar el cuadre inicial (més avall) per publicar-lo.', 'ok');
+}
+function canviConfig() {
+    estat.inici = $('data-inici').value || estat.inici; estat.estil = $('estil').value; estat.hashtags = $('hashtags').value.trim() || HASHTAGS_DEF;
+    marcarCanvi(); pintarPartits(); pintarPanell(); pintarCampio(); pintarCuadre();
+}
+
+// ---------- pas 2: clips ----------
+function estatClip(t) {
+    const c = clips[t.id];
+    if (!c) return { k: 'bad', ico: '⚠️', txt: 'sense clip' };
+    if (!c.ok) return { k: 'bad', ico: '❌', txt: 'no s’ha pogut preparar: ' + (c.error || 'revisa el títol o posa l’enllaç de YouTube') };
+    if ((t.yt_url || '') !== (c.url_input || '') || (t.inici != null && Math.abs(t.inici - c.inici) >= 1)) return { k: 'warn', ico: '🔄', txt: 'has canviat l’enllaç o el moment: cal tornar a preparar' };
+    return { k: 'ok', ico: '✅', txt: `clip llest · drop ${segonsAStr(c.inici)}${c.auto ? ' (detectat)' : ' (manual)'} · ${c.resolucio || ''}<br><span style="color:#666">${(c.titol_yt || '').slice(0, 60)}</span>${/^https?:/.test(c.url || '') ? `<br><a style="color:#00BFFF" target="_blank" href="${c.url}${c.url.includes('?') ? '&' : '?'}t=${Math.floor(c.inici)}">▶ comprovar el drop a YouTube (${segonsAStr(c.inici)})</a>` : ''}` };
+}
+function pintarTracks() {
+    $('card-clips').style.display = estat.tracks.length ? 'block' : 'none';
+    $('tracks-list').innerHTML = estat.tracks.map((t, i) => {
+        const s = estatClip(t);
+        return `<div class="track ${s.k}">
+          <div class="track-head"><span class="track-nom"><span class="badge">${i + 1}</span> ${esc(t.nom)} · ${esc(t.artista)}</span><span class="track-st">${s.ico}</span></div>
+          <div class="track-grid"><input value="${esc(t.nom)}" onchange="editarTrack(${i},'nom',this.value)" placeholder="Títol"><input value="${esc(t.artista)}" onchange="editarTrack(${i},'artista',this.value)" placeholder="Artista"></div>
+          <div class="track-grid"><input value="${esc(t.yt_url || '')}" onchange="editarTrack(${i},'yt_url',this.value)" placeholder="Enllaç de YouTube (opcional)"><input value="${t.inici == null ? '' : segonsAStr(t.inici)}" onchange="editarTrack(${i},'inici',this.value)" placeholder="Drop m:ss (buit = automàtic)"></div>
+          <div class="track-st" style="text-align:left">${s.txt}</div></div>`;
+    }).join('');
+}
+function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+function editarTrack(i, camp, v) {
+    const t = estat.tracks[i];
+    if (camp === 'inici') t.inici = v.trim() ? parseTimestamp(v) : null; else t[camp] = v.trim();
+    refrescarIds(); marcarCanvi(); pintarTot();
+}
+async function dispararWorkflow(workflow, inputs) {
+    const r = await fetch(`https://api.github.com/repos/${REPO}/actions/workflows/${workflow}/dispatches`, { method: 'POST', headers: { 'Authorization': `token ${TOKEN}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ ref: 'main', inputs }) });
+    let detall = ''; if (r.status !== 204) { try { detall = (await r.json()).message || ''; } catch (e) {} }
+    return { status: r.status, detall };
+}
+async function prepararClips(forcar) {
+    if (estat.tracks.length !== 16) { mostrarStatus('❌ Primer carrega els 16 temes', 'error'); return; }
+    const pend = estat.tracks.filter(t => forcar || estatClip(t).k !== 'ok');
+    if (!pend.length) { mostrarStatus('✅ Tots els clips ja estan preparats', 'ok'); return; }
+    mostrarStatus(`⏳ Enviant ${pend.length} temes a preparar...`, 'info');
+    const res = await dispararWorkflow('torneig_preparar.yml', { tracks: JSON.stringify(pend.map(t => ({ id: t.id, nom: t.nom, artista: t.artista, yt_url: t.yt_url || '', inici: t.inici == null ? null : t.inici }))), estil: estat.estil, forcar: forcar ? '1' : '0' });
+    if (res.status === 204) mostrarStatus(`✅ Preparació iniciada (${pend.length} temes).<br>⏳ Tarda uns ${Math.max(5, pend.length * 2)} min. Després clica «Recarregar estat dels clips».`, 'ok');
+    else mostrarStatus(`❌ Error ${res.status}: ${res.detall}`, 'error');
+}
+
+// ---------- pas 3: partits ----------
+function resultat(r, m) { return estat.res[`${r}-${m}`] || null; }
+function pintarPartits() {
+    $('card-partits').style.display = estat.tracks.length === 16 ? 'block' : 'none';
+    if (estat.tracks.length !== 16) return;
+    const E = entrants(estat.res); let h = '';
+    ORDRE.forEach(([r, m], i) => {
+        if (m === 0) h += `<div class="ronda">${RN[r]}</div>`;
+        const A = E[r][2 * m], B = E[r][2 * m + 1], res = resultat(r, m);
+        const nm = x => x == null ? '<i style="color:#666">per decidir</i>' : esc(T(x).nom);
+        let mid = `${nm(A)} <span style="color:#666">vs</span> ${nm(B)}`;
+        if (res) mid = `${A === res[0] ? '<span class="guan">' + nm(A) + '</span>' : nm(A)} <span style="color:#666">vs</span> ${B === res[0] ? '<span class="guan">' + nm(B) + '</span>' : nm(B)}${res[1] != null ? ` <span style="color:#00ff88">· ${res[1]}%</span>` : ''}`;
+        h += `<div class="match ${i === sel ? 'sel' : ''} ${res ? 'done' : ''}" onclick="triar(${i})"><span class="dia">${dataPartit(i)}</span><span class="vs">${mid}</span><span>${res ? '✅' : ''}</span></div>`;
+    });
+    $('partits').innerHTML = h;
+}
+function triar(i) { sel = i; pintarPartits(); pintarPanell(); }
+function triarSeguent() {
+    for (let i = 0; i < ORDRE.length; i++) if (!resultat(...ORDRE[i])) { sel = i; return; }
+    sel = ORDRE.length - 1;
+}
+function prevResultat(r, m) {
+    const i = indexPartit(r, m); if (i <= 0) return null;
+    const [pr, pm] = ORDRE[i - 1]; const v = resultat(pr, pm); return v ? { w: v[0], pct: v[1] } : null;
+}
+function descVersus(r, m) {
+    const E = entrants(estat.res); const A = E[r][2 * m], B = E[r][2 * m + 1];
+    if (A == null || B == null) return '';
+    const ht = estat.hashtags || HASHTAGS_DEF; let s;
+    if (r === 3) s = `THE FINAL 🏆 ${T(A).nom} vs ${T(B).nom}\n\nOne last vote decides the BEST HARDSTYLE TRACK OF 2026.\n\n🅰️ ${nomArt(A)}\n🅱️ ${nomArt(B)}\n\nVote in the poll 👇 Voting closes in 24 hours.`;
+    else {
+        s = `${T(A).nom} vs ${T(B).nom}\n\nBEST HARDSTYLE TRACK OF 2026 · ${RN_EN[r]} · Match ${m + 1}/${NM[r]}\n\n🅰️ ${nomArt(A)}\n🅱️ ${nomArt(B)}\n\nWhich one goes through? Vote in the poll 👇 (or comment A or B)`;
+        const p = prevResultat(r, m);
+        if (p) s += `\n\nYesterday: ${T(p.w).nom} went through${p.pct != null ? ` with ${p.pct}% of the votes` : ''}.`;
+        s += `\nThe winner goes to the ${SEG[r]}.`;
+    }
+    return s + `\n\n${ht}`;
+}
+function pintarPanell() {
+    if (estat.tracks.length !== 16) { $('panell').innerHTML = ''; return; }
+    const [r, m] = ORDRE[sel]; const E = entrants(estat.res); const A = E[r][2 * m], B = E[r][2 * m + 1], res = resultat(r, m);
+    if (A == null || B == null) { $('panell').innerHTML = `<div class="panell"><h3>${RN[r]} · partit ${m + 1}</h3><p class="nota">Encara no se sap qui hi juga: falten resultats d'abans.</p></div>`; return; }
+    const sA = estatClip(T(A)), sB = estatClip(T(B)); const falta = (sA.k !== 'ok' ? [T(A).nom] : []).concat(sB.k !== 'ok' ? [T(B).nom] : []);
+    $('panell').innerHTML = `<div class="panell"><h3>${RN[r]} · partit ${m + 1}/${NM[r]} · ${dataPartit(sel)}</h3>
+      <p class="nota" style="margin-top:0">🅰️ ${esc(nomArt(A))}<br>🅱️ ${esc(nomArt(B))}</p>
+      ${falta.length ? `<p class="nota" style="color:#ffb74d">⚠️ Sense clip preparat: ${esc(falta.join(', '))}. El vídeo sortirà sense el seu so/imatge fins que preparis els clips.</p>` : ''}
+      <button class="btn btn-green" onclick="generarVersus(${r},${m})">🎬 Generar vídeo ${r === 3 ? 'de la final' : 'd’aquest partit'}</button>
+      <div class="row2"><button class="btn btn-secondary" onclick="descarregar('torneig_versus_${r}_${m}','video.mp4')">⬇️ Vídeo</button><button class="btn btn-secondary" onclick="descarregar('torneig_versus_${r}_${m}','cuadre.png')">⬇️ Cuadre</button></div>
+      <label>Descripció + hashtags (per TikTok)</label>
+      <textarea id="desc-versus" class="desc" rows="11" readonly onclick="this.select()">${esc(descVersus(r, m))}</textarea>
+      <button class="btn btn-secondary" onclick="copiar('desc-versus')">📋 Copiar descripció</button>
+      <label style="margin-top:6px">Resultat (després de la votació)</label>
+      <div class="tria"><button class="a ${res && res[0] === A ? 'on' : ''}" onclick="posarResultat(${r},${m},${A})">🅰️ guanya<br><span style="font-weight:400;font-size:12px">${esc(T(A).nom)}</span></button>
+      <button class="b ${res && res[0] === B ? 'on' : ''}" onclick="posarResultat(${r},${m},${B})">🅱️ guanya<br><span style="font-weight:400;font-size:12px">${esc(T(B).nom)}</span></button></div>
+      <label>% de vots del guanyador (opcional, surt al cuadre i als vídeos)</label>
+      <input type="number" id="pct" min="50" max="99" placeholder="p. ex. 57" value="${res && res[1] != null ? res[1] : ''}" onchange="posarPct(${r},${m},this.value)">
+      ${res ? `<button class="btn btn-danger" onclick="esborrarResultat(${r},${m})">↩️ Esborrar aquest resultat</button>` : ''}
+    </div>`;
+}
+function dependents(r, m) { const out = []; let rr = r + 1, mm = m >> 1; while (rr < 4) { if (resultat(rr, mm)) out.push([rr, mm]); rr++; mm >>= 1; } return out; }
+function posarResultat(r, m, w) {
+    const prev = resultat(r, m), dep = dependents(r, m);
+    if (prev && prev[0] !== w && dep.length && !confirm('Canviar el guanyador esborra els resultats posteriors que en depenen. Continuar?')) return;
+    if (prev && prev[0] !== w) dep.forEach(([a, b]) => delete estat.res[`${a}-${b}`]);
+    const pct = parseInt($('pct') && $('pct').value) || null;
+    estat.res[`${r}-${m}`] = [w, pct]; marcarCanvi();
+    if (!prev) triarSeguent(); pintarTot();
+}
+function posarPct(r, m, v) {
+    const res = resultat(r, m); if (!res) { mostrarStatus('Primer tria qui guanya', 'error'); return; }
+    const p = parseInt(v); res[1] = (p >= 50 && p <= 99) ? p : null; marcarCanvi(); pintarTot();
+}
+function esborrarResultat(r, m) {
+    const dep = dependents(r, m);
+    if (dep.length && !confirm('Esborra també els resultats posteriors que en depenen. Continuar?')) return;
+    delete estat.res[`${r}-${m}`]; dep.forEach(([a, b]) => delete estat.res[`${a}-${b}`]); marcarCanvi(); pintarTot();
+}
+function dadesGenerar(mode, r, m) {
+    return JSON.stringify({ mode, ronda: r, partit: m, tracks: estat.tracks.map(t => ({ id: t.id, nom: t.nom, artista: t.artista })), res: estat.res });
+}
+async function generarVersus(r, m) {
+    mostrarStatus('⏳ Enviant el partit a generar...', 'info');
+    const res = await dispararWorkflow('torneig.yml', { dades: dadesGenerar('versus', r, m) });
+    if (res.status === 204) mostrarStatus(`✅ Generació iniciada!<br>⏳ Tarda uns ${r === 3 ? 12 : 8} min. Després «⬇️ Vídeo» i «⬇️ Cuadre».`, 'ok');
+    else mostrarStatus(`❌ Error ${res.status}: ${res.detall}`, 'error');
+}
+
+// ---------- campió i cuadre ----------
+function descCampio() {
+    const f = resultat(3, 0); if (!f) return ''; const E = entrants(estat.res); const w = f[0], ru = E[3].find(x => x !== w);
+    const sf = [0, 1].map(mm => { const a = E[2][2 * mm], b = E[2][2 * mm + 1]; return resultat(2, mm)[0] === a ? b : a; });
+    return `🏆 ${nomArt(w)} is the BEST HARDSTYLE TRACK OF 2026, chosen by YOU${f[1] != null ? ` (${f[1]}% in the final)` : ''}!\n\n🥈 Runner-up: ${nomArt(ru)}\nSemi-finalists: ${T(sf[0]).nom} · ${T(sf[1]).nom}\n\nWant more hardstyle? The weekly Hardstyle Chart and the daily new releases are in the playlists. Link in bio! Thanks for voting.\n\n${estat.hashtags || HASHTAGS_DEF} #champion`;
+}
+function pintarCampio() {
+    const f = resultat(3, 0); $('card-campio').style.display = f ? 'block' : 'none'; if (!f) return;
+    const nom = T(f[0]).nom; const sensePct = f[1] == null;
+    $('campio').innerHTML = `<p style="margin-bottom:12px"><b>${esc(nom)}</b> — ${esc(T(f[0]).artista)}</p>
+      ${sensePct ? '<p class="nota" style="color:#ffb74d">⚠️ Per al vídeo del campió cal el % de la final (apartat Partits → Final).</p>' : ''}
+      <button class="btn btn-gold" onclick="generarCampio()" ${sensePct ? 'disabled' : ''}>🏆 Generar vídeo del campió</button>
+      <div class="row2"><button class="btn btn-secondary" onclick="descarregar('torneig_campio','video.mp4')">⬇️ Vídeo</button><button class="btn btn-secondary" onclick="descarregar('torneig_campio','cuadre.png')">⬇️ Cuadre final</button></div>
+      <label>Descripció + hashtags</label><textarea id="desc-campio" class="desc" rows="9" readonly onclick="this.select()">${esc(descCampio())}</textarea>
+      <button class="btn btn-secondary" onclick="copiar('desc-campio')">📋 Copiar descripció</button>
+      <p class="nota">El vídeo acaba promocionant el chart setmanal de hardstyle i els llançaments diaris (sticker «Playlist in bio»).</p>`;
+}
+async function generarCampio() {
+    mostrarStatus('⏳ Enviant el campió a generar...', 'info');
+    const res = await dispararWorkflow('torneig.yml', { dades: dadesGenerar('campio', 0, 0) });
+    if (res.status === 204) mostrarStatus('✅ Generació iniciada!<br>⏳ Tarda uns 10 min. Després «⬇️ Vídeo».', 'ok');
+    else mostrarStatus(`❌ Error ${res.status}: ${res.detall}`, 'error');
+}
+function descCuadre() {
+    const n = Object.keys(estat.res).length, ht = estat.hashtags || HASHTAGS_DEF;
+    if (n === 0) return `The draw is done! 16 tracks, 15 versus, 1 champion: the BEST HARDSTYLE TRACK OF 2026, chosen by YOU. First versus on ${dataEN(0)}. Who's your favourite? 👇\n\n${ht}`;
+    if (n === 15) return `The final bracket. ${T(resultat(3, 0)[0]).nom} is the BEST HARDSTYLE TRACK OF 2026!\n\n${ht} #champion`;
+    return `Bracket update: ${n}/15 versus played. Who's your pick for the BEST HARDSTYLE TRACK OF 2026? Tell me in the comments 👇\n\n${ht}`;
+}
+function pintarCuadre() { $('card-cuadre').style.display = estat.tracks.length === 16 ? 'block' : 'none'; if ($('desc-cuadre')) $('desc-cuadre').value = descCuadre(); }
+async function generarCuadre() {
+    mostrarStatus('⏳ Generant el cuadre...', 'info');
+    const res = await dispararWorkflow('torneig.yml', { dades: dadesGenerar('cuadre', 0, 0) });
+    if (res.status === 204) mostrarStatus('✅ Generació iniciada!<br>⏳ Tarda 1-2 min. Després «⬇️ Descarregar cuadre».', 'ok');
+    else mostrarStatus(`❌ Error ${res.status}: ${res.detall}`, 'error');
+}
+
+// ---------- descarregues i eines ----------
+async function descarregar(tag, nomAsset) {
+    const r = await fetch(`https://api.github.com/repos/${REPO}/releases/tags/${tag}`, { headers: { 'Authorization': `token ${TOKEN}` } });
+    if (r.status !== 200) { mostrarStatus('❌ Encara no hi ha res generat per aquest partit', 'error'); return; }
+    const rel = await r.json(); const a = rel.assets.find(x => x.name === nomAsset);
+    if (a) window.open(a.browser_download_url, '_blank'); else mostrarStatus('❌ Encara no està llest (el workflow segueix en marxa?)', 'error');
+}
+async function copiar(id) {
+    const el = $(id); el.select();
+    try { await navigator.clipboard.writeText(el.value); mostrarStatus('📋 Descripció copiada!', 'ok'); }
+    catch (e) { document.execCommand('copy'); mostrarStatus('📋 Descripció copiada!', 'ok'); }
+}
+async function veureEstat() {
+    mostrarStatus('⏳ Consultant estat...', 'info');
+    const r = await fetch(`https://api.github.com/repos/${REPO}/actions/runs?per_page=6`, { headers: { 'Authorization': `token ${TOKEN}` } });
+    const runs = (await r.json()).workflow_runs;
+    if (!runs || !runs.length) { mostrarStatus('❌ No hi ha workflows recents', 'error'); return; }
+    let h = '<b>Últims workflows:</b><br><br>';
+    for (const run of runs) {
+        const ico = run.status === 'completed' ? (run.conclusion === 'success' ? '✅' : '❌') : '⏳';
+        h += `${ico} <b>${run.name}</b> — ${run.conclusion || run.status}<br>&nbsp;&nbsp;&nbsp;${new Date(run.created_at).toLocaleString()}<br><br>`;
+    }
+    mostrarStatus(h, 'info');
+}
+
+// ---------- pintar ----------
+function pintarTot() {
+    $('data-inici').value = estat.inici; $('estil').value = estat.estil || 'energetic'; $('hashtags').value = estat.hashtags || HASHTAGS_DEF;
+    if (estat.tracks.length && !$('llista').value.trim()) $('llista').value = estat.tracks.map(t => `${t.nom} - ${t.artista}${t.yt_url ? ' ' + t.yt_url : ''}${t.inici != null ? ' @' + segonsAStr(t.inici) : ''}`).join('\n');
+    pintarTracks(); pintarPartits(); pintarPanell(); pintarCampio(); pintarCuadre();
+}
+</script>
+</body>
+</html>
