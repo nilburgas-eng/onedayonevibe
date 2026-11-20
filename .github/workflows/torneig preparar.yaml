@@ -1,0 +1,84 @@
+name: Torneig - Preparar clips
+
+on:
+  workflow_dispatch:
+    inputs:
+      tracks:
+        description: 'Temes en format JSON (id, nom, artista, yt_url, inici)'
+        required: true
+      estil:
+        description: 'Estil de deteccio del drop: energetic o melodic'
+        required: false
+        default: 'energetic'
+      forcar:
+        description: 'Tornar a fer tots els clips (1) o nomes els pendents (0)'
+        required: false
+        default: '0'
+
+jobs:
+  preparar:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout codi
+        uses: actions/checkout@v4
+
+      - name: Instal·lar dependencies
+        run: |
+          pip install yt-dlp requests google-auth google-auth-oauthlib google-api-python-client numpy scipy librosa
+          sudo apt-get update
+          sudo apt-get install -y --fix-missing ffmpeg curl wget
+
+      - name: Descarregar credencials des del Drive
+        run: |
+          python3 << 'PYEOF'
+          import requests
+          file_id = "${{ secrets.GDRIVE_FILE_ID }}"
+          url = f"https://drive.google.com/uc?export=download&id={file_id}"
+          r = requests.get(url)
+          with open('credentials.json', 'wb') as f:
+              f.write(r.content)
+          print(f"Credencials: {len(r.content)} bytes")
+          PYEOF
+
+      - name: Descarregar cookies des del Drive
+        run: |
+          python3 << 'PYEOF'
+          from google.oauth2.service_account import Credentials
+          from googleapiclient.discovery import build
+          from googleapiclient.http import MediaIoBaseDownload
+          import io
+          creds = Credentials.from_service_account_file('credentials.json', scopes=['https://www.googleapis.com/auth/drive'])
+          service = build('drive', 'v3', credentials=creds)
+          results = service.files().list(q="name='cookies.txt'", fields="files(id, name)").execute()
+          files = results.get('files', [])
+          if not files:
+              raise Exception("No s'ha trobat cookies.txt")
+          file_id = files[0]['id']
+          request = service.files().get_media(fileId=file_id)
+          with open('cookies.txt', 'wb') as f:
+              downloader = MediaIoBaseDownload(f, request)
+              done = False
+              while not done:
+                  _, done = downloader.next_chunk()
+          print("Cookies OK")
+          PYEOF
+
+      - name: Preparar clips
+        env:
+          TRACKS: ${{ github.event.inputs.tracks }}
+          ESTIL: ${{ github.event.inputs.estil }}
+          FORCAR: ${{ github.event.inputs.forcar }}
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+        run: python3 torneig_preparar.py
+
+      - name: Commit de torneig_clips.json
+        if: always()
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add torneig_clips.json || true
+          git commit -m "Actualitzar clips del torneig" || echo "Sense canvis"
+          git pull --rebase || true
+          git push || true
