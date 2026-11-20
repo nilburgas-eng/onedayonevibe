@@ -1,16 +1,16 @@
 {
  "versio": 1,
- "actualitzat": "2026-11-20T23:03:44.119Z",
+ "actualitzat": "2026-11-20T23:09:43.543Z",
  "inici": "2026-12-01",
  "estil": "energetic",
  "hashtags": "#hardstyle #harddance #onedayonevibe #hardstyle2026 #bestof2026 #hardstylefamily #rave",
  "tracks": [
   {
-   "nom": "-Block & S-te-Fan & Rebelion",
+   "nom": "D-Block & S-te-Fan & Rebelion",
    "artista": "Save The Day",
    "yt_url": "",
    "inici": null,
-   "id": "save-the-day-block-s-te-fan-rebelion"
+   "id": "save-the-day-d-block-s-te-fan-rebelion"
   },
   {
    "nom": "D-Sturb",
@@ -27,11 +27,11 @@
    "id": "discorecord-galactixx-remix-galactixx"
   },
   {
-   "nom": "The Purge",
-   "artista": "WILD ONES",
+   "nom": "Mutilator",
+   "artista": "HALO",
    "yt_url": "",
    "inici": null,
-   "id": "wild-ones-the-purge"
+   "id": "halo-mutilator"
   },
   {
    "nom": "Dual Damage",
@@ -55,11 +55,11 @@
    "id": "que-rico-galactixx-zany"
   },
   {
-   "nom": "Sickmode & Krowdexx",
-   "artista": "YEAH",
+   "nom": "Sub Zero Project",
+   "artista": "Our World",
    "yt_url": "",
    "inici": null,
-   "id": "yeah-sickmode-krowdexx"
+   "id": "our-world-sub-zero-project"
   },
   {
    "nom": "Dual Damage & Phuture Noize",
