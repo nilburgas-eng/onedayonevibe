@@ -1,6 +1,6 @@
 {
  "data": "2026-11-20",
- "generat": "2026-11-20T15:34:15+00:00",
+ "generat": "2026-11-20T20:07:56+00:00",
  "font": "hdrr.info",
  "candidats": [
   {
@@ -69,9 +69,10 @@
    "portada": "https://www.hdrr.info/media/img/covers/480/loic-d-a-l-envers-cover-art-4412a945.webp"
   },
   {
-   "titol": "I SEE YOU",
+   "titol": "No Escape",
    "artistes": [
-    "RAV3ART"
+    "Rollz Royce",
+    "Dev Lesh"
    ],
    "genere": "Hardstyle",
    "data": "2026-11-20",
@@ -79,12 +80,12 @@
    "motius": [],
    "versio": false,
    "comodi": true,
-   "hdrr_url": "https://www.hdrr.info/tracks/i-see-you-3",
-   "spotify_id": "3gN8c2gRtR2pLB3aFFRjxp",
-   "spotify_url": "https://open.spotify.com/track/3gN8c2gRtR2pLB3aFFRjxp",
+   "hdrr_url": "https://www.hdrr.info/tracks/no-escape-17",
+   "spotify_id": "2NaX6J2HL0QIknNBgNauYx",
+   "spotify_url": "https://open.spotify.com/track/2NaX6J2HL0QIknNBgNauYx",
    "popularitat_hdrr": 0,
-   "isrc": "QTAF22610892",
-   "portada": "https://www.hdrr.info/media/img/covers/480/rav3art-i-see-you-cover-art-0d844170.webp"
+   "isrc": "QTA7X2604300",
+   "portada": "https://www.hdrr.info/media/img/covers/480/rollz-royce-no-escape-cover-art-ea0ddf1a.webp"
   }
  ],
  "tots": [
@@ -327,44 +328,6 @@
    "hdrr_url": "https://www.hdrr.info/tracks/fckn-ill"
   },
   {
-   "titol": "Fingerprints",
-   "artistes": [
-    "Darksiderz",
-    "CGK",
-    "Jakiichu"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-20",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "6zbo1m447KoUbZbvpfViy2",
-   "hdrr_url": "https://www.hdrr.info/tracks/fingerprints"
-  },
-  {
-   "titol": "I SEE YOU",
-   "artistes": [
-    "RAV3ART"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-20",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "3gN8c2gRtR2pLB3aFFRjxp",
-   "hdrr_url": "https://www.hdrr.info/tracks/i-see-you-3"
-  },
-  {
-   "titol": "FEEL THE BASS",
-   "artistes": [
-    "Karina Rosee"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-20",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "5AzhjcCfpVzgCXN7e0yCVT",
-   "hdrr_url": "https://www.hdrr.info/tracks/feel-the-bass-18"
-  },
-  {
    "titol": "Back To Vibez",
    "artistes": [
     "IluSionerZ"
@@ -437,6 +400,18 @@
    "hdrr_url": "https://www.hdrr.info/tracks/darkness-57"
   },
   {
+   "titol": "BONKED IT! RELOADED",
+   "artistes": [
+    "Project Morpheus"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-20",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "5T1wQpAtjjFVSLf181GhWP",
+   "hdrr_url": "https://www.hdrr.info/tracks/bonked-it-reloaded"
+  },
+  {
    "titol": "Lost Inside - Radio Mix",
    "artistes": [
     "B-Stork"
@@ -460,18 +435,6 @@
    "versio": true,
    "spotify_id": "5oxYIJk3ayTjz5idrgH9Me",
    "hdrr_url": "https://www.hdrr.info/tracks/all-these-moments-extended-mix"
-  },
-  {
-   "titol": "FRACASSÃ - Radio Edit",
-   "artistes": [
-    "L'Ãtrange M. Redan"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-20",
-   "punts": -20.0,
-   "versio": true,
-   "spotify_id": "3HnYJBdSTmeCIn0rvUOqIy",
-   "hdrr_url": "https://www.hdrr.info/tracks/fracasse-radio-edit"
   },
   {
    "titol": "End Up Lonely - Extended",
@@ -524,6 +487,91 @@
    "hdrr_url": "https://www.hdrr.info/tracks/i-run-extended-mix"
   },
   {
+   "titol": "Let It Ride",
+   "artistes": [
+    "Sparkz",
+    "EMERGNCY"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-19",
+   "punts": 35.0,
+   "versio": false,
+   "spotify_id": "70azFnUTNcqZfJvQOtjpuy",
+   "hdrr_url": "https://www.hdrr.info/tracks/let-it-ride-4"
+  },
+  {
+   "titol": "RUNNIN'",
+   "artistes": [
+    "Revelation"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-19",
+   "punts": 22.0,
+   "versio": false,
+   "spotify_id": "6HVfRPi7jm2q2Ag38BgWfi",
+   "hdrr_url": "https://www.hdrr.info/tracks/runnin-4"
+  },
+  {
+   "titol": "revival arc - interlude",
+   "artistes": [
+    "Thyron"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-19",
+   "punts": 9.0,
+   "versio": false,
+   "spotify_id": "6Txb3pDTr9zsEv1nxoTyyn",
+   "hdrr_url": "https://www.hdrr.info/tracks/revival-arc-interlude"
+  },
+  {
+   "titol": "r.i.p.",
+   "artistes": [
+    "Thyron"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-19",
+   "punts": 9.0,
+   "versio": false,
+   "spotify_id": "0QV44amSrUH1lpKajriR0m",
+   "hdrr_url": "https://www.hdrr.info/tracks/r-i-p-6"
+  },
+  {
+   "titol": "event horizon arc - interlude",
+   "artistes": [
+    "Thyron"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-19",
+   "punts": 9.0,
+   "versio": false,
+   "spotify_id": "7Bs04Iy2HBxaDtPFaveeDS",
+   "hdrr_url": "https://www.hdrr.info/tracks/event-horizon-arc-interlude"
+  },
+  {
+   "titol": "dissonance arc - intro",
+   "artistes": [
+    "Thyron"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-19",
+   "punts": 9.0,
+   "versio": false,
+   "spotify_id": "3aR4yshsARnby58t9PbGJG",
+   "hdrr_url": "https://www.hdrr.info/tracks/dissonance-arc-intro"
+  },
+  {
+   "titol": "back 2 life",
+   "artistes": [
+    "Thyron"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-19",
+   "punts": 9.0,
+   "versio": false,
+   "spotify_id": "1eeN3wfsWX9zUNdUDab5C9",
+   "hdrr_url": "https://www.hdrr.info/tracks/back-2-life-6"
+  },
+  {
    "titol": "a farewell to...",
    "artistes": [
     "Thyron"
@@ -534,6 +582,19 @@
    "versio": false,
    "spotify_id": "46fHZCGzEzHoxI8X5ZyqqL",
    "hdrr_url": "https://www.hdrr.info/tracks/a-farewell-to"
+  },
+  {
+   "titol": "Showdown",
+   "artistes": [
+    "D-Charged",
+    "Synthsoldier"
+   ],
+   "genere": "Euphoric Hardstyle",
+   "data": "2026-11-19",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "6Vi8Yf3VvyWzN2BqQItKkD",
+   "hdrr_url": "https://www.hdrr.info/tracks/showdown-3"
   },
   {
    "titol": "NIGHTCORE BASSBOOSTED - DJ Version",
@@ -709,18 +770,17 @@
    "punts": 0.0
   },
   {
-   "titol": "Ash & Pain",
+   "titol": "Back To Vibez",
    "artistes": [
-    "Ducal",
-    "Lucion"
+    "IluSionerZ"
    ],
    "genere": "Hardstyle",
    "punts": 0.0
   },
   {
-   "titol": "Back To Vibez",
+   "titol": "BONKED IT! RELOADED",
    "artistes": [
-    "IluSionerZ"
+    "Project Morpheus"
    ],
    "genere": "Hardstyle",
    "punts": 0.0
@@ -760,41 +820,6 @@
    "punts": 0.0
   },
   {
-   "titol": "Fckn Ill",
-   "artistes": [
-    "R3MAX",
-    "TARVEX"
-   ],
-   "genere": "Hardstyle",
-   "punts": 0.0
-  },
-  {
-   "titol": "FEEL THE BASS",
-   "artistes": [
-    "Karina Rosee"
-   ],
-   "genere": "Hardstyle",
-   "punts": 0.0
-  },
-  {
-   "titol": "Fingerprints",
-   "artistes": [
-    "Darksiderz",
-    "CGK",
-    "Jakiichu"
-   ],
-   "genere": "Hardstyle",
-   "punts": 0.0
-  },
-  {
-   "titol": "Give Them Love",
-   "artistes": [
-    "Norse Vision"
-   ],
-   "genere": "Hardstyle",
-   "punts": 0.0
-  },
-  {
    "titol": "Give Them Love",
    "artistes": [
     "Norse Vision"
@@ -815,14 +840,6 @@
    "titol": "Hear Me",
    "artistes": [
     "Aztronomer"
-   ],
-   "genere": "Hardstyle",
-   "punts": 0.0
-  },
-  {
-   "titol": "I SEE YOU",
-   "artistes": [
-    "RAV3ART"
    ],
    "genere": "Hardstyle",
    "punts": 0.0
@@ -871,26 +888,9 @@
    "punts": 0.0
   },
   {
-   "titol": "No Escape",
-   "artistes": [
-    "Rollz Royce",
-    "Dev Lesh"
-   ],
-   "genere": "Hardstyle",
-   "punts": 0.0
-  },
-  {
    "titol": "No Stopping Me",
    "artistes": [
     "Invated"
-   ],
-   "genere": "Hardstyle",
-   "punts": 0.0
-  },
-  {
-   "titol": "Push TF",
-   "artistes": [
-    "Aranxa"
    ],
    "genere": "Hardstyle",
    "punts": 0.0
@@ -960,14 +960,6 @@
    "punts": -20.0
   },
   {
-   "titol": "FRACASSÃ - Radio Edit",
-   "artistes": [
-    "L'Ãtrange M. Redan"
-   ],
-   "genere": "Hardstyle",
-   "punts": -20.0
-  },
-  {
    "titol": "I Run - Extended mix",
    "artistes": [
     "MICHALEK"
@@ -994,8 +986,8 @@
  ],
  "estadistiques": {
   "llegits": 80,
-  "del_dia": 40,
-  "despres_filtre": 38,
+  "del_dia": 32,
+  "despres_filtre": 30,
   "artistes_top100": 141,
   "temes_chart_propi": 13
  },
