@@ -3190,6 +3190,18 @@
    "executat": "2026-11-19T20:30:40+00:00",
    "afegits": [],
    "eliminats": 0
+  },
+  {
+   "data": "2026-11-20",
+   "executat": "2026-11-20T13:29:55+00:00",
+   "afegits": [
+    {
+     "titol": "Love Is Not Enough",
+     "spotify_id": "5LD34OWrOAsPEMFnetdFGu",
+     "manual": true
+    }
+   ],
+   "eliminats": 0
   }
  ]
 }
