@@ -3202,6 +3202,107 @@
     }
    ],
    "eliminats": 0
+  },
+  {
+   "data": "2026-11-20",
+   "executat": "2026-11-20T15:34:39+00:00",
+   "afegits": [
+    {
+     "titol": "What Is This Called",
+     "artistes": [
+      "The Saints",
+      "Resensed"
+     ],
+     "spotify_id": "16cXHTWpuu40XzrhW4rX1x",
+     "data": "2026-11-20",
+     "punts": 52.5
+    },
+    {
+     "titol": "SLEEP LESS",
+     "artistes": [
+      "Rebelion",
+      "The Dark Horror"
+     ],
+     "spotify_id": "4mr5Bik1vkbgaIpMUr3FAh",
+     "data": "2026-11-20",
+     "punts": 47.0
+    },
+    {
+     "titol": "Ã L'envers",
+     "artistes": [
+      "Loic D",
+      "High Resistance",
+      "Ntoy"
+     ],
+     "spotify_id": "0VThSnJLbJNC68peda9HnA",
+     "data": "2026-11-20",
+     "punts": 17.0
+    },
+    {
+     "titol": "Worlds Collide",
+     "artistes": [
+      "Heavy Resistance",
+      "MC Activate",
+      "Dark Entities",
+      "SVANE",
+      "NOCTURNAL",
+      "B-Struct"
+     ],
+     "spotify_id": "1UxTyhpZp7DKoW3jvRteS5",
+     "data": "2026-11-20",
+     "punts": 3.5
+    },
+    {
+     "titol": "a farewell to...",
+     "artistes": [
+      "Thyron"
+     ],
+     "spotify_id": "46fHZCGzEzHoxI8X5ZyqqL",
+     "data": "2026-11-19",
+     "punts": 9.0
+    },
+    {
+     "titol": "NIGHTCORE BASSBOOSTED - DJ Version",
+     "artistes": [
+      "Geck-O",
+      "Crypton"
+     ],
+     "spotify_id": "0e3Wi9d6K1d0NEb5xBB5Ct",
+     "data": "2026-11-19",
+     "punts": 0.0
+    },
+    {
+     "titol": "Spenk - Air-Power Hard Mix",
+     "artistes": [
+      "Bruno Power",
+      "Air Teo"
+     ],
+     "spotify_id": "0N1RNedsERYFWCFNmnisoL",
+     "data": "2026-11-19",
+     "punts": 0.0
+    },
+    {
+     "titol": "Played-A-Live (The Bongo Song) (Hardstyle)",
+     "artistes": [
+      "Empira"
+     ],
+     "spotify_id": "5DXIVq5QZRs649wFyL4NFB",
+     "data": "2026-11-19",
+     "punts": 0.0
+    },
+    {
+     "titol": "Far Away",
+     "artistes": [
+      "Udex",
+      "Rogue Zero",
+      "Stereo Static"
+     ],
+     "spotify_id": "2MiwnHB1HaF6kJqkaG64SO",
+     "data": "2026-11-19",
+     "punts": 0.0
+    }
+   ],
+   "eliminats": 0
   }
  ]
 }

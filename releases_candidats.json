@@ -1,6 +1,6 @@
 {
  "data": "2026-11-20",
- "generat": "2026-11-20T13:25:37+00:00",
+ "generat": "2026-11-20T15:34:15+00:00",
  "font": "hdrr.info",
  "candidats": [
   {
@@ -47,30 +47,31 @@
    "portada": "https://www.hdrr.info/media/img/covers/480/rebelion-sleep-less-cover-art-60b0cbc0.webp"
   },
   {
-   "titol": "Last Zaag",
+   "titol": "Ã L'envers",
    "artistes": [
-    "More Kords"
+    "Loic D",
+    "High Resistance",
+    "Ntoy"
    ],
    "genere": "Hardstyle",
    "data": "2026-11-20",
-   "punts": 36.5,
+   "punts": 17.0,
    "motius": [
-    "More Kords: #28 al Top 100 de HDRR (+36.5)"
+    "High Resistance: #67 al Top 100 de HDRR (+17.0)"
    ],
    "versio": false,
    "comodi": false,
-   "hdrr_url": "https://www.hdrr.info/tracks/last-zaag",
-   "spotify_id": "0vClWJJ6n65ODiRUMB4RDz",
-   "spotify_url": "https://open.spotify.com/track/0vClWJJ6n65ODiRUMB4RDz",
+   "hdrr_url": "https://www.hdrr.info/tracks/a-l-envers",
+   "spotify_id": "0VThSnJLbJNC68peda9HnA",
+   "spotify_url": "https://open.spotify.com/track/0VThSnJLbJNC68peda9HnA",
    "popularitat_hdrr": 0,
-   "isrc": "QT66E2605163",
-   "portada": "https://www.hdrr.info/media/img/covers/480/more-kords-last-zaag-cover-art-5d4730ef.webp"
+   "isrc": "GXLEQ2650095",
+   "portada": "https://www.hdrr.info/media/img/covers/480/loic-d-a-l-envers-cover-art-4412a945.webp"
   },
   {
-   "titol": "Last Christmas (Hardstyle)",
+   "titol": "I SEE YOU",
    "artistes": [
-    "crypvolk",
-    "Qaos"
+    "RAV3ART"
    ],
    "genere": "Hardstyle",
    "data": "2026-11-20",
@@ -78,12 +79,12 @@
    "motius": [],
    "versio": false,
    "comodi": true,
-   "hdrr_url": "https://www.hdrr.info/tracks/last-christmas-hardstyle-3",
-   "spotify_id": "",
-   "spotify_url": "",
-   "popularitat_hdrr": null,
-   "isrc": "",
-   "portada": "https://www.hdrr.info/media/img/covers/480/crypvolk-last-christmas-hardstyle-cover-art-5d46d446.webp"
+   "hdrr_url": "https://www.hdrr.info/tracks/i-see-you-3",
+   "spotify_id": "3gN8c2gRtR2pLB3aFFRjxp",
+   "spotify_url": "https://open.spotify.com/track/3gN8c2gRtR2pLB3aFFRjxp",
+   "popularitat_hdrr": 0,
+   "isrc": "QTAF22610892",
+   "portada": "https://www.hdrr.info/media/img/covers/480/rav3art-i-see-you-cover-art-0d844170.webp"
   }
  ],
  "tots": [
@@ -112,18 +113,6 @@
    "versio": false,
    "spotify_id": "4mr5Bik1vkbgaIpMUr3FAh",
    "hdrr_url": "https://www.hdrr.info/tracks/sleep-less"
-  },
-  {
-   "titol": "Last Zaag",
-   "artistes": [
-    "More Kords"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-20",
-   "punts": 36.5,
-   "versio": false,
-   "spotify_id": "0vClWJJ6n65ODiRUMB4RDz",
-   "hdrr_url": "https://www.hdrr.info/tracks/last-zaag"
   },
   {
    "titol": "Ã L'envers",
@@ -157,19 +146,6 @@
    "hdrr_url": "https://www.hdrr.info/tracks/worlds-collide-14"
   },
   {
-   "titol": "Virtuoso",
-   "artistes": [
-    "Creeds",
-    "Vladimir Cauchemar"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-20",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "2k9ATZ39mVSD9zqNJv8tdv",
-   "hdrr_url": "https://www.hdrr.info/tracks/virtuoso"
-  },
-  {
    "titol": "MUSIC MY DRVG",
    "artistes": [
     "Showtek"
@@ -194,31 +170,6 @@
    "versio": false,
    "spotify_id": "5LD34OWrOAsPEMFnetdFGu",
    "hdrr_url": "https://www.hdrr.info/tracks/love-is-not-enough"
-  },
-  {
-   "titol": "Last Christmas (Hardstyle)",
-   "artistes": [
-    "crypvolk",
-    "Qaos"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-20",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "",
-   "hdrr_url": "https://www.hdrr.info/tracks/last-christmas-hardstyle-3"
-  },
-  {
-   "titol": "Wanna Feel It",
-   "artistes": [
-    "MANDY"
-   ],
-   "genere": "Euphoric Hardstyle",
-   "data": "2026-11-20",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "",
-   "hdrr_url": "https://www.hdrr.info/tracks/wanna-feel-it"
   },
   {
    "titol": "We Are Alive",
@@ -277,19 +228,6 @@
    "hdrr_url": "https://www.hdrr.info/tracks/emergency-8"
   },
   {
-   "titol": "MADMAN",
-   "artistes": [
-    "A B P",
-    "Judgement Day"
-   ],
-   "genere": "Rawstyle",
-   "data": "2026-11-20",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "2Llep9L4FooJ8A9TRm4TIt",
-   "hdrr_url": "https://www.hdrr.info/tracks/madman-3"
-  },
-  {
    "titol": "Infinite",
    "artistes": [
     "DÃVINÃ"
@@ -326,20 +264,6 @@
    "hdrr_url": "https://www.hdrr.info/tracks/wonderful-life-2"
   },
   {
-   "titol": "Fingerprints",
-   "artistes": [
-    "Darksiderz",
-    "CGK",
-    "Jakiichu"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-20",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "6zbo1m447KoUbZbvpfViy2",
-   "hdrr_url": "https://www.hdrr.info/tracks/fingerprints"
-  },
-  {
    "titol": "Ash & Pain",
    "artistes": [
     "Ducal",
@@ -353,18 +277,6 @@
    "hdrr_url": "https://www.hdrr.info/tracks/ash-pain"
   },
   {
-   "titol": "I SEE YOU",
-   "artistes": [
-    "RAV3ART"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-20",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "3gN8c2gRtR2pLB3aFFRjxp",
-   "hdrr_url": "https://www.hdrr.info/tracks/i-see-you-3"
-  },
-  {
    "titol": "Give Them Love",
    "artistes": [
     "Norse Vision"
@@ -375,18 +287,6 @@
    "versio": false,
    "spotify_id": "0gjdyi97xX6Y8Qj9bRpwzq",
    "hdrr_url": "https://www.hdrr.info/tracks/give-them-love"
-  },
-  {
-   "titol": "FEEL THE BASS",
-   "artistes": [
-    "Karina Rosee"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-20",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "5AzhjcCfpVzgCXN7e0yCVT",
-   "hdrr_url": "https://www.hdrr.info/tracks/feel-the-bass-18"
   },
   {
    "titol": "No Escape",
@@ -425,6 +325,44 @@
    "versio": false,
    "spotify_id": "5N1VHBsguY3Rk9UJSseGwC",
    "hdrr_url": "https://www.hdrr.info/tracks/fckn-ill"
+  },
+  {
+   "titol": "Fingerprints",
+   "artistes": [
+    "Darksiderz",
+    "CGK",
+    "Jakiichu"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-20",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "6zbo1m447KoUbZbvpfViy2",
+   "hdrr_url": "https://www.hdrr.info/tracks/fingerprints"
+  },
+  {
+   "titol": "I SEE YOU",
+   "artistes": [
+    "RAV3ART"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-20",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "3gN8c2gRtR2pLB3aFFRjxp",
+   "hdrr_url": "https://www.hdrr.info/tracks/i-see-you-3"
+  },
+  {
+   "titol": "FEEL THE BASS",
+   "artistes": [
+    "Karina Rosee"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-20",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "5AzhjcCfpVzgCXN7e0yCVT",
+   "hdrr_url": "https://www.hdrr.info/tracks/feel-the-bass-18"
   },
   {
    "titol": "Back To Vibez",
@@ -749,16 +687,6 @@
  ],
  "resta": [
   {
-   "titol": "Ã L'envers",
-   "artistes": [
-    "Loic D",
-    "High Resistance",
-    "Ntoy"
-   ],
-   "genere": "Hardstyle",
-   "punts": 17.0
-  },
-  {
    "titol": "Worlds Collide",
    "artistes": [
     "Heavy Resistance",
@@ -770,6 +698,15 @@
    ],
    "genere": "Hardstyle",
    "punts": 3.5
+  },
+  {
+   "titol": "Ash & Pain",
+   "artistes": [
+    "Ducal",
+    "Lucion"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
   },
   {
    "titol": "Ash & Pain",
@@ -823,6 +760,15 @@
    "punts": 0.0
   },
   {
+   "titol": "Fckn Ill",
+   "artistes": [
+    "R3MAX",
+    "TARVEX"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
    "titol": "FEEL THE BASS",
    "artistes": [
     "Karina Rosee"
@@ -836,6 +782,14 @@
     "Darksiderz",
     "CGK",
     "Jakiichu"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Give Them Love",
+   "artistes": [
+    "Norse Vision"
    ],
    "genere": "Hardstyle",
    "punts": 0.0
@@ -882,15 +836,6 @@
    "punts": 0.0
   },
   {
-   "titol": "Last Christmas (Hardstyle)",
-   "artistes": [
-    "crypvolk",
-    "Qaos"
-   ],
-   "genere": "Hardstyle",
-   "punts": 0.0
-  },
-  {
    "titol": "Love Is Not Enough",
    "artistes": [
     "Headhunterz",
@@ -898,15 +843,6 @@
     "Project One"
    ],
    "genere": "Hardstyle",
-   "punts": 0.0
-  },
-  {
-   "titol": "MADMAN",
-   "artistes": [
-    "A B P",
-    "Judgement Day"
-   ],
-   "genere": "Rawstyle",
    "punts": 0.0
   },
   {
@@ -935,9 +871,26 @@
    "punts": 0.0
   },
   {
+   "titol": "No Escape",
+   "artistes": [
+    "Rollz Royce",
+    "Dev Lesh"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
    "titol": "No Stopping Me",
    "artistes": [
     "Invated"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Push TF",
+   "artistes": [
+    "Aranxa"
    ],
    "genere": "Hardstyle",
    "punts": 0.0
@@ -969,23 +922,6 @@
     "Lilly Mallou"
    ],
    "genere": "Hardstyle",
-   "punts": 0.0
-  },
-  {
-   "titol": "Virtuoso",
-   "artistes": [
-    "Creeds",
-    "Vladimir Cauchemar"
-   ],
-   "genere": "Hardstyle",
-   "punts": 0.0
-  },
-  {
-   "titol": "Wanna Feel It",
-   "artistes": [
-    "MANDY"
-   ],
-   "genere": "Euphoric Hardstyle",
    "punts": 0.0
   },
   {
@@ -1063,9 +999,5 @@
   "artistes_top100": 141,
   "temes_chart_propi": 13
  },
- "avisos": [
-  "Last Christmas (Hardstyle): no he trobat l'enllac de Spotify",
-  "Last Christmas (Hardstyle): sense enllac de Spotify (no es pot afegir a la playlist)",
-  "Wanna Feel It: sense enllac de Spotify (no es pot afegir a la playlist)"
- ]
+ "avisos": []
 }
