@@ -3309,6 +3309,22 @@
    "executat": "2026-11-20T20:08:22+00:00",
    "afegits": [],
    "eliminats": 0
+  },
+  {
+   "data": "2026-11-21",
+   "executat": "2026-11-21T14:45:27+00:00",
+   "afegits": [
+    {
+     "titol": "Moon",
+     "artistes": [
+      "MICHALEK"
+     ],
+     "spotify_id": "5ZkZrbgZwlEwhpLUlhg0SY",
+     "data": "2026-11-21",
+     "punts": 0.0
+    }
+   ],
+   "eliminats": 0
   }
  ]
 }
