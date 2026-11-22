@@ -3331,6 +3331,60 @@
    "executat": "2026-11-21T19:10:23+00:00",
    "afegits": [],
    "eliminats": 0
+  },
+  {
+   "data": "2026-11-22",
+   "executat": "2026-11-22T14:42:07+00:00",
+   "afegits": [
+    {
+     "titol": "Wait For You",
+     "artistes": [
+      "Scutoid",
+      "Benji the Machine",
+      "Izzy Kai"
+     ],
+     "spotify_id": "1yz82jg66W9CIBokXNqrUf",
+     "data": "2026-11-22",
+     "punts": 0.0
+    },
+    {
+     "titol": "Things will work out",
+     "artistes": [
+      "Ataraxia"
+     ],
+     "spotify_id": "1EgK6xdforMFM5ueun1RFo",
+     "data": "2026-11-22",
+     "punts": 0.0
+    },
+    {
+     "titol": "Someday,peacefully",
+     "artistes": [
+      "Ataraxia"
+     ],
+     "spotify_id": "40r7aG9X2DdY2OycnHtezX",
+     "data": "2026-11-22",
+     "punts": 0.0
+    },
+    {
+     "titol": "Impatience 3",
+     "artistes": [
+      "Ataraxia"
+     ],
+     "spotify_id": "1hWmIxz3Vfc3CSVdJtdzEO",
+     "data": "2026-11-22",
+     "punts": 0.0
+    },
+    {
+     "titol": "Impatience 2",
+     "artistes": [
+      "Ataraxia"
+     ],
+     "spotify_id": "43jm65IdqY9ow62TEZZs6Y",
+     "data": "2026-11-22",
+     "punts": 0.0
+    }
+   ],
+   "eliminats": 0
   }
  ]
 }

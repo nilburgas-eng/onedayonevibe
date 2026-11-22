@@ -1,28 +1,168 @@
 {
- "data": "2026-11-21",
- "generat": "2026-11-21T19:10:10+00:00",
+ "data": "2026-11-22",
+ "generat": "2026-11-22T14:41:31+00:00",
  "font": "hdrr.info",
  "candidats": [
   {
-   "titol": "Moon",
+   "titol": "Comfort and Prayer",
    "artistes": [
-    "MICHALEK"
+    "Ataraxia"
    ],
    "genere": "Hardstyle",
-   "data": "2026-11-21",
+   "data": "2026-11-22",
    "punts": 0.0,
    "motius": [],
    "versio": false,
    "comodi": false,
-   "hdrr_url": "https://www.hdrr.info/tracks/moon-7",
-   "spotify_id": "5ZkZrbgZwlEwhpLUlhg0SY",
-   "spotify_url": "https://open.spotify.com/track/5ZkZrbgZwlEwhpLUlhg0SY",
+   "hdrr_url": "https://www.hdrr.info/tracks/comfort-and-prayer",
+   "spotify_id": "0QeZXWeLUAeKFOH29pqr5S",
+   "spotify_url": "https://open.spotify.com/track/0QeZXWeLUAeKFOH29pqr5S",
    "popularitat_hdrr": 0,
-   "isrc": "UKJKF2600501",
-   "portada": "https://www.hdrr.info/media/img/covers/480/michalek-moon-cover-art-d6b161e9.webp"
+   "isrc": "JP92N2628393",
+   "portada": "https://www.hdrr.info/media/img/covers/480/ataraxia-comfort-and-prayer-cover-art-db3450de.webp"
+  },
+  {
+   "titol": "Impatience 1",
+   "artistes": [
+    "Ataraxia"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-22",
+   "punts": 0.0,
+   "motius": [],
+   "versio": false,
+   "comodi": false,
+   "hdrr_url": "https://www.hdrr.info/tracks/impatience-1",
+   "spotify_id": "10Ee7ByCVR5G7YXItqEwxS",
+   "spotify_url": "https://open.spotify.com/track/10Ee7ByCVR5G7YXItqEwxS",
+   "popularitat_hdrr": 0,
+   "isrc": "JP92N2628390",
+   "portada": "https://www.hdrr.info/media/img/covers/480/ataraxia-impatience-1-cover-art-db3450de.webp"
+  },
+  {
+   "titol": "Impatience 2",
+   "artistes": [
+    "Ataraxia"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-22",
+   "punts": 0.0,
+   "motius": [],
+   "versio": false,
+   "comodi": false,
+   "hdrr_url": "https://www.hdrr.info/tracks/impatience-2",
+   "spotify_id": "43jm65IdqY9ow62TEZZs6Y",
+   "spotify_url": "https://open.spotify.com/track/43jm65IdqY9ow62TEZZs6Y",
+   "popularitat_hdrr": 0,
+   "isrc": "JP92N2628391",
+   "portada": "https://www.hdrr.info/media/img/covers/480/ataraxia-impatience-2-cover-art-db3450de.webp"
+  },
+  {
+   "titol": "Things will work out",
+   "artistes": [
+    "Ataraxia"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-22",
+   "punts": 0.0,
+   "motius": [],
+   "versio": false,
+   "comodi": true,
+   "hdrr_url": "https://www.hdrr.info/tracks/things-will-work-out",
+   "spotify_id": "1EgK6xdforMFM5ueun1RFo",
+   "spotify_url": "https://open.spotify.com/track/1EgK6xdforMFM5ueun1RFo",
+   "popularitat_hdrr": 0,
+   "isrc": "JP92N2628395",
+   "portada": "https://www.hdrr.info/media/img/covers/480/ataraxia-things-will-work-out-cover-art-db3450de.webp"
   }
  ],
  "tots": [
+  {
+   "titol": "Wait For You",
+   "artistes": [
+    "Scutoid",
+    "Benji the Machine",
+    "Izzy Kai"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-22",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "1yz82jg66W9CIBokXNqrUf",
+   "hdrr_url": "https://www.hdrr.info/tracks/wait-for-you-12"
+  },
+  {
+   "titol": "Things will work out",
+   "artistes": [
+    "Ataraxia"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-22",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "1EgK6xdforMFM5ueun1RFo",
+   "hdrr_url": "https://www.hdrr.info/tracks/things-will-work-out"
+  },
+  {
+   "titol": "Someday,peacefully",
+   "artistes": [
+    "Ataraxia"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-22",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "40r7aG9X2DdY2OycnHtezX",
+   "hdrr_url": "https://www.hdrr.info/tracks/someday-peacefully"
+  },
+  {
+   "titol": "Impatience 3",
+   "artistes": [
+    "Ataraxia"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-22",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "1hWmIxz3Vfc3CSVdJtdzEO",
+   "hdrr_url": "https://www.hdrr.info/tracks/impatience-3"
+  },
+  {
+   "titol": "Impatience 2",
+   "artistes": [
+    "Ataraxia"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-22",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "43jm65IdqY9ow62TEZZs6Y",
+   "hdrr_url": "https://www.hdrr.info/tracks/impatience-2"
+  },
+  {
+   "titol": "Impatience 1",
+   "artistes": [
+    "Ataraxia"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-22",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "10Ee7ByCVR5G7YXItqEwxS",
+   "hdrr_url": "https://www.hdrr.info/tracks/impatience-1"
+  },
+  {
+   "titol": "Comfort and Prayer",
+   "artistes": [
+    "Ataraxia"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-22",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "0QeZXWeLUAeKFOH29pqr5S",
+   "hdrr_url": "https://www.hdrr.info/tracks/comfort-and-prayer"
+  },
   {
    "titol": "Moon",
    "artistes": [
@@ -34,411 +174,49 @@
    "versio": false,
    "spotify_id": "5ZkZrbgZwlEwhpLUlhg0SY",
    "hdrr_url": "https://www.hdrr.info/tracks/moon-7"
-  },
-  {
-   "titol": "What Is This Called",
-   "artistes": [
-    "The Saints",
-    "Resensed"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-20",
-   "punts": 52.5,
-   "versio": false,
-   "spotify_id": "16cXHTWpuu40XzrhW4rX1x",
-   "hdrr_url": "https://www.hdrr.info/tracks/what-is-this-called"
-  },
-  {
-   "titol": "SLEEP LESS",
-   "artistes": [
-    "Rebelion",
-    "The Dark Horror"
-   ],
-   "genere": "Rawstyle",
-   "data": "2026-11-20",
-   "punts": 47.0,
-   "versio": false,
-   "spotify_id": "4mr5Bik1vkbgaIpMUr3FAh",
-   "hdrr_url": "https://www.hdrr.info/tracks/sleep-less"
-  },
-  {
-   "titol": "Ã L'envers",
-   "artistes": [
-    "Loic D",
-    "High Resistance",
-    "Ntoy"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-20",
-   "punts": 20.5,
-   "versio": false,
-   "spotify_id": "0VThSnJLbJNC68peda9HnA",
-   "hdrr_url": "https://www.hdrr.info/tracks/a-l-envers"
-  },
-  {
-   "titol": "Worlds Collide",
-   "artistes": [
-    "Heavy Resistance",
-    "MC Activate",
-    "Dark Entities",
-    "SVANE",
-    "NOCTURNAL",
-    "B-Struct"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-20",
-   "punts": 1.0,
-   "versio": false,
-   "spotify_id": "1UxTyhpZp7DKoW3jvRteS5",
-   "hdrr_url": "https://www.hdrr.info/tracks/worlds-collide-14"
-  },
-  {
-   "titol": "MUSIC MY DRVG",
-   "artistes": [
-    "Showtek"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-20",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "03nd0pHl67jyQzIgsDbygf",
-   "hdrr_url": "https://www.hdrr.info/tracks/music-my-drvg"
-  },
-  {
-   "titol": "Love Is Not Enough",
-   "artistes": [
-    "Headhunterz",
-    "Wildstylez",
-    "Project One"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-20",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "5LD34OWrOAsPEMFnetdFGu",
-   "hdrr_url": "https://www.hdrr.info/tracks/love-is-not-enough"
-  },
-  {
-   "titol": "We Are Alive",
-   "artistes": [
-    "Jay Reeve",
-    "Noiseshock"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-20",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "2CrAsjubNzdxRs5a1P4C7O",
-   "hdrr_url": "https://www.hdrr.info/tracks/we-are-alive-3"
-  },
-  {
-   "titol": "Guardian Light",
-   "artistes": [
-    "Dirty Workz",
-    "Revizion"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-20",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "78JYqxDP0KKNvhCeizBskM",
-   "hdrr_url": "https://www.hdrr.info/tracks/guardian-light"
-  },
-  {
-   "titol": "EMERGENCY",
-   "artistes": [
-    "Chapter V",
-    "Repeller"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-20",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "6tqhXGnhDxYpbENn0ipi5g",
-   "hdrr_url": "https://www.hdrr.info/tracks/emergency-8"
-  },
-  {
-   "titol": "Infinite",
-   "artistes": [
-    "DÃVINÃ"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-20",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "7H0mnod6SOCBoPtMqf123A",
-   "hdrr_url": "https://www.hdrr.info/tracks/infinite-14"
-  },
-  {
-   "titol": "All These Moments",
-   "artistes": [
-    "Chaoz",
-    "Wasted"
-   ],
-   "genere": "Euphoric Hardstyle",
-   "data": "2026-11-20",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "5oxYIJk3ayTjz5idrgH9Me",
-   "hdrr_url": "https://www.hdrr.info/tracks/all-these-moments-extended-mix"
-  },
-  {
-   "titol": "No Stopping Me",
-   "artistes": [
-    "Invated"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-20",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "7o9knAH2AxXKQVdphAv546",
-   "hdrr_url": "https://www.hdrr.info/tracks/no-stopping-me"
-  },
-  {
-   "titol": "WONDERFUL LIFE",
-   "artistes": [
-    "THRYZE"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-20",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "5qLFoxQhdJB2r7Lxyp0Ix3",
-   "hdrr_url": "https://www.hdrr.info/tracks/wonderful-life-2"
-  },
-  {
-   "titol": "Ash & Pain",
-   "artistes": [
-    "Ducal",
-    "Lucion"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-20",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "6SS1es8P4T5NzLQXY90JYu",
-   "hdrr_url": "https://www.hdrr.info/tracks/ash-pain"
-  },
-  {
-   "titol": "Give Them Love",
-   "artistes": [
-    "Norse Vision"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-20",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "0gjdyi97xX6Y8Qj9bRpwzq",
-   "hdrr_url": "https://www.hdrr.info/tracks/give-them-love"
-  },
-  {
-   "titol": "No Escape",
-   "artistes": [
-    "Rollz Royce",
-    "Dev Lesh"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-20",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "2NaX6J2HL0QIknNBgNauYx",
-   "hdrr_url": "https://www.hdrr.info/tracks/no-escape-17"
-  },
-  {
-   "titol": "Push TF",
-   "artistes": [
-    "Aranxa"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-20",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "3AgzqhUsXi3YwwtIXfF81g",
-   "hdrr_url": "https://www.hdrr.info/tracks/push-tf"
-  },
-  {
-   "titol": "Fckn Ill",
-   "artistes": [
-    "R3MAX",
-    "TARVEX"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-20",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "5N1VHBsguY3Rk9UJSseGwC",
-   "hdrr_url": "https://www.hdrr.info/tracks/fckn-ill"
-  },
-  {
-   "titol": "End Up Lonely",
-   "artistes": [
-    "LillyRazy",
-    "FLUFFY"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-20",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "423lN2sEGFR3rpvm4jcCl2",
-   "hdrr_url": "https://www.hdrr.info/tracks/end-up-lonely-extended"
-  },
-  {
-   "titol": "Back To Vibez",
-   "artistes": [
-    "IluSionerZ"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-20",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "5yqyKTQvaqzmjxNjR5dKmI",
-   "hdrr_url": "https://www.hdrr.info/tracks/back-to-vibez"
-  },
-  {
-   "titol": "Shine So Bright",
-   "artistes": [
-    "Aztronomer"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-20",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "34cIOYRCCWMG44gXb8qKVF",
-   "hdrr_url": "https://www.hdrr.info/tracks/shine-so-bright"
-  },
-  {
-   "titol": "More",
-   "artistes": [
-    "Aztronomer"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-20",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "79BnkqXm1vsuqloQtZiTSW",
-   "hdrr_url": "https://www.hdrr.info/tracks/more-3"
-  },
-  {
-   "titol": "Hear Me",
-   "artistes": [
-    "Aztronomer"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-20",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "50UqHEJ5XnqiZCRS7WN6IH",
-   "hdrr_url": "https://www.hdrr.info/tracks/hear-me-7"
-  },
-  {
-   "titol": "Dreamer",
-   "artistes": [
-    "Aztronomer"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-20",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "759wvOFgQEKjYwnYHIUhCt",
-   "hdrr_url": "https://www.hdrr.info/tracks/dreamer-13"
-  },
-  {
-   "titol": "Darkness",
-   "artistes": [
-    "Aztronomer"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-20",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "5uypBg6ZAIQoSnyQviaXFP",
-   "hdrr_url": "https://www.hdrr.info/tracks/darkness-57"
-  },
-  {
-   "titol": "BONKED IT! RELOADED",
-   "artistes": [
-    "Project Morpheus"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-20",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "5T1wQpAtjjFVSLf181GhWP",
-   "hdrr_url": "https://www.hdrr.info/tracks/bonked-it-reloaded"
-  },
-  {
-   "titol": "TOGETHER WE ARE ACTIVATED - Extended",
-   "artistes": [
-    "BassWar & CaoX",
-    "V-Rave",
-    "Re-mooved",
-    "C0py",
-    "Marlix",
-    "Lilly Mallou"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-20",
-   "punts": -20.0,
-   "versio": true,
-   "spotify_id": "6to0XhzsRE9A4OoN7lxLSl",
-   "hdrr_url": "https://www.hdrr.info/tracks/together-we-are-activated"
-  },
-  {
-   "titol": "Lost Inside - Slowed Mix",
-   "artistes": [
-    "B-Stork"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-20",
-   "punts": -20.0,
-   "versio": true,
-   "spotify_id": "15SOR3ft7yYVF7ZMxh8OH2",
-   "hdrr_url": "https://www.hdrr.info/tracks/lost-inside-radio-mix"
-  },
-  {
-   "titol": "No Angel - Extended Mix",
-   "artistes": [
-    "FASTLANE",
-    "GB"
-   ],
-   "genere": "Rawstyle",
-   "data": "2026-11-20",
-   "punts": -20.0,
-   "versio": true,
-   "spotify_id": "6TlL8S5DfBLQEx9iXYyZFe",
-   "hdrr_url": "https://www.hdrr.info/tracks/no-angel-extended-mix"
-  },
-  {
-   "titol": "Sky - Extended Version",
-   "artistes": [
-    "Kickbonez"
-   ],
-   "genere": "Rawstyle",
-   "data": "2026-11-20",
-   "punts": -20.0,
-   "versio": true,
-   "spotify_id": "64zV0toaMinTyXGj4CvxEo",
-   "hdrr_url": "https://www.hdrr.info/tracks/sky-extended-version"
-  },
-  {
-   "titol": "I Run - Extended mix",
-   "artistes": [
-    "MICHALEK"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-20",
-   "punts": -20.0,
-   "versio": true,
-   "spotify_id": "2PXNo7MAkzYKYCPNG6uSLT",
-   "hdrr_url": "https://www.hdrr.info/tracks/i-run-extended-mix"
   }
  ],
- "resta": [],
+ "resta": [
+  {
+   "titol": "Impatience 3",
+   "artistes": [
+    "Ataraxia"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Someday,peacefully",
+   "artistes": [
+    "Ataraxia"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Things will work out",
+   "artistes": [
+    "Ataraxia"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Wait For You",
+   "artistes": [
+    "Scutoid",
+    "Benji the Machine",
+    "Izzy Kai"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  }
+ ],
  "estadistiques": {
-  "llegits": 60,
-  "del_dia": 1,
-  "despres_filtre": 1,
-  "artistes_top100": 142,
+  "llegits": 40,
+  "del_dia": 8,
+  "despres_filtre": 7,
+  "artistes_top100": 141,
   "temes_chart_propi": 13
  },
  "avisos": []
