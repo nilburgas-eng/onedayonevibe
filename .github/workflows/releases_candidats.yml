@@ -12,12 +12,16 @@ on:
         required: false
         default: '2'
       playlist:
-        description: 'Actualitzar la playlist de Spotify: si o no'
+        description: 'Afegir els millors temes del dia a la playlist de Spotify: si o no (per defecte no)'
         required: false
-        default: 'si'
+        default: 'no'
   schedule:
+    # matí i migdia: només proposen candidats (no toquen la playlist)
     - cron: '17 6 * * *'
     - cron: '17 12 * * *'
+    # divendres al vespre (21:17 hivern / 22:17 estiu, hora de Catalunya): proposa candidats i
+    # afegeix a la playlist els 5 millors del dia, quan HDRR ja ha classificat els llançaments
+    - cron: '17 20 * * 5'
 
 jobs:
   candidats:
@@ -36,11 +40,13 @@ jobs:
       - name: Buscar candidats del dia
         env:
           DATA: ${{ github.event.inputs.data }}
-          DIES: ${{ github.event.inputs.dies || '2' }}
+          # divendres al vespre només es mira el dia d'avui (així no s'afegeix res de dijous)
+          DIES: ${{ github.event.schedule == '17 20 * * 5' && '1' || github.event.inputs.dies || '2' }}
         run: python3 releases_candidats.py
 
       - name: Actualitzar la playlist de Spotify
-        if: ${{ github.event.inputs.playlist != 'no' && github.event.inputs.data == '' }}
+        # només el cron de divendres al vespre, o una execució manual amb playlist = si
+        if: ${{ github.event.schedule == '17 20 * * 5' || (github.event_name == 'workflow_dispatch' && github.event.inputs.playlist == 'si' && github.event.inputs.data == '') }}
         continue-on-error: true
         env:
           SPOTIFY_CLIENT_ID: ${{ secrets.ODOV_SPOTIFY_CLIENT_ID }}
