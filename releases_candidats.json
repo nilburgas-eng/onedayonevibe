@@ -1,46 +1,8 @@
 {
- "data": "2026-11-23",
- "generat": "2026-11-23T18:23:00+00:00",
+ "data": "2026-11-24",
+ "generat": "2026-11-23T23:49:35+00:00",
  "font": "hdrr.info",
- "candidats": [
-  {
-   "titol": "Fake Love",
-   "artistes": [
-    "Donkey Tae",
-    "DAAUZD"
-   ],
-   "genere": "Euphoric Hardstyle",
-   "data": "2026-11-23",
-   "punts": 0.0,
-   "motius": [],
-   "versio": false,
-   "comodi": false,
-   "hdrr_url": "https://www.hdrr.info/tracks/fake-love",
-   "spotify_id": "48Z5Hynff3i4VqPe7hnALx",
-   "spotify_url": "https://open.spotify.com/track/48Z5Hynff3i4VqPe7hnALx",
-   "popularitat_hdrr": 0,
-   "isrc": "QZWDE2659289",
-   "portada": "https://www.hdrr.info/media/img/covers/480/donkey-tae-fake-love-cover-art-2213705e.webp"
-  },
-  {
-   "titol": "Hold Me Close",
-   "artistes": [
-    "Scabtik"
-   ],
-   "genere": "Rawstyle",
-   "data": "2026-11-23",
-   "punts": 0.0,
-   "motius": [],
-   "versio": false,
-   "comodi": false,
-   "hdrr_url": "https://www.hdrr.info/tracks/hold-me-close-6",
-   "spotify_id": "6waGYC0fZUFRUnc7L1bgl8",
-   "spotify_url": "https://open.spotify.com/track/6waGYC0fZUFRUnc7L1bgl8",
-   "popularitat_hdrr": 0,
-   "isrc": "QTAEV2656716",
-   "portada": "https://www.hdrr.info/media/img/covers/480/scabtik-hold-me-close-cover-art-a8be663e.webp"
-  }
- ],
+ "candidats": [],
  "tots": [
   {
    "titol": "Hold Me Close",
@@ -66,101 +28,17 @@
    "versio": false,
    "spotify_id": "48Z5Hynff3i4VqPe7hnALx",
    "hdrr_url": "https://www.hdrr.info/tracks/fake-love"
-  },
-  {
-   "titol": "Wait For You",
-   "artistes": [
-    "Scutoid",
-    "Benji the Machine",
-    "Izzy Kai"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-22",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "1yz82jg66W9CIBokXNqrUf",
-   "hdrr_url": "https://www.hdrr.info/tracks/wait-for-you-12"
-  },
-  {
-   "titol": "Things will work out",
-   "artistes": [
-    "Ataraxia"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-22",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "1EgK6xdforMFM5ueun1RFo",
-   "hdrr_url": "https://www.hdrr.info/tracks/things-will-work-out"
-  },
-  {
-   "titol": "Someday,peacefully",
-   "artistes": [
-    "Ataraxia"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-22",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "40r7aG9X2DdY2OycnHtezX",
-   "hdrr_url": "https://www.hdrr.info/tracks/someday-peacefully"
-  },
-  {
-   "titol": "Impatience 3",
-   "artistes": [
-    "Ataraxia"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-22",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "1hWmIxz3Vfc3CSVdJtdzEO",
-   "hdrr_url": "https://www.hdrr.info/tracks/impatience-3"
-  },
-  {
-   "titol": "Impatience 2",
-   "artistes": [
-    "Ataraxia"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-22",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "43jm65IdqY9ow62TEZZs6Y",
-   "hdrr_url": "https://www.hdrr.info/tracks/impatience-2"
-  },
-  {
-   "titol": "Impatience 1",
-   "artistes": [
-    "Ataraxia"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-22",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "10Ee7ByCVR5G7YXItqEwxS",
-   "hdrr_url": "https://www.hdrr.info/tracks/impatience-1"
-  },
-  {
-   "titol": "Comfort and Prayer",
-   "artistes": [
-    "Ataraxia"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-22",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "0QeZXWeLUAeKFOH29pqr5S",
-   "hdrr_url": "https://www.hdrr.info/tracks/comfort-and-prayer"
   }
  ],
  "resta": [],
  "estadistiques": {
   "llegits": 40,
-  "del_dia": 2,
-  "despres_filtre": 2,
+  "del_dia": 0,
+  "despres_filtre": 0,
   "artistes_top100": 140,
   "temes_chart_propi": 10
  },
- "avisos": []
+ "avisos": [
+  "Cap llancament d'aquesta data a HDRR (potser encara no s'han afegit)"
+ ]
 }
