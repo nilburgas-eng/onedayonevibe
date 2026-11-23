@@ -153,6 +153,63 @@
      "artista": "Sound Rush"
     }
    ]
+  },
+  {
+   "data": "2026-11-23T17:03:21+00:00",
+   "setmana": "Week of November 23, 2026",
+   "genere": "hardstyle",
+   "tracks": [
+    {
+     "pos": 1,
+     "nom": "Love Is Not Enough",
+     "artista": "Project One"
+    },
+    {
+     "pos": 2,
+     "nom": "Que Rico",
+     "artista": "Galactixx"
+    },
+    {
+     "pos": 3,
+     "nom": "SLEEP LESS",
+     "artista": "Rebelion"
+    },
+    {
+     "pos": 4,
+     "nom": "Darkness",
+     "artista": "E-Force"
+    },
+    {
+     "pos": 5,
+     "nom": "GIVE IT TO ME",
+     "artista": "Darren Styles"
+    },
+    {
+     "pos": 6,
+     "nom": "What Is This Called",
+     "artista": "The Saints"
+    },
+    {
+     "pos": 7,
+     "nom": "Against The World",
+     "artista": "Rejecta"
+    },
+    {
+     "pos": 8,
+     "nom": "PRAISE THE BASS",
+     "artista": "Mish"
+    },
+    {
+     "pos": 9,
+     "nom": "Forever Gunz",
+     "artista": "Gunz For Hire"
+    },
+    {
+     "pos": 10,
+     "nom": "Showdown",
+     "artista": "D-Charged"
+    }
+   ]
   }
  ]
 }
