@@ -112,9 +112,27 @@ def yt_tros(url, ini, fi, out_mp4):
     if os.path.exists(out_mp4): os.remove(out_mp4)
     if FONT_LOCAL:
         return sh(f'ffmpeg -y -loglevel error -ss {ini:.2f} -i "{url}" -t {fi - ini:.2f} -c copy "{out_mp4}"').returncode == 0
-    r = sh(f'yt-dlp -f "{YTDLP_FORMAT}" --download-sections "*{ini:.2f}-{fi:.2f}" --force-keyframes-at-cuts --merge-output-format mp4 {YT_COMU} -o "{out_mp4}" "{url}" -q', 1200)
-    if r.returncode != 0: print("   " + (r.stderr or '')[-300:])
-    return os.path.exists(out_mp4) and os.path.getsize(out_mp4) > 10000
+    # Alguns videos fallen amb el format/tall habitual (p. ex. "ffmpeg exited with code 146"):
+    # es reintenta amb estrategies cada cop mes conservadores abans de donar-lo per perdut.
+    F1080 = "bestvideo[height<=1080][vcodec^=avc1]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best"
+    intents = [
+        (YTDLP_FORMAT, '--force-keyframes-at-cuts', None, 1200),
+        (YTDLP_FORMAT, '', "tall sense forcar keyframes (pot sortir uns segons abans)", 900),
+        (F1080, '', "versio 1080p compatible (menys resolucio)", 900),
+        ("best[height<=720]/best", '', "versio 720p (poca resolucio)", 900),
+    ]
+    for fmt, extra, avis, tmo in intents:
+        if os.path.exists(out_mp4): os.remove(out_mp4)
+        try:
+            r = sh(f'yt-dlp -f "{fmt}" --download-sections "*{ini:.2f}-{fi:.2f}" {extra} --merge-output-format mp4 {YT_COMU} -o "{out_mp4}" "{url}" -q', tmo)
+            err = (r.stderr or '')[-300:]
+        except subprocess.TimeoutExpired:
+            err = "(temps esgotat)"
+        if os.path.exists(out_mp4) and os.path.getsize(out_mp4) > 10000:
+            if avis: print(f"   AVIS: ha funcionat amb {avis}")
+            return True
+        print("   " + err.strip() + "\n   -> es reintenta amb una altra estrategia")
+    return False
 
 
 def puja_clip(path, nom_asset):
