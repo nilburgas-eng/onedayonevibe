@@ -99,9 +99,15 @@
     "actualitzat": "2026-11-23T20:13:02Z"
   },
   "spiegel-aan-de-wand-flemming-radical-redemption": {
-    "ok": false,
+    "ok": true,
+    "inici": 94.0,
+    "auto": false,
     "url_input": "https://youtu.be/1t6KvZpdaUc?is=BEZQHl88sGInIuDo",
-    "error": "descarrega fallida"
+    "url": "https://www.youtube.com/watch?v=1t6KvZpdaUc",
+    "titol_yt": "FLEMMING & Radical Redemption - Spiegel Aan De Wand (Official Video)",
+    "yt_durada": 253,
+    "resolucio": "3840x1646",
+    "actualitzat": "2026-11-23T20:46:19Z"
   },
   "the-next-dimension-d-block-s-te-fan": {
     "ok": true,
