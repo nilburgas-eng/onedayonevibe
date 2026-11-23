@@ -3385,6 +3385,18 @@
     }
    ],
    "eliminats": 0
+  },
+  {
+   "data": "2026-11-23",
+   "executat": "2026-11-23T13:08:42+00:00",
+   "afegits": [
+    {
+     "titol": "HOLD ME CLOSE",
+     "spotify_id": "6waGYC0fZUFRUnc7L1bgl8",
+     "manual": true
+    }
+   ],
+   "eliminats": 0
   }
  ]
 }
