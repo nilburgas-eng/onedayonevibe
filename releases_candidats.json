@@ -1,9 +1,136 @@
 {
  "data": "2026-11-24",
- "generat": "2026-11-23T23:49:35+00:00",
+ "generat": "2026-11-24T17:53:40+00:00",
  "font": "hdrr.info",
- "candidats": [],
+ "candidats": [
+  {
+   "titol": "Blinded Love",
+   "artistes": [
+    "Bassfighterz"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-24",
+   "punts": 0.0,
+   "motius": [],
+   "versio": false,
+   "comodi": false,
+   "hdrr_url": "https://www.hdrr.info/tracks/blinded-love",
+   "spotify_id": "5ZZL6gKjaMUtUQwDtYJikk",
+   "spotify_url": "https://open.spotify.com/track/5ZZL6gKjaMUtUQwDtYJikk",
+   "popularitat_hdrr": 0,
+   "isrc": "QTAF22695048",
+   "portada": "https://www.hdrr.info/media/img/covers/480/bassfighterz-blinded-love-cover-art-b74dbd69.webp"
+  },
+  {
+   "titol": "Like There's No Tomorrow",
+   "artistes": [
+    "Simon Gravity"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-24",
+   "punts": 0.0,
+   "motius": [],
+   "versio": false,
+   "comodi": false,
+   "hdrr_url": "https://www.hdrr.info/tracks/like-there-s-no-tomorrow",
+   "spotify_id": "7i9i3Zd9eQ2x5tKnwaGLZ4",
+   "spotify_url": "https://open.spotify.com/track/7i9i3Zd9eQ2x5tKnwaGLZ4",
+   "popularitat_hdrr": 0,
+   "isrc": "QTAF42690509",
+   "portada": "https://www.hdrr.info/media/img/covers/480/simon-gravity-like-there-s-no-tomorrow-cover-art-fc72691a.webp"
+  },
+  {
+   "titol": "Trip Hazards - Original Mix",
+   "artistes": [
+    "Kindred Spirit"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-24",
+   "punts": 0.0,
+   "motius": [],
+   "versio": false,
+   "comodi": false,
+   "hdrr_url": "https://www.hdrr.info/tracks/trip-hazards-original-mix",
+   "spotify_id": "4dtBfpBpvRIe98ABWZo6mL",
+   "spotify_url": "https://open.spotify.com/track/4dtBfpBpvRIe98ABWZo6mL",
+   "popularitat_hdrr": 0,
+   "isrc": "GXBNP2644177",
+   "portada": "https://www.hdrr.info/media/img/covers/480/kindred-spirit-trip-hazards-original-mix-cover-art-93d7f41c.webp"
+  },
+  {
+   "titol": "Yerba",
+   "artistes": [
+    "Juicy J",
+    "Amero",
+    "Alek Sandar",
+    "TTECHNO"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-24",
+   "punts": 0.0,
+   "motius": [],
+   "versio": false,
+   "comodi": true,
+   "hdrr_url": "https://www.hdrr.info/tracks/yerba",
+   "spotify_id": "4yPicMJpG4pPTsfwQatB0I",
+   "spotify_url": "https://open.spotify.com/track/4yPicMJpG4pPTsfwQatB0I",
+   "popularitat_hdrr": 0,
+   "isrc": "NL9KQ2691658",
+   "portada": "https://www.hdrr.info/media/img/covers/480/juicy-j-yerba-cover-art-5a451dce.webp"
+  }
+ ],
  "tots": [
+  {
+   "titol": "Yerba",
+   "artistes": [
+    "Juicy J",
+    "Amero",
+    "Alek Sandar",
+    "TTECHNO"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-24",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "4yPicMJpG4pPTsfwQatB0I",
+   "hdrr_url": "https://www.hdrr.info/tracks/yerba"
+  },
+  {
+   "titol": "Like There's No Tomorrow",
+   "artistes": [
+    "Simon Gravity"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-24",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "7i9i3Zd9eQ2x5tKnwaGLZ4",
+   "hdrr_url": "https://www.hdrr.info/tracks/like-there-s-no-tomorrow"
+  },
+  {
+   "titol": "Blinded Love",
+   "artistes": [
+    "Bassfighterz"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-24",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "5ZZL6gKjaMUtUQwDtYJikk",
+   "hdrr_url": "https://www.hdrr.info/tracks/blinded-love"
+  },
+  {
+   "titol": "Trip Hazards - Original Mix",
+   "artistes": [
+    "Kindred Spirit"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-24",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "4dtBfpBpvRIe98ABWZo6mL",
+   "hdrr_url": "https://www.hdrr.info/tracks/trip-hazards-original-mix"
+  },
   {
    "titol": "Hold Me Close",
    "artistes": [
@@ -17,28 +144,38 @@
    "hdrr_url": "https://www.hdrr.info/tracks/hold-me-close-6"
   },
   {
-   "titol": "Fake Love",
+   "titol": "Fake Love - Extended Mix",
    "artistes": [
     "Donkey Tae",
     "DAAUZD"
    ],
    "genere": "Euphoric Hardstyle",
    "data": "2026-11-23",
-   "punts": 0.0,
-   "versio": false,
+   "punts": -20.0,
+   "versio": true,
    "spotify_id": "48Z5Hynff3i4VqPe7hnALx",
    "hdrr_url": "https://www.hdrr.info/tracks/fake-love"
   }
  ],
- "resta": [],
+ "resta": [
+  {
+   "titol": "Yerba",
+   "artistes": [
+    "Juicy J",
+    "Amero",
+    "Alek Sandar",
+    "TTECHNO"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  }
+ ],
  "estadistiques": {
   "llegits": 40,
-  "del_dia": 0,
-  "despres_filtre": 0,
-  "artistes_top100": 140,
+  "del_dia": 4,
+  "despres_filtre": 4,
+  "artistes_top100": 141,
   "temes_chart_propi": 10
  },
- "avisos": [
-  "Cap llancament d'aquesta data a HDRR (potser encara no s'han afegit)"
- ]
+ "avisos": []
 }
