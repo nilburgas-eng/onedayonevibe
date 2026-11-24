@@ -73,6 +73,21 @@ def tx(d, xy, t, f, fill, anchor='la', stroke=0):
 def fit(d, t, fn, size, maxw, minsize=18):
     while size > minsize and d.textlength(t, font=fn(size)) > maxw: size -= 2
     return fn(size)
+def short_txt(d, t, f, maxw, artist=False):
+    """Retalla el text perque mai sobresurti de maxw: en llistes d'artistes treu els ultims i hi posa '+N'; si no, punts suspensius."""
+    if d.textlength(t, font=f) <= maxw: return t
+    if artist:
+        parts = [p.strip() for p in re.split(r',|&', t) if p.strip()]
+        for k in range(len(parts) - 1, 0, -1):
+            c = ", ".join(parts[:k]) + f" +{len(parts) - k}"
+            if d.textlength(c, font=f) <= maxw: return c
+        if parts: t = parts[0]
+        if d.textlength(t, font=f) <= maxw: return t
+    while len(t) > 1 and d.textlength(t + "...", font=f) > maxw: t = t[:-1]
+    return t.rstrip() + "..."
+def fitt(d, t, fn, size, maxw, minsize=18, artist=False):
+    """(text, font): redueix la mida fins a minsize i, si encara no hi cap, escurca el text."""
+    f = fit(d, t, fn, size, maxw, minsize); return short_txt(d, t, f, maxw, artist), f
 def make_bg():
     yy, xx = np.mgrid[0:H, 0:W]
     g = np.zeros((H, W, 3), np.float32); t = yy / H
@@ -162,8 +177,8 @@ def vs_badge(d, cx, cy, r, s, gold=False):
     tx(d, (cx, cy + int(3 * s)), "VS", BEB(int(rr * 1.15)), (12, 12, 28), 'mm')
 def title_block(d, idx, cx, ytitle, yart, maxw, tsize, asize, acc, alpha=255):
     n, a = TR[idx]
-    tx(d, (cx, ytitle), n, fit(d, n, BEB, tsize, maxw), (255, 255, 255, alpha), 'mm')
-    tx(d, (cx, yart), a, fit(d, a, SB, asize, maxw), acc + (alpha,), 'mm')
+    n2, fn_ = fitt(d, n, BEB, tsize, maxw, artist=True); tx(d, (cx, ytitle), n2, fn_, (255, 255, 255, alpha), 'mm')
+    a2, fa_ = fitt(d, a, SB, asize, maxw); tx(d, (cx, yart), a2, fa_, acc + (alpha,), 'mm')
 def crown(d, cx, by, s=1.0, alpha=255):
     P = [(-100, 0), (-112, -84), (-56, -42), (0, -104), (56, -42), (112, -84), (100, 0)]
     d.polygon([(cx + x * s, by + y * s) for x, y in P], fill=GOLD + (alpha,), outline=(255, 255, 255, alpha))
@@ -172,7 +187,7 @@ def crown(d, cx, by, s=1.0, alpha=255):
     d.rectangle((cx - 100 * s, by + 6 * s, cx + 100 * s, by + 22 * s), fill=GOLD + (alpha,))
 
 # ============================ cuadre ============================
-C0, C1, C2, C3 = (55, 250), (319, 210), (543, 180), (737, 140)
+C0, C1, C2, C3 = (55, 290), (359, 190), (563, 170), (747, 130)
 COLS = [C0, C1, C2, C3]; BH, PITCH = 58, 64
 def bracket_full(res, today=None, sub="", video=True):
     img = BG.copy(); d = ImageDraw.Draw(img, 'RGBA'); E = entrants(res); meta = {}
@@ -190,7 +205,9 @@ def bracket_full(res, today=None, sub="", video=True):
         name, art = TR[idx]; dim = state == 'lose'
         tc = (96, 96, 116) if dim else (255, 255, 255); ac = (80, 80, 98) if dim else (190, 200, 215)
         mw = w - 26 - (54 if (pct is not None and not small) else 0)
-        tx(d, (x + 14, y + 19), name, fit(d, name, SB, 24, mw, 14), tc, 'lm'); tx(d, (x + 14, y + 42), art, fit(d, art, MD, 15, mw, 11), ac, 'lm')
+        mw_art = mw - (48 if (pct is not None and small) else 0)      # a les columnes estretes el % va a la linia del titol
+        nm2, fn1 = fitt(d, name, SB, 24, mw, 14, artist=True); ar2, fn2 = fitt(d, art, MD, 15, mw_art, 11)
+        tx(d, (x + 14, y + 19), nm2, fn1, tc, 'lm'); tx(d, (x + 14, y + 42), ar2, fn2, ac, 'lm')
         if pct is not None and not small:
             tx(d, (x + w - 12, y + BH // 2), f"{pct}%", XB(22) if state == 'win' else MD(20), CYAN if state == 'win' else (96, 96, 116), 'rm')
         elif pct is not None:
@@ -231,7 +248,7 @@ def bracket_full(res, today=None, sub="", video=True):
         w, p = res[(3, 0)]
         d.rounded_rectangle(bf, 16, fill=(255, 214, 64, 60), outline=GOLD + (255,), width=4)
         tx(d, (455, fy - 16), "CHAMPION", BEB(30), GOLD, 'mm')
-        tx(d, (455, fy + 16), TR[w][0], fit(d, TR[w][0], XB, 30, 520, 16), (255, 255, 255), 'mm')
+        cw, cf = fitt(d, TR[w][0], XB, 30, 520, 16, artist=True); tx(d, (455, fy + 16), cw, cf, (255, 255, 255), 'mm')
     else:
         d.rounded_rectangle(bf, 16, fill=(255, 214, 64, 28), outline=GOLD + (255,), width=3)
         tx(d, (455, fy - 12), "THE FINAL", BEB(52), GOLD, 'mm')
@@ -388,8 +405,10 @@ def f_intro_norm(t):
         y = int(1180 + 20 * (1 - al)); w = 700
         if PREV:
             d.rounded_rectangle((540 - w // 2, y - 36, 540 + w // 2, y + 36), 36, fill=(255, 255, 255, int(24 * al)), outline=(255, 255, 255, int(70 * al)), width=2)
-            txt = f"YESTERDAY  ·  {TR[PREV[0]][0]} advanced" + (f"  ({PREV[1]}%)" if PREV[1] is not None else "")
-            tx(d, (540, y), txt, fit(d, txt, SB, 28, w - 50), (255, 255, 255, int(255 * al)), 'mm'); yy = y + 90
+            pre, suf = "YESTERDAY  ·  ", " advanced" + (f"  ({PREV[1]}%)" if PREV[1] is not None else "")
+            fpv = SB(26); room = w - 60 - d.textlength(pre + suf, font=fpv)
+            txt = pre + short_txt(d, TR[PREV[0]][0], fpv, room, artist=True) + suf
+            tx(d, (540, y), txt, fpv, (255, 255, 255, int(255 * al)), 'mm'); yy = y + 90
         else: yy = y
         tx(d, (540, yy), "ONE VERSUS EVERY DAY  ·  YOU DECIDE", SB(30), CYAN + (int(255 * al),), 'mm')
     logo(img); return img
@@ -428,8 +447,9 @@ def f_intro_epic(t):
     for k, (idx, cx) in enumerate(((FA, 300), (FB, 760))):
         for i, (rl, opp, pc) in enumerate(cami(idx)):
             a = int(255 * ease_out((t - 3.8 - 0.3 * i) / 0.35))
-            s = f"{rl}  ·  {TR[opp][0]}" + (f"  {pc}%" if pc is not None else "")
-            tx(d, (cx, 1182 + i * 42), s, fit(d, s, MD, 25, 290, 16), (255, 255, 255, a), 'mm')
+            fpv = MD(22); pre, suf = f"{rl}  ·  ", (f"  {pc}%" if pc is not None else "")
+            s = pre + short_txt(d, TR[opp][0], fpv, 290 - d.textlength(pre + suf, font=fpv), artist=True) + suf
+            tx(d, (cx, 1182 + i * 42), s, fpv, (255, 255, 255, a), 'mm')
     ef = ease_out((t - 4.8) / 0.5)
     if ef > 0: tx(d, (540, 1360), "TWO TRACKS. ONE CHAMPION.", fit(d, "TWO TRACKS. ONE CHAMPION.", BEB, 72, 820), GOLD + (int(255 * ef),), 'mm')
     logo(img); return img
@@ -571,7 +591,8 @@ def f_c3(tl):
     cs = back((tl - 0.5) / 0.5)
     if cs > 0.02: crown(d, 540, 454, 0.8 * min(cs, 1.0))
     ea = ease_out((tl - 0.9) / 0.4); n, a_ = TR[CH]; al = int(255 * ea)
-    tx(d, (540, 1105), n, fit(d, n, BEB, 118, 740), (255, 255, 255, al), 'mm'); tx(d, (540, 1180), a_, fit(d, a_, SB, 46, 740), GOLD + (al,), 'mm')
+    n2, fn_ = fitt(d, n, BEB, 118, 740, artist=True); a2, fa_ = fitt(d, a_, SB, 46, 740)
+    tx(d, (540, 1105), n2, fn_, (255, 255, 255, al), 'mm'); tx(d, (540, 1180), a2, fa_, GOLD + (al,), 'mm')
     tx(d, (540, 1255), f"{PCT[0]}% OF THE VOTE", SB(38), (255, 255, 255, int(255 * ease_out((tl - 1.4) / 0.4))), 'mm')
     tx(d, (540, 1310), "THE ODOV AUDIENCE HAS SPOKEN", MD(26), (255, 255, 255, int(170 * ease_out((tl - 1.8) / 0.4))), 'mm')
     logo(img)
@@ -595,7 +616,8 @@ def f_c4(tl):
             sz = max(4, int(200 * cs)); c = fade(cover(idx, sz, 28), ca); img.paste(c, (cx - sz // 2, top - 12 - sz), c)
             if gold: crown(d, cx, top - 12 - 200 - 10, 0.45 * cs)
             tx(d, (cx, top + 52), lab, BEB(64), GOLD if gold else (255, 255, 255), 'mm')
-            n, a_ = TR[idx]; tx(d, (cx, top + 112), n, fit(d, n, SB, 26, 196, 15), (255, 255, 255, int(255 * ca)), 'mm'); tx(d, (cx, top + 148), a_, fit(d, a_, MD, 20, 196, 12), (190, 200, 215, int(255 * ca)), 'mm')
+            n, a_ = TR[idx]; n2, fn_ = fitt(d, n, SB, 26, 196, 15, artist=True); a2, fa_ = fitt(d, a_, MD, 20, 196, 12)
+            tx(d, (cx, top + 112), n2, fn_, (255, 255, 255, int(255 * ca)), 'mm'); tx(d, (cx, top + 148), a2, fa_, (190, 200, 215, int(255 * ca)), 'mm')
     a = ease_out((tl - 0.6) / 0.5); top = block(d, 670, 890, base, 300, False, a)
     if a > 0.95:
         ca = ease_out((tl - 1.05) / 0.35); cs = back((tl - 1.05) / 0.35)
@@ -603,7 +625,8 @@ def f_c4(tl):
             sz = max(4, int(100 * cs)); c = fade(cover(idx, sz, 16), ca); img.paste(c, (690 + j * 110 + (100 - sz) // 2, top - 12 - sz), c)
         tx(d, (780, top + 32), "SEMIFINALISTS", SB(18), (255, 255, 255, int(255 * ca)), 'mm')
         for j, idx in enumerate((S1, S2)):
-            n = TR[idx][0]; tx(d, (780, top + 84 + j * 54), n, fit(d, n, SB, 24, 196, 14), (255, 255, 255, int(255 * ca)), 'mm'); tx(d, (780, top + 108 + j * 54), TR[idx][1], fit(d, TR[idx][1], MD, 17, 196, 11), (190, 200, 215, int(255 * ca)), 'mm')
+            n2, fn_ = fitt(d, TR[idx][0], SB, 24, 196, 14, artist=True); a2, fa_ = fitt(d, TR[idx][1], MD, 17, 196, 11)
+            tx(d, (780, top + 84 + j * 54), n2, fn_, (255, 255, 255, int(255 * ca)), 'mm'); tx(d, (780, top + 108 + j * 54), a2, fa_, (190, 200, 215, int(255 * ca)), 'mm')
     logo(img); return img
 def f_c5(tl):
     img = BG.copy(); rays(img, tl, 540, 760, GOLD, 18, speed=0.1); particles(img, tl)
