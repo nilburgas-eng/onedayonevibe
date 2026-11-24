@@ -3397,6 +3397,18 @@
     }
    ],
    "eliminats": 0
+  },
+  {
+   "data": "2026-11-24",
+   "executat": "2026-11-24T13:18:13+00:00",
+   "afegits": [
+    {
+     "titol": "BLINDED LOVE",
+     "spotify_id": "5ZZL6gKjaMUtUQwDtYJikk",
+     "manual": true
+    }
+   ],
+   "eliminats": 0
   }
  ]
 }
