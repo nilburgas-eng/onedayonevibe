@@ -3409,6 +3409,18 @@
     }
    ],
    "eliminats": 0
+  },
+  {
+   "data": "2026-11-25",
+   "executat": "2026-11-25T13:34:59+00:00",
+   "afegits": [
+    {
+     "titol": "THE POWER OF MEMORIES",
+     "spotify_id": "0S4Il1dyc6OOtaQZnbNCoR",
+     "manual": true
+    }
+   ],
+   "eliminats": 0
   }
  ]
 }
