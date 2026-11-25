@@ -1,85 +1,192 @@
 {
- "data": "2026-11-24",
- "generat": "2026-11-24T22:21:50+00:00",
+ "data": "2026-11-25",
+ "generat": "2026-11-25T17:20:55+00:00",
  "font": "hdrr.info",
  "candidats": [
   {
-   "titol": "Blinded Love",
+   "titol": "Treasure Time!",
    "artistes": [
-    "Bassfighterz"
+    "Disaster",
+    "Oblivion"
    ],
    "genere": "Hardstyle",
-   "data": "2026-11-24",
+   "data": "2026-11-25",
+   "punts": 3.0,
+   "motius": [
+    "Disaster: #95 al Top 100 de HDRR (+3.0)"
+   ],
+   "versio": false,
+   "comodi": false,
+   "hdrr_url": "https://www.hdrr.info/tracks/treasure-time",
+   "spotify_id": "0B5QKvWDqP4HUW0tjL159c",
+   "spotify_url": "https://open.spotify.com/track/0B5QKvWDqP4HUW0tjL159c",
+   "popularitat_hdrr": 0,
+   "isrc": "NLH2L2600417",
+   "portada": "https://www.hdrr.info/media/img/covers/480/disaster-treasure-time-cover-art-5b4be186.webp"
+  },
+  {
+   "titol": "Bailando",
+   "artistes": [
+    "Kokwak",
+    "Ziarah"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-25",
    "punts": 0.0,
    "motius": [],
    "versio": false,
    "comodi": false,
-   "hdrr_url": "https://www.hdrr.info/tracks/blinded-love",
-   "spotify_id": "5ZZL6gKjaMUtUQwDtYJikk",
-   "spotify_url": "https://open.spotify.com/track/5ZZL6gKjaMUtUQwDtYJikk",
+   "hdrr_url": "https://www.hdrr.info/tracks/bailando-4",
+   "spotify_id": "0enXKZEUjdW22CSTtsRkcJ",
+   "spotify_url": "https://open.spotify.com/track/0enXKZEUjdW22CSTtsRkcJ",
    "popularitat_hdrr": 0,
-   "isrc": "QTAF22695048",
-   "portada": "https://www.hdrr.info/media/img/covers/480/bassfighterz-blinded-love-cover-art-b74dbd69.webp"
+   "isrc": "QTA892624702",
+   "portada": "https://www.hdrr.info/media/img/covers/480/kokwak-bailando-cover-art-8eaec503.webp"
   },
   {
-   "titol": "Like There's No Tomorrow",
+   "titol": "Be The One",
    "artistes": [
-    "Simon Gravity"
+    "Dirty Workz",
+    "Ben Defekt"
    ],
    "genere": "Hardstyle",
-   "data": "2026-11-24",
+   "data": "2026-11-25",
    "punts": 0.0,
    "motius": [],
    "versio": false,
    "comodi": false,
-   "hdrr_url": "https://www.hdrr.info/tracks/like-there-s-no-tomorrow",
-   "spotify_id": "7i9i3Zd9eQ2x5tKnwaGLZ4",
-   "spotify_url": "https://open.spotify.com/track/7i9i3Zd9eQ2x5tKnwaGLZ4",
+   "hdrr_url": "https://www.hdrr.info/tracks/be-the-one-10",
+   "spotify_id": "6g1aAej4xMy5ZYXlVENEIp",
+   "spotify_url": "https://open.spotify.com/track/6g1aAej4xMy5ZYXlVENEIp",
    "popularitat_hdrr": 0,
-   "isrc": "QTAF42690509",
-   "portada": "https://www.hdrr.info/media/img/covers/480/simon-gravity-like-there-s-no-tomorrow-cover-art-fc72691a.webp"
+   "isrc": "BEB682601141",
+   "portada": "https://www.hdrr.info/media/img/covers/480/dirty-workz-be-the-one-cover-art-2-a8c4ed13.webp"
   },
   {
-   "titol": "Trip Hazards - Original Mix",
+   "titol": "Maniac Media",
    "artistes": [
-    "Kindred Spirit"
+    "Phantom",
+    "MC Activate",
+    "YZZI"
    ],
    "genere": "Hardstyle",
-   "data": "2026-11-24",
-   "punts": 0.0,
-   "motius": [],
-   "versio": false,
-   "comodi": false,
-   "hdrr_url": "https://www.hdrr.info/tracks/trip-hazards-original-mix",
-   "spotify_id": "4dtBfpBpvRIe98ABWZo6mL",
-   "spotify_url": "https://open.spotify.com/track/4dtBfpBpvRIe98ABWZo6mL",
-   "popularitat_hdrr": 0,
-   "isrc": "GXBNP2644177",
-   "portada": "https://www.hdrr.info/media/img/covers/480/kindred-spirit-trip-hazards-original-mix-cover-art-93d7f41c.webp"
-  },
-  {
-   "titol": "Yerba",
-   "artistes": [
-    "Juicy J",
-    "Amero",
-    "Alek Sandar",
-    "TTECHNO"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-24",
+   "data": "2026-11-25",
    "punts": 0.0,
    "motius": [],
    "versio": false,
    "comodi": true,
-   "hdrr_url": "https://www.hdrr.info/tracks/yerba",
-   "spotify_id": "4yPicMJpG4pPTsfwQatB0I",
-   "spotify_url": "https://open.spotify.com/track/4yPicMJpG4pPTsfwQatB0I",
+   "hdrr_url": "https://www.hdrr.info/tracks/maniac-media",
+   "spotify_id": "0eSBpgHkce541YHBNLnA77",
+   "spotify_url": "https://open.spotify.com/track/0eSBpgHkce541YHBNLnA77",
    "popularitat_hdrr": 0,
-   "isrc": "NL9KQ2691658",
-   "portada": "https://www.hdrr.info/media/img/covers/480/juicy-j-yerba-cover-art-5a451dce.webp"
+   "isrc": "NL1S62602201",
+   "portada": "https://www.hdrr.info/media/img/covers/480/phantom-maniac-media-cover-art-37295934.webp"
   }
  ],
  "tots": [
+  {
+   "titol": "Treasure Time!",
+   "artistes": [
+    "Disaster",
+    "Oblivion"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-25",
+   "punts": 3.0,
+   "versio": false,
+   "spotify_id": "0B5QKvWDqP4HUW0tjL159c",
+   "hdrr_url": "https://www.hdrr.info/tracks/treasure-time"
+  },
+  {
+   "titol": "Heatwaves",
+   "artistes": [
+    "Cardination",
+    "Invaderz",
+    "MC Pez"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-25",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "5TzcxmtaXNeTLGKEAnysvz",
+   "hdrr_url": "https://www.hdrr.info/tracks/heatwaves"
+  },
+  {
+   "titol": "Be The One",
+   "artistes": [
+    "Dirty Workz",
+    "Ben Defekt"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-25",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "6g1aAej4xMy5ZYXlVENEIp",
+   "hdrr_url": "https://www.hdrr.info/tracks/be-the-one-10"
+  },
+  {
+   "titol": "Maniac Media",
+   "artistes": [
+    "Phantom",
+    "MC Activate",
+    "YZZI"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-25",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "0eSBpgHkce541YHBNLnA77",
+   "hdrr_url": "https://www.hdrr.info/tracks/maniac-media"
+  },
+  {
+   "titol": "The Transition",
+   "artistes": [
+    "Dulehec"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-25",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "4WQ4yMPM09whi0GYlrRipB",
+   "hdrr_url": "https://www.hdrr.info/tracks/the-transition"
+  },
+  {
+   "titol": "Bailando",
+   "artistes": [
+    "Kokwak",
+    "Ziarah"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-25",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "0enXKZEUjdW22CSTtsRkcJ",
+   "hdrr_url": "https://www.hdrr.info/tracks/bailando-4"
+  },
+  {
+   "titol": "Psycho",
+   "artistes": [
+    "Fury"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-25",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "2A8bUV4WvMHNEguV4s4Z95",
+   "hdrr_url": "https://www.hdrr.info/tracks/psycho-24"
+  },
+  {
+   "titol": "The Power of Memories",
+   "artistes": [
+    "Midnyte Mafia"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-25",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "0S4Il1dyc6OOtaQZnbNCoR",
+   "hdrr_url": "https://www.hdrr.info/tracks/the-power-of-memories-4"
+  },
   {
    "titol": "Yerba",
    "artistes": [
@@ -94,18 +201,6 @@
    "versio": false,
    "spotify_id": "4yPicMJpG4pPTsfwQatB0I",
    "hdrr_url": "https://www.hdrr.info/tracks/yerba"
-  },
-  {
-   "titol": "Like There's No Tomorrow",
-   "artistes": [
-    "Simon Gravity"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-24",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "7i9i3Zd9eQ2x5tKnwaGLZ4",
-   "hdrr_url": "https://www.hdrr.info/tracks/like-there-s-no-tomorrow"
   },
   {
    "titol": "Blinded Love",
@@ -132,39 +227,59 @@
    "hdrr_url": "https://www.hdrr.info/tracks/trip-hazards-original-mix"
   },
   {
-   "titol": "Hold Me Close",
+   "titol": "Like There's No Tomorrow - Extended Mix",
    "artistes": [
-    "Scabtik"
+    "Simon Gravity"
    ],
-   "genere": "Rawstyle",
-   "data": "2026-11-23",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "6waGYC0fZUFRUnc7L1bgl8",
-   "hdrr_url": "https://www.hdrr.info/tracks/hold-me-close-6"
-  },
-  {
-   "titol": "Fake Love - Extended Mix",
-   "artistes": [
-    "Donkey Tae",
-    "DAAUZD"
-   ],
-   "genere": "Euphoric Hardstyle",
-   "data": "2026-11-23",
+   "genere": "Hardstyle",
+   "data": "2026-11-24",
    "punts": -20.0,
    "versio": true,
-   "spotify_id": "48Z5Hynff3i4VqPe7hnALx",
-   "hdrr_url": "https://www.hdrr.info/tracks/fake-love"
+   "spotify_id": "7i9i3Zd9eQ2x5tKnwaGLZ4",
+   "hdrr_url": "https://www.hdrr.info/tracks/like-there-s-no-tomorrow"
   }
  ],
  "resta": [
   {
-   "titol": "Yerba",
+   "titol": "Heatwaves",
    "artistes": [
-    "Juicy J",
-    "Amero",
-    "Alek Sandar",
-    "TTECHNO"
+    "Cardination",
+    "Invaderz",
+    "MC Pez"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Maniac Media",
+   "artistes": [
+    "Phantom",
+    "MC Activate",
+    "YZZI"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Psycho",
+   "artistes": [
+    "Fury"
+   ],
+   "genere": "Rawstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "The Power of Memories",
+   "artistes": [
+    "Midnyte Mafia"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "The Transition",
+   "artistes": [
+    "Dulehec"
    ],
    "genere": "Hardstyle",
    "punts": 0.0
@@ -172,8 +287,8 @@
  ],
  "estadistiques": {
   "llegits": 40,
-  "del_dia": 4,
-  "despres_filtre": 4,
+  "del_dia": 8,
+  "despres_filtre": 8,
   "artistes_top100": 141,
   "temes_chart_propi": 10
  },
