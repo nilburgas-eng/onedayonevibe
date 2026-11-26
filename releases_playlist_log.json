@@ -3421,6 +3421,18 @@
     }
    ],
    "eliminats": 0
+  },
+  {
+   "data": "2026-11-26",
+   "executat": "2026-11-26T13:43:00+00:00",
+   "afegits": [
+    {
+     "titol": "FIREMAN",
+     "spotify_id": "3Y1yHMydEEIHikGft5GHFS",
+     "manual": true
+    }
+   ],
+   "eliminats": 0
   }
  ]
 }
