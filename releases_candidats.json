@@ -1,90 +1,294 @@
 {
- "data": "2026-11-25",
- "generat": "2026-11-25T21:38:15+00:00",
+ "data": "2026-11-26",
+ "generat": "2026-11-26T17:01:37+00:00",
  "font": "hdrr.info",
  "candidats": [
   {
-   "titol": "Treasure Time!",
+   "titol": "Fireman",
    "artistes": [
-    "Disaster",
-    "Oblivion"
+    "The Straikerz",
+    "Villain"
    ],
-   "genere": "Hardstyle",
-   "data": "2026-11-25",
-   "punts": 3.0,
+   "genere": "Rawstyle",
+   "data": "2026-11-26",
+   "punts": 47.5,
    "motius": [
-    "Disaster: #95 al Top 100 de HDRR (+3.0)"
+    "The Straikerz: #6 al Top 100 de HDRR (+47.5)"
    ],
    "versio": false,
    "comodi": false,
-   "hdrr_url": "https://www.hdrr.info/tracks/treasure-time",
-   "spotify_id": "0B5QKvWDqP4HUW0tjL159c",
-   "spotify_url": "https://open.spotify.com/track/0B5QKvWDqP4HUW0tjL159c",
+   "hdrr_url": "https://www.hdrr.info/tracks/fireman-3",
+   "spotify_id": "3Y1yHMydEEIHikGft5GHFS",
+   "spotify_url": "https://open.spotify.com/track/3Y1yHMydEEIHikGft5GHFS",
    "popularitat_hdrr": 0,
-   "isrc": "NLH2L2600417",
-   "portada": "https://www.hdrr.info/media/img/covers/480/disaster-treasure-time-cover-art-5b4be186.webp"
+   "isrc": "NLH2L2600420",
+   "portada": "https://www.hdrr.info/media/img/covers/480/the-straikerz-fireman-cover-art-189299b7.webp"
   },
   {
-   "titol": "Bailando",
+   "titol": "I CHOOSE U",
    "artistes": [
-    "Kokwak",
-    "Ziarah"
+    "Dual Damage",
+    "TOZA"
    ],
    "genere": "Hardstyle",
-   "data": "2026-11-25",
-   "punts": 0.0,
-   "motius": [],
+   "data": "2026-11-26",
+   "punts": 45.0,
+   "motius": [
+    "TOZA: #11 al Top 100 de HDRR (+45.0)"
+   ],
    "versio": false,
    "comodi": false,
-   "hdrr_url": "https://www.hdrr.info/tracks/bailando-4",
-   "spotify_id": "0enXKZEUjdW22CSTtsRkcJ",
-   "spotify_url": "https://open.spotify.com/track/0enXKZEUjdW22CSTtsRkcJ",
+   "hdrr_url": "https://www.hdrr.info/tracks/i-choose-u",
+   "spotify_id": "4MWoxMOGVv7Ow69tsPxzrN",
+   "spotify_url": "https://open.spotify.com/track/4MWoxMOGVv7Ow69tsPxzrN",
    "popularitat_hdrr": 0,
-   "isrc": "QTA892624702",
-   "portada": "https://www.hdrr.info/media/img/covers/480/kokwak-bailando-cover-art-8eaec503.webp"
+   "isrc": "BEB682601032",
+   "portada": "https://www.hdrr.info/media/img/covers/480/dual-damage-i-choose-u-cover-art-694b7fde.webp"
   },
   {
-   "titol": "Be The One",
+   "titol": "We Rise",
    "artistes": [
-    "Dirty Workz",
-    "Ben Defekt"
+    "RADYX",
+    "Eternal Records"
    ],
-   "genere": "Hardstyle",
-   "data": "2026-11-25",
-   "punts": 0.0,
-   "motius": [],
+   "genere": "Euphoric Hardstyle",
+   "data": "2026-11-26",
+   "punts": 34.0,
+   "motius": [
+    "RADYX: #33 al Top 100 de HDRR (+34.0)"
+   ],
    "versio": false,
    "comodi": false,
-   "hdrr_url": "https://www.hdrr.info/tracks/be-the-one-10",
-   "spotify_id": "6g1aAej4xMy5ZYXlVENEIp",
-   "spotify_url": "https://open.spotify.com/track/6g1aAej4xMy5ZYXlVENEIp",
+   "hdrr_url": "https://www.hdrr.info/tracks/we-rise-6",
+   "spotify_id": "32ghCDEzLFGA9Y7YcK01dr",
+   "spotify_url": "https://open.spotify.com/track/32ghCDEzLFGA9Y7YcK01dr",
    "popularitat_hdrr": 0,
-   "isrc": "BEB682601141",
-   "portada": "https://www.hdrr.info/media/img/covers/480/dirty-workz-be-the-one-cover-art-2-a8c4ed13.webp"
+   "isrc": "QTAF22645636",
+   "portada": "https://www.hdrr.info/media/img/covers/480/radyx-we-rise-cover-art-74b289e0.webp"
   },
   {
-   "titol": "Maniac Media",
+   "titol": "One Word",
    "artistes": [
-    "Phantom",
-    "MC Activate",
-    "YZZI"
+    "Regain",
+    "MC Renegade"
    ],
    "genere": "Hardstyle",
-   "data": "2026-11-25",
-   "punts": 0.0,
-   "motius": [],
+   "data": "2026-11-26",
+   "punts": 18.0,
+   "motius": [
+    "Regain: #65 al Top 100 de HDRR (+18.0)"
+   ],
    "versio": false,
    "comodi": true,
-   "hdrr_url": "https://www.hdrr.info/tracks/maniac-media",
-   "spotify_id": "0eSBpgHkce541YHBNLnA77",
-   "spotify_url": "https://open.spotify.com/track/0eSBpgHkce541YHBNLnA77",
+   "hdrr_url": "https://www.hdrr.info/tracks/one-word",
+   "spotify_id": "75RCdhZz8bKAj6BmBAe9G7",
+   "spotify_url": "https://open.spotify.com/track/75RCdhZz8bKAj6BmBAe9G7",
    "popularitat_hdrr": 0,
-   "isrc": "NL1S62602201",
-   "portada": "https://www.hdrr.info/media/img/covers/480/phantom-maniac-media-cover-art-37295934.webp"
+   "isrc": "GBLV62626575",
+   "portada": "https://www.hdrr.info/media/img/covers/480/regain-one-word-cover-art-e2243252.webp"
   }
  ],
  "tots": [
   {
+   "titol": "Fireman",
+   "artistes": [
+    "The Straikerz",
+    "Villain"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-26",
+   "punts": 47.5,
+   "versio": false,
+   "spotify_id": "3Y1yHMydEEIHikGft5GHFS",
+   "hdrr_url": "https://www.hdrr.info/tracks/fireman-3"
+  },
+  {
+   "titol": "I CHOOSE U",
+   "artistes": [
+    "Dual Damage",
+    "TOZA"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-26",
+   "punts": 45.0,
+   "versio": false,
+   "spotify_id": "4MWoxMOGVv7Ow69tsPxzrN",
+   "hdrr_url": "https://www.hdrr.info/tracks/i-choose-u"
+  },
+  {
+   "titol": "We Rise",
+   "artistes": [
+    "RADYX",
+    "Eternal Records"
+   ],
+   "genere": "Euphoric Hardstyle",
+   "data": "2026-11-26",
+   "punts": 34.0,
+   "versio": false,
+   "spotify_id": "32ghCDEzLFGA9Y7YcK01dr",
+   "hdrr_url": "https://www.hdrr.info/tracks/we-rise-6"
+  },
+  {
+   "titol": "Resurrexion",
+   "artistes": [
+    "Radical Redemption",
+    "Nolz"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-26",
+   "punts": 33.0,
+   "versio": false,
+   "spotify_id": "1LNnQd2LDZuVAuuRdn3rDK",
+   "hdrr_url": "https://www.hdrr.info/tracks/resurrexion"
+  },
+  {
+   "titol": "One Word",
+   "artistes": [
+    "Regain",
+    "MC Renegade"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-26",
+   "punts": 18.0,
+   "versio": false,
+   "spotify_id": "75RCdhZz8bKAj6BmBAe9G7",
+   "hdrr_url": "https://www.hdrr.info/tracks/one-word"
+  },
+  {
+   "titol": "Lost",
+   "artistes": [
+    "Audiofreq"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-26",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "18UokPVrF6TYnXRXCmFC9N",
+   "hdrr_url": "https://www.hdrr.info/tracks/lost-45"
+  },
+  {
+   "titol": "BASS GOES DOWN",
+   "artistes": [
+    "Coldax"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-26",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "22w8jMC3DPTYOVfqOfbUdT",
+   "hdrr_url": "https://www.hdrr.info/tracks/bass-goes-down"
+  },
+  {
+   "titol": "Fake Smile",
+   "artistes": [
+    "Spitfire"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-26",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "39PFrbKlMIDTZFipVKvR3d",
+   "hdrr_url": "https://www.hdrr.info/tracks/fake-smile-2"
+  },
+  {
+   "titol": "Queens Of The Underground",
+   "artistes": [
+    "LALOU",
+    "Miia Solar"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-26",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "7JKVueUrFnt7s8bPpFnNUU",
+   "hdrr_url": "https://www.hdrr.info/tracks/queens-of-the-underground"
+  },
+  {
+   "titol": "Ultraviolet Skies",
+   "artistes": [
+    "Andrew Liogas"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-26",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "09mdGH5T9TwDBwuPZ28gMx",
+   "hdrr_url": "https://www.hdrr.info/tracks/ultraviolet-skies"
+  },
+  {
+   "titol": "Let You Go",
+   "artistes": [
+    "Skinwalker"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-26",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "6y3m8gop2V4nK11AseMX3J",
+   "hdrr_url": "https://www.hdrr.info/tracks/let-you-go-18"
+  },
+  {
+   "titol": "I AM THE CORE",
+   "artistes": [
+    "Superior Core"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-26",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "3sGdMklMgJzPxrVLdsZHIV",
+   "hdrr_url": "https://www.hdrr.info/tracks/i-am-the-core"
+  },
+  {
+   "titol": "THUNDER",
+   "artistes": [
+    "RaveZeroSix",
+    "Korry karteK"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-26",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "4UkYuqriQozLXAyS5DyZhn",
+   "hdrr_url": "https://www.hdrr.info/tracks/thunder-23"
+  },
+  {
+   "titol": "Night Party",
+   "artistes": [
+    "MICHALEK"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-26",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "0va5YJSxpCyOQYm4jfQ6az",
+   "hdrr_url": "https://www.hdrr.info/tracks/night-party"
+  },
+  {
+   "titol": "Move Your Body",
+   "artistes": [
+    "MICHALEK"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-26",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "0cJqZrasdXjrKT6aQvZsvB",
+   "hdrr_url": "https://www.hdrr.info/tracks/move-your-body-27"
+  },
+  {
+   "titol": "Moet",
+   "artistes": [
+    "MICHALEK"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-26",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "4MyHYVD4avxwax4ozfLOAp",
+   "hdrr_url": "https://www.hdrr.info/tracks/moet"
+  },
+  {
    "titol": "Treasure Time!",
    "artistes": [
     "Disaster",
@@ -92,7 +296,7 @@
    ],
    "genere": "Hardstyle",
    "data": "2026-11-25",
-   "punts": 3.0,
+   "punts": 0.0,
    "versio": false,
    "spotify_id": "0B5QKvWDqP4HUW0tjL159c",
    "hdrr_url": "https://www.hdrr.info/tracks/treasure-time"
@@ -188,108 +392,133 @@
    "hdrr_url": "https://www.hdrr.info/tracks/the-power-of-memories-4"
   },
   {
-   "titol": "Yerba",
+   "titol": "After The Fall",
    "artistes": [
-    "Juicy J",
-    "Amero",
-    "Alek Sandar",
-    "TTECHNO"
+    "Jeener"
    ],
    "genere": "Hardstyle",
-   "data": "2026-11-24",
+   "data": "2026-11-25",
    "punts": 0.0,
    "versio": false,
-   "spotify_id": "4yPicMJpG4pPTsfwQatB0I",
-   "hdrr_url": "https://www.hdrr.info/tracks/yerba"
-  },
-  {
-   "titol": "Blinded Love",
-   "artistes": [
-    "Bassfighterz"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-24",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "5ZZL6gKjaMUtUQwDtYJikk",
-   "hdrr_url": "https://www.hdrr.info/tracks/blinded-love"
-  },
-  {
-   "titol": "Trip Hazards - Original Mix",
-   "artistes": [
-    "Kindred Spirit"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-24",
-   "punts": 0.0,
-   "versio": false,
-   "spotify_id": "4dtBfpBpvRIe98ABWZo6mL",
-   "hdrr_url": "https://www.hdrr.info/tracks/trip-hazards-original-mix"
-  },
-  {
-   "titol": "Like There's No Tomorrow - Extended Mix",
-   "artistes": [
-    "Simon Gravity"
-   ],
-   "genere": "Hardstyle",
-   "data": "2026-11-24",
-   "punts": -20.0,
-   "versio": true,
-   "spotify_id": "7i9i3Zd9eQ2x5tKnwaGLZ4",
-   "hdrr_url": "https://www.hdrr.info/tracks/like-there-s-no-tomorrow"
+   "spotify_id": "0J3fkmKYuoRt9uoGb38X41",
+   "hdrr_url": "https://www.hdrr.info/tracks/after-the-fall"
   }
  ],
  "resta": [
   {
-   "titol": "Heatwaves",
+   "titol": "Resurrexion",
    "artistes": [
-    "Cardination",
-    "Invaderz",
-    "MC Pez"
-   ],
-   "genere": "Hardstyle",
-   "punts": 0.0
-  },
-  {
-   "titol": "Maniac Media",
-   "artistes": [
-    "Phantom",
-    "MC Activate",
-    "YZZI"
-   ],
-   "genere": "Hardstyle",
-   "punts": 0.0
-  },
-  {
-   "titol": "Psycho",
-   "artistes": [
-    "Fury"
+    "Radical Redemption",
+    "Nolz"
    ],
    "genere": "Rawstyle",
-   "punts": 0.0
+   "punts": 33.0
   },
   {
-   "titol": "The Power of Memories",
+   "titol": "One Word",
    "artistes": [
-    "Midnyte Mafia"
+    "Regain",
+    "MC Renegade"
+   ],
+   "genere": "Hardstyle",
+   "punts": 18.0
+  },
+  {
+   "titol": "BASS GOES DOWN",
+   "artistes": [
+    "Coldax"
    ],
    "genere": "Hardstyle",
    "punts": 0.0
   },
   {
-   "titol": "The Transition",
+   "titol": "Fake Smile",
    "artistes": [
-    "Dulehec"
+    "Spitfire"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "I AM THE CORE",
+   "artistes": [
+    "Superior Core"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Let You Go",
+   "artistes": [
+    "Skinwalker"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Lost",
+   "artistes": [
+    "Audiofreq"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Moet",
+   "artistes": [
+    "MICHALEK"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Move Your Body",
+   "artistes": [
+    "MICHALEK"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Night Party",
+   "artistes": [
+    "MICHALEK"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Queens Of The Underground",
+   "artistes": [
+    "LALOU",
+    "Miia Solar"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "THUNDER",
+   "artistes": [
+    "RaveZeroSix",
+    "Korry karteK"
+   ],
+   "genere": "Hardstyle",
+   "punts": 0.0
+  },
+  {
+   "titol": "Ultraviolet Skies",
+   "artistes": [
+    "Andrew Liogas"
    ],
    "genere": "Hardstyle",
    "punts": 0.0
   }
  ],
  "estadistiques": {
-  "llegits": 40,
-  "del_dia": 8,
-  "despres_filtre": 8,
-  "artistes_top100": 141,
+  "llegits": 60,
+  "del_dia": 16,
+  "despres_filtre": 16,
+  "artistes_top100": 140,
   "temes_chart_propi": 10
  },
  "avisos": []
