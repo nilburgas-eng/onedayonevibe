@@ -3433,6 +3433,18 @@
     }
    ],
    "eliminats": 0
+  },
+  {
+   "data": "2026-11-27",
+   "executat": "2026-11-27T13:27:43+00:00",
+   "afegits": [
+    {
+     "titol": "We Wish You a Merry Christmas",
+     "spotify_id": "7ciGV8jHthF2y35OgSHGfC",
+     "manual": true
+    }
+   ],
+   "eliminats": 0
   }
  ]
 }
