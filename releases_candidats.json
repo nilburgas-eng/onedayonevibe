@@ -1,18 +1,899 @@
 {
  "data": "2026-11-28",
- "generat": "2026-11-28T02:45:14+00:00",
+ "generat": "2026-11-28T15:39:01+00:00",
  "font": "hdrr.info",
- "candidats": [],
- "tots": [],
+ "candidats": [
+  {
+   "titol": "Just Relax",
+   "artistes": [
+    "Outer Mind"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-28",
+   "punts": 0.0,
+   "motius": [],
+   "versio": false,
+   "comodi": false,
+   "hdrr_url": "https://www.hdrr.info/tracks/just-relax-2",
+   "spotify_id": "0JToF2FgRFlY3rOUAPFyHR",
+   "spotify_url": "https://open.spotify.com/track/0JToF2FgRFlY3rOUAPFyHR",
+   "popularitat_hdrr": 0,
+   "isrc": "QTA2X2607125",
+   "portada": "https://www.hdrr.info/media/img/covers/480/outer-mind-just-relax-cover-art-ef3696c5.webp"
+  },
+  {
+   "titol": "SOLO NELLA NOTTE",
+   "artistes": [
+    "Daniele Mondello"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-28",
+   "punts": 0.0,
+   "motius": [],
+   "versio": false,
+   "comodi": false,
+   "hdrr_url": "https://www.hdrr.info/tracks/solo-nella-notte",
+   "spotify_id": "7aTjMT00LD5C1kMsipokRI",
+   "spotify_url": "https://open.spotify.com/track/7aTjMT00LD5C1kMsipokRI",
+   "popularitat_hdrr": 0,
+   "isrc": "DGA062617854",
+   "portada": "https://www.hdrr.info/media/img/covers/480/daniele-mondello-solo-nella-notte-cover-art-f98412a7.webp"
+  },
+  {
+   "titol": "Winter",
+   "artistes": [
+    "BAQ"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-28",
+   "punts": 0.0,
+   "motius": [],
+   "versio": false,
+   "comodi": false,
+   "hdrr_url": "https://www.hdrr.info/tracks/winter-2",
+   "spotify_id": "3AmvRmp92p65auiTmttG6T",
+   "spotify_url": "https://open.spotify.com/track/3AmvRmp92p65auiTmttG6T",
+   "popularitat_hdrr": 0,
+   "isrc": "QTAEZ2635528",
+   "portada": "https://www.hdrr.info/media/img/covers/480/baq-winter-cover-art-8ff6575f.webp"
+  }
+ ],
+ "tots": [
+  {
+   "titol": "SOLO NELLA NOTTE",
+   "artistes": [
+    "Daniele Mondello"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-28",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "7aTjMT00LD5C1kMsipokRI",
+   "hdrr_url": "https://www.hdrr.info/tracks/solo-nella-notte"
+  },
+  {
+   "titol": "Winter",
+   "artistes": [
+    "BAQ"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-28",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "3AmvRmp92p65auiTmttG6T",
+   "hdrr_url": "https://www.hdrr.info/tracks/winter-2"
+  },
+  {
+   "titol": "Just Relax",
+   "artistes": [
+    "Outer Mind"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-28",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "0JToF2FgRFlY3rOUAPFyHR",
+   "hdrr_url": "https://www.hdrr.info/tracks/just-relax-2"
+  },
+  {
+   "titol": "PSYCHEDELICS (REACTIVATED)",
+   "artistes": [
+    "Mutilator"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-27",
+   "punts": 43.0,
+   "versio": false,
+   "spotify_id": "0k9NM92azSLBGmDjcrrEfh",
+   "hdrr_url": "https://www.hdrr.info/tracks/psychedelics-reactivated"
+  },
+  {
+   "titol": "FIRE (REACTIVATED)",
+   "artistes": [
+    "Mutilator",
+    "Sovereign King"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-27",
+   "punts": 43.0,
+   "versio": false,
+   "spotify_id": "7pDBpmIgBXF8BJ4DPk0cNr",
+   "hdrr_url": "https://www.hdrr.info/tracks/fire-reactivated"
+  },
+  {
+   "titol": "Dare to Let Go",
+   "artistes": [
+    "Ephoric"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-27",
+   "punts": 38.5,
+   "versio": false,
+   "spotify_id": "6ltMO8s7eI8tHMXW8jRh6g",
+   "hdrr_url": "https://www.hdrr.info/tracks/dare-to-let-go"
+  },
+  {
+   "titol": "Turn it Up",
+   "artistes": [
+    "Radical Redemption"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-27",
+   "punts": 35.0,
+   "versio": false,
+   "spotify_id": "0AduPlDa3T4fqwDZFM06ka",
+   "hdrr_url": "https://www.hdrr.info/tracks/turn-it-up-38"
+  },
+  {
+   "titol": "The Drive to Survive",
+   "artistes": [
+    "Radical Redemption"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-27",
+   "punts": 35.0,
+   "versio": false,
+   "spotify_id": "5dDDTkXCNA75cDJh1n2Bs5",
+   "hdrr_url": "https://www.hdrr.info/tracks/the-drive-to-survive-2"
+  },
+  {
+   "titol": "The Curse of the Black Pearl",
+   "artistes": [
+    "Radical Redemption"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-27",
+   "punts": 35.0,
+   "versio": false,
+   "spotify_id": "6RQwDxm1l6RIEPPd0wpDR9",
+   "hdrr_url": "https://www.hdrr.info/tracks/the-curse-of-the-black-pearl"
+  },
+  {
+   "titol": "The Big Symphony",
+   "artistes": [
+    "Radical Redemption"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-27",
+   "punts": 35.0,
+   "versio": false,
+   "spotify_id": "0dwW3X74v6KSyi5YAij1GS",
+   "hdrr_url": "https://www.hdrr.info/tracks/the-big-symphony"
+  },
+  {
+   "titol": "Steady & Heavy",
+   "artistes": [
+    "Radical Redemption",
+    "D-Sturb"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-27",
+   "punts": 35.0,
+   "versio": false,
+   "spotify_id": "2Kd9fGX8l8ue5CDLHZqXCy",
+   "hdrr_url": "https://www.hdrr.info/tracks/steady-heavy"
+  },
+  {
+   "titol": "Requiem of the Radicals",
+   "artistes": [
+    "Radical Redemption"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-27",
+   "punts": 35.0,
+   "versio": false,
+   "spotify_id": "2yV1p7zPQfkvYQ9FxPEMyF",
+   "hdrr_url": "https://www.hdrr.info/tracks/requiem-of-the-radicals"
+  },
+  {
+   "titol": "Reign of the Jurassic",
+   "artistes": [
+    "Radical Redemption"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-27",
+   "punts": 35.0,
+   "versio": false,
+   "spotify_id": "2u2uZaPcJwUBGAa2nh3Gow",
+   "hdrr_url": "https://www.hdrr.info/tracks/reign-of-the-jurassic"
+  },
+  {
+   "titol": "Laser Legion Live Phase 2 Theme",
+   "artistes": [
+    "Radical Redemption"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-27",
+   "punts": 35.0,
+   "versio": false,
+   "spotify_id": "4SisxwiXrR4IEc7LM2T2qD",
+   "hdrr_url": "https://www.hdrr.info/tracks/laser-legion-live-phase-2-theme"
+  },
+  {
+   "titol": "I'm the Creator",
+   "artistes": [
+    "Radical Redemption",
+    "Minus Militia"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-27",
+   "punts": 35.0,
+   "versio": false,
+   "spotify_id": "3oZoWiw40LTIFVi52NEmA4",
+   "hdrr_url": "https://www.hdrr.info/tracks/i-m-the-creator"
+  },
+  {
+   "titol": "Brooms, Wands & Spells",
+   "artistes": [
+    "Radical Redemption"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-27",
+   "punts": 35.0,
+   "versio": false,
+   "spotify_id": "3uhClCDQ6RqxryV73ZONRg",
+   "hdrr_url": "https://www.hdrr.info/tracks/brooms-wands-spells"
+  },
+  {
+   "titol": "Break the Curse",
+   "artistes": [
+    "Radical Redemption"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-27",
+   "punts": 35.0,
+   "versio": false,
+   "spotify_id": "4ywIX3twrocQrGswRmWCsc",
+   "hdrr_url": "https://www.hdrr.info/tracks/break-the-curse"
+  },
+  {
+   "titol": "Still nr.1 - Brennan Heart Remix",
+   "artistes": [
+    "Brennan Heart",
+    "Neophyte",
+    "Tha Playah"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-27",
+   "punts": 29.0,
+   "versio": true,
+   "spotify_id": "3Au1VxhJJFRw04YnCeQb4g",
+   "hdrr_url": "https://www.hdrr.info/tracks/still-nr-1-brennan-heart-remix"
+  },
+  {
+   "titol": "BLACKLISTED",
+   "artistes": [
+    "Unresolved"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-27",
+   "punts": 28.0,
+   "versio": false,
+   "spotify_id": "2YxkGGztb04prm4nb2o9we",
+   "hdrr_url": "https://www.hdrr.info/tracks/blacklisted-2"
+  },
+  {
+   "titol": "In The Moment",
+   "artistes": [
+    "Shadow Legacy",
+    "Resilience",
+    "Revizion"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-27",
+   "punts": 26.0,
+   "versio": false,
+   "spotify_id": "21YfzODrdoEfDMR6VxmO2g",
+   "hdrr_url": "https://www.hdrr.info/tracks/in-the-moment-2"
+  },
+  {
+   "titol": "Nothing Feels The Same",
+   "artistes": [
+    "Nightcraft",
+    "Level One"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-27",
+   "punts": 21.5,
+   "versio": false,
+   "spotify_id": "4gORWPNzeasPKKvYDXmEZf",
+   "hdrr_url": "https://www.hdrr.info/tracks/nothing-feels-the-same"
+  },
+  {
+   "titol": "The Spell of Sin - Radical's Resurrexion Remix",
+   "artistes": [
+    "Radical Redemption",
+    "Tha Watcher"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-27",
+   "punts": 15.0,
+   "versio": true,
+   "spotify_id": "6lMFZf7KwmQ796MnCUxro9",
+   "hdrr_url": "https://www.hdrr.info/tracks/the-spell-of-sin-radical-s-resurrexion-remix"
+  },
+  {
+   "titol": "Kingpin - Radical's Resurrexion Remix",
+   "artistes": [
+    "Radical Redemption",
+    "Nolz"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-27",
+   "punts": 15.0,
+   "versio": true,
+   "spotify_id": "6lUFSImEJOhuaq4WFxY3sq",
+   "hdrr_url": "https://www.hdrr.info/tracks/kingpin-radical-s-resurrexion-remix"
+  },
+  {
+   "titol": "Brutal 6.0 - Radical's Resurrexion Remix",
+   "artistes": [
+    "Radical Redemption"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-27",
+   "punts": 15.0,
+   "versio": true,
+   "spotify_id": "5YsnNgXxS7E7teV8fOY1ZL",
+   "hdrr_url": "https://www.hdrr.info/tracks/brutal-6-0-radical-s-resurrexion-remix"
+  },
+  {
+   "titol": "Expand & Evolve (Spoontech Society 2026 Anthem)",
+   "artistes": [
+    "Vasto",
+    "The Smiler",
+    "MC Robs",
+    "Faceless",
+    "Iris Goes"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-27",
+   "punts": 15.0,
+   "versio": false,
+   "spotify_id": "00KJRYflUiXl5HWODaqPwg",
+   "hdrr_url": "https://www.hdrr.info/tracks/expand-evolve-spoontech-society-2026-anthem"
+  },
+  {
+   "titol": "Combination - Radio Edit",
+   "artistes": [
+    "Loic D",
+    "High Resistance"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-27",
+   "punts": 12.5,
+   "versio": true,
+   "spotify_id": "1RChJzALq0pdHIprsjQ0aa",
+   "hdrr_url": "https://www.hdrr.info/tracks/combination-radio-edit"
+  },
+  {
+   "titol": "FREE YOUR MIND - Extended Mix",
+   "artistes": [
+    "LNY TNZ",
+    "MADGRRL"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-27",
+   "punts": 12.0,
+   "versio": true,
+   "spotify_id": "4k4MLXTLOKWnAsTFUO4FAA",
+   "hdrr_url": "https://www.hdrr.info/tracks/free-your-mind-21"
+  },
+  {
+   "titol": "Super Bass - Extended Mix",
+   "artistes": [
+    "Dr Rude",
+    "GLDY LX"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-27",
+   "punts": 9.5,
+   "versio": true,
+   "spotify_id": "4yYUHwgvdaDSihhDfas97v",
+   "hdrr_url": "https://www.hdrr.info/tracks/super-bass-2"
+  },
+  {
+   "titol": "Party Alarm",
+   "artistes": [
+    "Dimatik",
+    "ANAVAX"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-27",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "6in4SkerO3pP2IyTXpiQaT",
+   "hdrr_url": "https://www.hdrr.info/tracks/party-alarm-3"
+  },
+  {
+   "titol": "DJ Got Us Fallin' In Love",
+   "artistes": [
+    "Araysen"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-27",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "5IgOiB1Gz8llhzm0spBs10",
+   "hdrr_url": "https://www.hdrr.info/tracks/dj-got-us-fallin-in-love-2"
+  },
+  {
+   "titol": "Chase The Sun (United We Are)",
+   "artistes": [
+    "Lost Identity",
+    "Teknoclash"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-27",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "1RxpjNtZkyaSCVRhdgt81A",
+   "hdrr_url": "https://www.hdrr.info/tracks/chase-the-sun-united-we-are"
+  },
+  {
+   "titol": "XTC",
+   "artistes": [
+    "Potato",
+    "Playboyz"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-27",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "3CGLUm2qgy24mDKG3xbDib",
+   "hdrr_url": "https://www.hdrr.info/tracks/xtc-29"
+  },
+  {
+   "titol": "Running Free",
+   "artistes": [
+    "DV8",
+    "DÃVINÃ"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-27",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "73qC0CkxlRCg43KxZNnDIm",
+   "hdrr_url": "https://www.hdrr.info/tracks/running-free"
+  },
+  {
+   "titol": "Burning Alive",
+   "artistes": [
+    "Dirty Workz",
+    "Jade Key"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-27",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "0SrmvKlomX7CrPLbFNL2hF",
+   "hdrr_url": "https://www.hdrr.info/tracks/burning-alive"
+  },
+  {
+   "titol": "Are Frogs Electric - Overdrive Mix",
+   "artistes": [
+    "MI37",
+    "2 Flying Stones"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-27",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "6O2viKnbHIiscLlJFpKd5S",
+   "hdrr_url": "https://www.hdrr.info/tracks/are-frogs-electric-overdrive-mix"
+  },
+  {
+   "titol": "SUPER NAUGHTY",
+   "artistes": [
+    "Qriminal",
+    "RAMÃN"
+   ],
+   "genere": "Rawstyle",
+   "data": "2026-11-27",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "4NWcB5Cl7lqW8lAuWvKENw",
+   "hdrr_url": "https://www.hdrr.info/tracks/super-naughty-4"
+  },
+  {
+   "titol": "Smack My Bitch Up",
+   "artistes": [
+    "Sogma",
+    "Deltex"
+   ],
+   "genere": "Euphoric Hardstyle",
+   "data": "2026-11-27",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "7ef03wkpXGnJAhFOUSjQ0l",
+   "hdrr_url": "https://www.hdrr.info/tracks/smack-my-bitch-up"
+  },
+  {
+   "titol": "NASTY",
+   "artistes": [
+    "Sanctuary"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-27",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "5OSjNhwqcIKzBgOATQuMsZ",
+   "hdrr_url": "https://www.hdrr.info/tracks/nasty-16"
+  },
+  {
+   "titol": "The Silver Armada",
+   "artistes": [
+    "Neolux"
+   ],
+   "genere": "Euphoric Hardstyle",
+   "data": "2026-11-27",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "6oMe3T6jH98IHGeX7t4d5E",
+   "hdrr_url": "https://www.hdrr.info/tracks/the-silver-armada"
+  },
+  {
+   "titol": "ALONE",
+   "artistes": [
+    "Dejection"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-27",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "6yOTlgdPEkrpXTChS9SqZb",
+   "hdrr_url": "https://www.hdrr.info/tracks/alone-44"
+  },
+  {
+   "titol": "Set Me Free",
+   "artistes": [
+    "WetNLoud",
+    "Phyre"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-27",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "0AL7msxnzu8wfUHikh2Kuz",
+   "hdrr_url": "https://www.hdrr.info/tracks/set-me-free-36"
+  },
+  {
+   "titol": "MOVE BITCH",
+   "artistes": [
+    "Phantom",
+    "Svenergy",
+    "YZZI"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-27",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "1jYuPFASUSKp7W79OwGV73",
+   "hdrr_url": "https://www.hdrr.info/tracks/move-bitch-3"
+  },
+  {
+   "titol": "Electric Hearts",
+   "artistes": [
+    "VENNIC",
+    "KELVIN FARHEAVEN"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-27",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "4qE2c7pSZSMyQd9zzXuYVC",
+   "hdrr_url": "https://www.hdrr.info/tracks/electric-hearts-3"
+  },
+  {
+   "titol": "We Made It",
+   "artistes": [
+    "Brutalizer"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-27",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "3tz9uSc2kzaijfRpqtcMVS",
+   "hdrr_url": "https://www.hdrr.info/tracks/we-made-it-4"
+  },
+  {
+   "titol": "Fire In The Hole",
+   "artistes": [
+    "Phantom",
+    "YZZI"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-27",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "0DDKgAhdqGArzNrVVuv1Gp",
+   "hdrr_url": "https://www.hdrr.info/tracks/fire-in-the-hole-5"
+  },
+  {
+   "titol": "Where Tomorrow Leads",
+   "artistes": [
+    "LILS"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-27",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "6f9gIqKLlQXwrJuOxDu2CA",
+   "hdrr_url": "https://www.hdrr.info/tracks/where-tomorrow-leads"
+  },
+  {
+   "titol": "Turn Up!",
+   "artistes": [
+    "2Lions"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-27",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "7LDX5AG9KmWu1RrMyoucx7",
+   "hdrr_url": "https://www.hdrr.info/tracks/turn-up-10"
+  },
+  {
+   "titol": "MINDFLAYER",
+   "artistes": [
+    "BITCRUSHR",
+    "KNST",
+    "MC Ruud"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-27",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "73nI7nOLcmHcyF6qAt8F2O",
+   "hdrr_url": "https://www.hdrr.info/tracks/mindflayer"
+  },
+  {
+   "titol": "Declaration Of War",
+   "artistes": [
+    "Imthox"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-27",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "43OVs4JkBW2TWNMoTUJqqY",
+   "hdrr_url": "https://www.hdrr.info/tracks/declaration-of-war-2"
+  },
+  {
+   "titol": "Skillz",
+   "artistes": [
+    "Double F-ect"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-27",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "03pxadNluy8S4YomZIlQL7",
+   "hdrr_url": "https://www.hdrr.info/tracks/skillz"
+  },
+  {
+   "titol": "Silence",
+   "artistes": [
+    "UnderGalaxies"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-27",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "2wiv2f1iGWr20mnJ0KKYki",
+   "hdrr_url": "https://www.hdrr.info/tracks/silence-37"
+  },
+  {
+   "titol": "Raver Baby",
+   "artistes": [
+    "Double F-ect"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-27",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "0HW48FwQZghJSkO9Xuy8V3",
+   "hdrr_url": "https://www.hdrr.info/tracks/raver-baby"
+  },
+  {
+   "titol": "My Drum Machine",
+   "artistes": [
+    "Double F-ect"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-27",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "5s2kPev5Lc8vIhlm6UUvUT",
+   "hdrr_url": "https://www.hdrr.info/tracks/my-drum-machine"
+  },
+  {
+   "titol": "Louder",
+   "artistes": [
+    "Double F-ect"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-27",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "2AWJlBNoW92z0AHyrtr8Ou",
+   "hdrr_url": "https://www.hdrr.info/tracks/louder-34"
+  },
+  {
+   "titol": "HEAVY DAMAGE",
+   "artistes": [
+    "Vazooka"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-27",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "3EiBWr2am2B6OcWW3DTbzr",
+   "hdrr_url": "https://www.hdrr.info/tracks/heavy-damage"
+  },
+  {
+   "titol": "What You Want",
+   "artistes": [
+    "Fourty Ast"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-27",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "6g7gmQMeOFcdmoVwcbGz6C",
+   "hdrr_url": "https://www.hdrr.info/tracks/what-you-want-6"
+  },
+  {
+   "titol": "Thrive",
+   "artistes": [
+    "Bluestylez"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-27",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "5dm8uXAk86yCGKkvvtxMgb",
+   "hdrr_url": "https://www.hdrr.info/tracks/thrive-2"
+  },
+  {
+   "titol": "Stay Away From Me",
+   "artistes": [
+    "Fourty Ast"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-27",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "57qiE5o4OnHhRsQ28wcWsp",
+   "hdrr_url": "https://www.hdrr.info/tracks/stay-away-from-me"
+  },
+  {
+   "titol": "Heaven",
+   "artistes": [
+    "Fourty Ast"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-27",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "4J3j8vjQzSlkgMuBBVwv96",
+   "hdrr_url": "https://www.hdrr.info/tracks/heaven-35"
+  },
+  {
+   "titol": "Good TIme",
+   "artistes": [
+    "Cryonix"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-27",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "2yGm3c53m6rKetyDeBKpMg",
+   "hdrr_url": "https://www.hdrr.info/tracks/good-time-13"
+  },
+  {
+   "titol": "Circles",
+   "artistes": [
+    "Fourty Ast"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-27",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "7Djktn9wCwzEjkxWpdoQhP",
+   "hdrr_url": "https://www.hdrr.info/tracks/circles-10"
+  },
+  {
+   "titol": "Baby",
+   "artistes": [
+    "Fourty Ast"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-27",
+   "punts": 0.0,
+   "versio": false,
+   "spotify_id": "2MOpQXiO6CCHeOqzF2DNnJ",
+   "hdrr_url": "https://www.hdrr.info/tracks/baby-9"
+  },
+  {
+   "titol": "Beyond Time - Extended Mix",
+   "artistes": [
+    "B-Stork"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-27",
+   "punts": -20.0,
+   "versio": true,
+   "spotify_id": "7DLtlSCrjeZaHV2FDZN8nF",
+   "hdrr_url": "https://www.hdrr.info/tracks/beyond-time-radio-mix"
+  },
+  {
+   "titol": "Slow Down - Radio Edit",
+   "artistes": [
+    "Spars",
+    "DAAUZD"
+   ],
+   "genere": "Euphoric Hardstyle",
+   "data": "2026-11-27",
+   "punts": -20.0,
+   "versio": true,
+   "spotify_id": "16JneH8vK0WaMTDHaJNJmn",
+   "hdrr_url": "https://www.hdrr.info/tracks/slow-down-radio-edit-3"
+  },
+  {
+   "titol": "Drop The Bomb (Jimmy The Sound Remix) - Extended Mix",
+   "artistes": [
+    "Jimmy The Sound",
+    "GDJ81"
+   ],
+   "genere": "Hardstyle",
+   "data": "2026-11-27",
+   "punts": -20.0,
+   "versio": true,
+   "spotify_id": "5aAYXOdHUPbXAxc42UJc9V",
+   "hdrr_url": "https://www.hdrr.info/tracks/drop-the-bomb-jimmy-the-sound-remix"
+  },
+  {
+   "titol": "Moved On - Extended Mix",
+   "artistes": [
+    "Donkey Tae",
+    "DAAUZD"
+   ],
+   "genere": "Euphoric Hardstyle",
+   "data": "2026-11-27",
+   "punts": -20.0,
+   "versio": true,
+   "spotify_id": "0w9Ka6trjwGukmR0axTJYd",
+   "hdrr_url": "https://www.hdrr.info/tracks/moved-on"
+  }
+ ],
  "resta": [],
  "estadistiques": {
-  "llegits": 20,
-  "del_dia": 0,
-  "despres_filtre": 0,
-  "artistes_top100": 141,
+  "llegits": 100,
+  "del_dia": 4,
+  "despres_filtre": 3,
+  "artistes_top100": 135,
   "temes_chart_propi": 10
  },
- "avisos": [
-  "Cap llancament d'aquesta data a HDRR (potser encara no s'han afegit)"
- ]
+ "avisos": []
 }
